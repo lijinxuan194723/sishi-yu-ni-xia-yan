@@ -1,6 +1,6 @@
 /* Unified notes page: keep the app-level "时光手记" header as the only page header. */
 /* Theme swaps are atomic. Do not interpolate colors, light or image opacity. */
-:root body,:root .app-shell,:root .app-shell *,:root .settings,:root .settings *{transition:none!important}
+/* Motion is not disabled globally. See motion.css for scoped timings. */
 .app-shell:has(.main-nav button:nth-child(5)[data-active]) .page-bar .bar-actions {
   display: none !important;
 }

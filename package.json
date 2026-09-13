@@ -1,15 +1,18 @@
 {
   "name": "sites-project",
-  "version": "2.0.1-preview.1",
+  "version": "2.0.1-preview.2",
   "private": true,
-  "engines": {"node": ">=22.13.0"},
+  "engines": {
+    "node": ">=22.13.0"
+  },
   "scripts": {
     "dev": "vinext dev",
     "build": "vinext build",
     "start": "wrangler dev --config dist/server/wrangler.json",
     "lint": "oxlint",
     "format": "oxfmt",
-    "test:detail-polish": "node --experimental-strip-types --test scripts/checks/topic-chat-polish.test.mjs scripts/checks/detail-round2.test.mjs"
+    "test:detail-polish": "node --experimental-strip-types --test scripts/checks/topic-chat-polish.test.mjs scripts/checks/detail-round2.test.mjs",
+    "test:motion": "node --experimental-strip-types --test scripts/checks/motion.test.mjs"
   },
   "dependencies": {
     "@base-ui/react": "1.7.0",

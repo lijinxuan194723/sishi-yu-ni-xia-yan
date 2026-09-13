@@ -93,16 +93,19 @@ public class MainActivity extends Activity {
  private void applySystemTheme(){String color=systemColor.isEmpty()?"#214f4c":systemColor;boolean dark=darkSystemBars;int value=Color.parseColor(color);viewport.setBackgroundColor(value);getWindow().setStatusBarColor(value);getWindow().setNavigationBarColor(value);if(android.os.Build.VERSION.SDK_INT>=30){android.view.WindowInsetsController c=getWindow().getInsetsController();if(c!=null){int mask=android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS|android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS;c.setSystemBarsAppearance(dark?0:mask,mask);}}else getWindow().getDecorView().setSystemUiVisibility(dark?0:android.view.View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR|android.view.View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);}
  // Native startup only: no remote assets, new dependencies, or minimum display delay.
  private final class SoftStartup {
-  private static final long EXIT_MS=260L, FAILURE_MS=8000L;
+  private static final long EXIT_MS=380L, FAILURE_MS=8000L;
   private final android.os.Handler handler=new android.os.Handler(android.os.Looper.getMainLooper());
   private final Runnable watchdog=()->fail();
-  private final android.view.animation.Interpolator ease=new android.view.animation.PathInterpolator(.2f,0f,0f,1f);
+  private final android.view.animation.Interpolator ease=new android.view.animation.PathInterpolator(.4f,0f,.2f,1f);
   private android.widget.FrameLayout layer;
   private android.widget.ImageView mark;
   private android.widget.LinearLayout failure;
   private android.animation.ValueAnimator bars;
   private android.view.ViewTreeObserver.OnPreDrawListener hold;
   private Runnable removePlatform;
+  private android.view.View platformView;
+  private long markStarted;
+  private boolean themeTransition;
   private boolean released,disposed,finishing;
   private int background,generation;
 
@@ -131,10 +134,11 @@ public class MainActivity extends Activity {
     hold=()->released;
     viewport.getViewTreeObserver().addOnPreDrawListener(hold);
     PlatformSplash.install(MainActivity.this,this);
-   }else{released=true;startMark();}
+   }else{released=true;mark.postOnAnimation(()->{if(!disposed&&!contentReady)startMark();});}
    handler.postDelayed(watchdog,FAILURE_MS);
   }
   private void startMark(){
+   markStarted=android.os.SystemClock.uptimeMillis();
    if(!motion()){mark.setImageResource(resource("luke_launch_mark","drawable"));return;}
    mark.setImageResource(resource("luke_launch_animated","drawable"));
    android.graphics.drawable.Drawable d=mark.getDrawable();
@@ -149,35 +153,62 @@ public class MainActivity extends Activity {
    if(hold!=null){if(viewport.getViewTreeObserver().isAlive())viewport.getViewTreeObserver().removeOnPreDrawListener(hold);hold=null;}
    viewport.invalidate();
   }
-  void systemExit(android.view.View splash,android.view.View icon,Runnable remove){
+  void systemExit(android.view.View splash,android.view.View icon,Runnable remove,long introRemaining){
    if(disposed){remove.run();return;}
-   removePlatform=remove;
-   if(!motion()){remove.run();removePlatform=null;return;}
-   if(icon!=null)icon.animate().scaleX(.96f).scaleY(.96f).setDuration(EXIT_MS).setInterpolator(ease).start();
-   splash.animate().alpha(0f).setDuration(EXIT_MS).setInterpolator(ease).withEndAction(()->{
-    if(removePlatform!=null){removePlatform.run();removePlatform=null;}
-   }).start();
+   removePlatform=remove;platformView=splash;
+   if(!motion()){finishPlatform();return;}
+   // Let the ongoing vector settle; never reset it to its final frame at pageReady.
+   long delay=Math.min(180L,Math.max(0L,introRemaining-EXIT_MS));
+   animateExit(splash,icon,delay,this::finishPlatform,"system");
+  }
+  private void finishPlatform(){
+   if(platformView!=null){platformView.animate().cancel();platformView=null;}
+   if(removePlatform!=null){Runnable remove=removePlatform;removePlatform=null;remove.run();}
+  }
+  private void animateExit(android.view.View surface,android.view.View icon,long delay,Runnable remove,String name){
+   final int token=generation;
+   handler.postDelayed(()->{
+    if(disposed||token!=generation)return;
+    if(!motion()){remove.run();return;}
+    final long began=android.os.SystemClock.uptimeMillis();
+    final int[] frames={0};
+    android.util.Log.i("LukeMotion",name+" exit-start");
+    if(icon!=null)icon.animate().scaleX(.98f).scaleY(.98f).setDuration(EXIT_MS).setInterpolator(ease).start();
+    surface.animate().alpha(0f).setDuration(EXIT_MS).setInterpolator(ease)
+     .setUpdateListener(a->frames[0]++)
+     .withEndAction(()->{
+      if(disposed||token!=generation)return;
+      android.util.Log.i("LukeMotion",name+" exit-complete ms="+(android.os.SystemClock.uptimeMillis()-began)+" frames="+frames[0]);
+      remove.run();
+     }).start();
+   },delay);
   }
   void ready(){
-   if(disposed||finishing)return;finishing=true;handler.removeCallbacks(watchdog);stopMark();
+   if(disposed||finishing)return;finishing=true;handler.removeCallbacks(watchdog);
    boolean wasHeld=!released;
-   // Never scale the WebView: text and the bottom navigation remain sharp and stationary.
    web.setVisibility(android.view.View.VISIBLE);web.setAlpha(1f);
+   // Keep WebView stationary. Only the native cover fades, after a prepared content frame.
    if(wasHeld||!motion())removeLayer();
    else{
-    mark.animate().scaleX(.96f).scaleY(.96f).setDuration(EXIT_MS).setInterpolator(ease).start();
-    layer.animate().alpha(0f).setDuration(EXIT_MS).setInterpolator(ease).withEndAction(this::removeLayer).start();
+    long elapsed=markStarted==0?180L:android.os.SystemClock.uptimeMillis()-markStarted;
+    animateExit(layer,mark,Math.max(0L,140L-elapsed),this::removeLayer,"legacy");
    }
-   applySystemTheme();
-   if(motion()){
-    int target=Color.parseColor(systemColor.isEmpty()?"#214f4c":systemColor);
-    bars=android.animation.ValueAnimator.ofArgb(background,target);bars.setDuration(EXIT_MS);bars.setInterpolator(ease);
-    bars.addUpdateListener(a->{if(!disposed){int c=(int)a.getAnimatedValue();getWindow().setStatusBarColor(c);getWindow().setNavigationBarColor(c);}});
-    bars.addListener(new android.animation.AnimatorListenerAdapter(){@Override public void onAnimationEnd(android.animation.Animator a){if(!disposed)applySystemTheme();}});bars.start();
-   }
+   transitionTheme();
    releaseDraw();
   }
+  private void transitionTheme(){
+   int target=Color.parseColor(systemColor.isEmpty()?"#214f4c":systemColor);
+   viewport.setBackgroundColor(target);
+   if(!motion()){applySystemTheme();return;}
+   // Read the current bar colour first: applying the target before the tween causes a flash.
+   int from=getWindow().getStatusBarColor();
+   themeTransition=true;
+   bars=android.animation.ValueAnimator.ofArgb(from,target);bars.setDuration(EXIT_MS);bars.setInterpolator(ease);
+   bars.addUpdateListener(a->{if(!disposed){int c=(int)a.getAnimatedValue();getWindow().setStatusBarColor(c);getWindow().setNavigationBarColor(c);}});
+   bars.addListener(new android.animation.AnimatorListenerAdapter(){@Override public void onAnimationEnd(android.animation.Animator a){themeTransition=false;if(!disposed)applySystemTheme();}});bars.start();
+  }
   private void removeLayer(){
+   stopMark();
    if(layer!=null){layer.setVisibility(android.view.View.GONE);layer.setClickable(false);viewport.removeView(layer);}
   }
   void fail(){
@@ -209,13 +240,18 @@ public class MainActivity extends Activity {
    if(bars!=null)bars.cancel();
    if(layer!=null)layer.animate().cancel();
    if(mark!=null){mark.animate().cancel();stopMark();}
-   if(removePlatform!=null){removePlatform.run();removePlatform=null;}
+   finishPlatform();
   }
  }
  @android.annotation.TargetApi(31)
  private static final class PlatformSplash {
   static void install(Activity activity,SoftStartup owner){
-   activity.getSplashScreen().setOnExitAnimationListener(view->owner.systemExit(view,view.getIconView(),view::remove));
+   activity.getSplashScreen().setOnExitAnimationListener(view->{
+    long remaining=0;
+    java.time.Instant start=view.getIconAnimationStart();java.time.Duration duration=view.getIconAnimationDuration();
+    if(start!=null&&duration!=null)remaining=Math.max(0L,start.toEpochMilli()+duration.toMillis()-System.currentTimeMillis());
+    owner.systemExit(view,view.getIconView(),view::remove,remaining);
+   });
   }
  }
 
@@ -230,7 +266,7 @@ public class MainActivity extends Activity {
   }
   @JavascriptInterface public void systemTheme(String color,boolean dark){
    if(color==null||!color.matches("#[0-9a-fA-F]{6}"))return;
-   runOnUiThread(()->{if(isDestroyed()||(color.equals(systemColor)&&dark==darkSystemBars))return;systemColor=color;darkSystemBars=dark;if(contentReady)applySystemTheme();});
+   runOnUiThread(()->{if(isDestroyed()||(color.equals(systemColor)&&dark==darkSystemBars))return;systemColor=color;darkSystemBars=dark;if(contentReady&&!startup.themeTransition)applySystemTheme();});
   }
 
   @JavascriptInterface public void geocode(String id,double lat,double lon){
@@ -266,6 +302,5 @@ public class MainActivity extends Activity {
   @JavascriptInterface public void saveBackup(String name,String text){if(text==null||text.length()>16000000){toast("备份过大，暂时无法导出");return;}runOnUiThread(()->{if(exportText!=null){toast("请先完成当前导出");return;}exportText=text;try{Intent i=new Intent(Intent.ACTION_CREATE_DOCUMENT);i.addCategory(Intent.CATEGORY_OPENABLE);i.setType("application/json");i.putExtra(Intent.EXTRA_TITLE,name.replaceAll("[\\\\/:*?\"<>|]","_"));startActivityForResult(i,11);}catch(Exception e){exportText=null;toast("无法打开保存窗口");}});}
  }
 }
-
 
 

@@ -22,6 +22,7 @@ export function TopicChat(props: Props) {
 
 function TopicChatSession({ topic, config, onClose }: Props) {
   const [sessionTopic] = useState(topic);
+  const [open, setOpen] = useState(true);
   const [thread, setThread] = useState<SavedTopicThread>({ messages: [], draft: '' });
   const [ready, setReady] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -219,7 +220,7 @@ function TopicChatSession({ topic, config, onClose }: Props) {
 
   function close() {
     stopReply(false);
-    if (flush()) onClose();
+    if (flush()) setOpen(false);
     else setNotice('尚有内容未保存。请先保留草稿或重试保存，再关闭窗口。');
   }
 
@@ -258,7 +259,7 @@ function TopicChatSession({ topic, config, onClose }: Props) {
   }
 
   return (
-    <Dialog open onOpenChange={open => { if (!open) close(); }}>
+    <Dialog open={open} onOpenChange={next => { if (!next) close(); }} onOpenChangeComplete={next => { if (!next) onClose(); }}>
       <DialogContent className={`topic-chat ${styles.panel}`} style={viewportStyle}>
         <header className={styles.header}>
           <DialogTitle title={sessionTopic.title}>{sessionTopic.title}</DialogTitle>

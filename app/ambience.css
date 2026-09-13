@@ -181,7 +181,7 @@ main>.page-bar{border-radius:0;box-shadow:none;backdrop-filter:none;background:v
 
 /* Avoid repainting a blurred live page behind the appearance controls. */
 [data-slot=dialog-overlay]{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
-.season-photo>img{transition:none!important;will-change:opacity}
+
 .season-particles{opacity:0;visibility:hidden}.ambience[data-season=spring] .particles-spring,.ambience[data-season=summer] .particles-summer,.ambience[data-season=autumn] .particles-autumn,.ambience[data-season=winter] .particles-winter{opacity:1;visibility:visible}
 
 .settings[data-effects=off] .season-particles{display:none}.settings .light-layer{transition:opacity 1.2s linear}
@@ -194,18 +194,18 @@ main>.page-bar{border-radius:0;box-shadow:none;backdrop-filter:none;background:v
 
 /* Keep photo/light fades and press motion on the compositor. Animating inherited
    text colors here invalidates the particle subtree on every animation frame. */
-.settings,.settings *{transition-property:opacity,transform!important}
 
 
 
-/* No entry animation: the first frame is already in the saved theme. */
-:root:not([data-started]),:root:not([data-started]) *, :root:not([data-started]) *::before,:root:not([data-started]) *::after{transition:none!important;animation:none!important}
+
+/* Interaction motion is defined in motion.css; no startup-wide animation gate. */
+
 
 .music-moment{margin:22px 0;padding:20px;border:1px solid var(--scene-border);border-radius:16px;background:var(--scene-paper)}.music-moment .section-label{font-size:14px}.music-moment .section-label small{margin-left:auto;font-size:12px}.song-detail{display:grid;gap:7px;margin:16px 0 10px;overflow-wrap:anywhere}.song-detail strong{font-size:17px;line-height:1.6}.song-detail small,.music-moment>p{font-size:13px;color:var(--scene-muted)}.music-moment>button{margin-top:14px;gap:8px;display:inline-flex;align-items:center}
 
-/* Theme colors switch directly. Photo crossfades and press motion remain. */
-:root,body,.app-shell,.app-shell *{transition-property:opacity,transform!important}
-.app-shell .light-layer,.settings .light-layer{transition:none!important}
+/* Theme and light transitions are scoped in motion.css. */
+
+
 /* Every page reserves the same two action cells; settings is always last. */
 .page-bar .bar-actions{display:grid;grid-template-columns:44px 44px;gap:0;flex-shrink:0}
 .page-bar .bar-actions>button{width:44px;height:44px;min-width:44px;min-height:44px;padding:0;display:inline-flex;align-items:center;justify-content:center}
@@ -261,7 +261,7 @@ main>.page-bar{border-radius:0;box-shadow:none;backdrop-filter:none;background:v
 @keyframes local-settle{from{transform:translateY(4px)}to{transform:translateY(0)}}
 @keyframes local-pop{0%{transform:scale(1)}45%{transform:scale(1.12)}100%{transform:scale(1)}}
 /* Navigation stays still; six equal hit areas with a quiet selection marker. */
-:root .main-nav button,:root .main-nav button svg{transform:none!important;animation:none!important;transition:none!important}
+
 @media(max-width:600px){
  :root .main-nav{display:grid!important;grid-template-columns:repeat(6,minmax(0,1fr));gap:0}
  :root .main-nav button{position:relative;display:flex;align-items:center;justify-content:center;width:100%;height:54px;padding:6px 0;gap:5px;line-height:15px;border-radius:0;background:transparent!important;box-shadow:none!important;filter:none!important;font-weight:400}
@@ -282,13 +282,13 @@ main>.page-bar{border-radius:0;box-shadow:none;backdrop-filter:none;background:v
 @media(max-width:600px){:root[data-keyboard=true] .sidebar{display:none!important}:root[data-keyboard=true] .app-shell main{padding-bottom:8px!important}:root[data-keyboard=true] .app-shell[data-chat=true],:root[data-keyboard=true] .app-shell[data-chat=true]>.app-tabs{height:var(--keyboard-height,100dvh)}:root[data-keyboard=true] .app-shell[data-chat=true] main{padding-bottom:0!important}}
 
 /* Final motion pass: remove hard cuts introduced by the old tuning overrides. */
-:root,body,.app-shell,.app-shell *{transition-property:initial}
+
 :root,body{transition:background-color 1.2s ease,color 1.2s ease}
 .card,.sidebar,.chat-head,.composer,.chat-tools,.settings,input,textarea,select,.round,.soft-button,.primary{transition:background-color 1.2s ease,border-color 1.2s ease,color 1.2s ease,box-shadow .24s ease,opacity .24s ease,transform .24s ease}
-.season-photo>img{transition:opacity .56s cubic-bezier(.22,.72,.24,1)!important;will-change:opacity}
-:root .main-nav button,:root .main-nav button svg{transition:color .22s ease,background-color .22s ease,opacity .22s ease,transform .22s ease!important}
+
+
 .settings [data-slot=tabs-content]:not([hidden]){animation:settings-enter .32s cubic-bezier(.22,.72,.24,1) both}
-.app-shell .light-layer,.settings .light-layer{transition:opacity 1.2s ease!important}
+
 @media(prefers-reduced-motion:reduce){:root,body,.app-shell,.app-shell *,.season-photo>img{transition:none!important}.settings [data-slot=tabs-content]:not([hidden]){animation:none}}
 
 

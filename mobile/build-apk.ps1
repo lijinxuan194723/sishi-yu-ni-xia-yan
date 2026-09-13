@@ -42,7 +42,9 @@ try {
   & keytool -genkeypair -alias luke -keystore $keyFile -storetype PKCS12 -storepass:file $passFile -keypass:file $passFile -keyalg RSA -keysize 3072 -validity 10000 -dname 'CN=Luke Summer Personal App'
   if($LASTEXITCODE){throw 'Signing key creation failed'}
  }
- $apk=Join-Path $stage 'Four-Seasons-Luke-2.0.0.apk'
+ $version=(Get-Content -Raw -LiteralPath "$projectRoot/package.json" | ConvertFrom-Json).version
+ $apkName="Four-Seasons-Luke-$version.apk"
+ $apk=Join-Path $stage $apkName
  & "$buildTools/apksigner.bat" sign --ks $keyFile --ks-key-alias luke --ks-pass "file:$passFile" --out $apk "$stage/aligned.apk"
  if($LASTEXITCODE){throw 'APK signing failed'}
  & "$buildTools/apksigner.bat" verify --verbose $apk
@@ -51,7 +53,7 @@ try {
  if($LASTEXITCODE){throw 'APK alignment verification failed'}
  & $aapt dump badging $apk | Select-String 'package:|sdkVersion|targetSdkVersion|application-label:|launchable-activity|uses-permission:'
  if($LASTEXITCODE){throw 'Manifest check failed'}
- Copy-Item -LiteralPath $apk -Destination "$output/Four-Seasons-Luke-2.0.0.apk"
+ Copy-Item -LiteralPath $apk -Destination (Join-Path $output $apkName)
  Get-FileHash -LiteralPath $apk | Format-List
 } finally {Pop-Location}
 

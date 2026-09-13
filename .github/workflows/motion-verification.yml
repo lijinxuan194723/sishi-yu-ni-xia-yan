@@ -2,28 +2,90 @@ name: Motion Verification
 
 on:
   push:
-    branches: ['fix/motion-continuity']
+    branches: ['fix/motion-continuity', 'fix/rounded-native-startup']
   workflow_dispatch:
 
 permissions:
   contents: read
+  actions: read
 
 jobs:
-  source-audit:
+  browser-motion:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-      - name: Archive tracked source for reproducible audit
-        run: |
-          mkdir -p audit
-          git archive --format=zip HEAD --output=audit/motion-source.zip
-          git rev-parse HEAD > audit/commit.txt
-      - uses: actions/upload-artifact@v4
+      - uses: actions/setup-node@v4
         with:
-          name: motion-source-audit
-          path: audit/
-          retention-days: 7
+          node-version: '22'
+      - name: Logic regressions
+        run: |
+          set -euo pipefail
+          mkdir -p work/motion-browser
+          npm run test:detail-polish | tee work/motion-browser/detail.tap
+          npm run test:motion | tee work/motion-browser/motion.tap
+          python3 scripts/checks/check-rounded-startup.py > work/motion-browser/native-contracts.txt
+      - name: Fetch the exact-commit signed APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/checks/fetch-motion-apk.py
+      - name: Install browser test tools
+        run: |
+          python3 -m pip install playwright==1.57.0 pillow==11.3.0
+          python3 -m playwright install --with-deps chromium
+      - name: Measure actual bundle animation frames
+        run: python3 scripts/checks/motion_browser.py
+      - name: Archive auditable source
+        if: always()
+        run: git archive --format=zip HEAD app components hooks lib mobile scripts package.json > work/motion-browser/source.zip
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: motion-browser-results
+          path: |
+            work/motion-browser/
+            work/motion-candidate/build.json
+          retention-days: 14
+          if-no-files-found: error
+
+  android-motion:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        api: [30, 35]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Fetch the exact-commit signed APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/checks/fetch-motion-apk.py
+      - name: Enable emulator acceleration on the disposable runner
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Test native launch, reduced motion and WebView interactions
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api }}
+          target: google_apis
+          arch: x86_64
+          profile: pixel_2
+          disable-animations: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot -camera-back none -camera-front none
+          script: python3 scripts/checks/motion_android.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: motion-android-${{ matrix.api }}
+          path: |
+            work/motion-android/
+            work/motion-candidate/build.json
+          retention-days: 14
           if-no-files-found: error
