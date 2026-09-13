@@ -77,8 +77,9 @@ jobs:
           target: google_apis
           arch: x86_64
           profile: pixel_2
+          cores: 4
           disable-animations: false
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot -camera-back none -camera-front none
+          emulator-options: -no-window -gpu software -no-metrics -noaudio -no-boot-anim -no-snapshot -camera-back none -camera-front none
           script: |
             python3 scripts/checks/prepare-emulator-webview.py
             python3 scripts/checks/motion_android.py

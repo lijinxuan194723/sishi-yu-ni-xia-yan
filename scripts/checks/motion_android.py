@@ -45,7 +45,16 @@ def cold(name,night=False,reduced=False):
  recorder=subprocess.Popen(['adb','shell','screenrecord','--size','720x1280','--bit-rate','2500000','--time-limit','30',remote],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
  time.sleep(.5)
  try:
-  launch();wait_home();time.sleep(.6)
+  launch()
+  # Do not walk the accessibility tree on the UI thread during the measured fade.
+  # Poll logcat (outside the app) until animation completion, then inspect controls.
+  if reduced:time.sleep(3)
+  else:
+   deadline=time.monotonic()+18
+   while time.monotonic()<deadline:
+    if 'exit-complete' in logs():break
+    time.sleep(.2)
+  wait_home();time.sleep(.6)
   text=logs();(out/(name+'.log')).write_text(text)
   record(name+' reaches home without native crash','FATAL EXCEPTION' not in text)
   matches=re.findall(r'(system|legacy) exit-complete ms=(\d+) frames=(\d+)',text)
