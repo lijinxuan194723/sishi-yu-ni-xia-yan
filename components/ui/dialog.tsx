@@ -7,8 +7,19 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { XIcon } from 'lucide-react';
 
-function Dialog({ ...props }: DialogPrimitive.Root.Props) {
-  return <DialogPrimitive.Root data-slot="dialog" {...props} />;
+function Dialog({ open, onOpenChangeComplete, ...props }: DialogPrimitive.Root.Props) {
+  const [mounted, setMounted] = React.useState(false);
+  React.useEffect(() => {
+    // A dynamically mounted, controlled-open dialog needs an initial closed frame.
+    const frame = requestAnimationFrame(() => setMounted(true));
+    return () => cancelAnimationFrame(frame);
+  }, []);
+  return <DialogPrimitive.Root data-slot="dialog" {...props}
+    open={open === undefined ? undefined : mounted && open}
+    onOpenChangeComplete={next => {
+      // Ignore the synthetic initial closed state, not a real dismiss request.
+      if (open === undefined || next === open) onOpenChangeComplete?.(next);
+    }} />;
 }
 
 function DialogTrigger({ ...props }: DialogPrimitive.Trigger.Props) {

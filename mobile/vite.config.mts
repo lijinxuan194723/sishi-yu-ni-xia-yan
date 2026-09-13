@@ -1,5 +1,7 @@
 import {defineConfig} from 'vite';
 import react from '@vitejs/plugin-react';
+// Reuse sharp 0.34.5 already present in the committed build dependency graph.
+import sharp from 'sharp';
 import tailwind from '@tailwindcss/postcss';
 import {fileURLToPath} from 'node:url';
 import {readdir,readFile,unlink,writeFile} from 'node:fs/promises';
@@ -24,4 +26,18 @@ async function compactAssets(dir:string,root=dir){
   if(/\.(?:png|jpe?g)$/i.test(file.name)){const webp=path.replace(/\.(?:png|jpe?g)$/i,'.webp');try{await readFile(webp);await unlink(path);}catch{}}
  }
 }
-export default defineConfig({root:fileURLToPath(new URL('.',import.meta.url)),publicDir:'../public',plugins:[react(),{name:'compact-mobile-images',async closeBundle(){await compactAssets(fileURLToPath(new URL('../work/mobile-web',import.meta.url)));}}],css:{postcss:{plugins:[tailwind()]}},resolve:{alias:{'@':fileURLToPath(new URL('..',import.meta.url))}},build:{outDir:'../work/mobile-web',emptyOutDir:true,target:'es2022'}});
+async function resizeMobilePhotos(dir:string){
+ for(const file of await readdir(dir,{withFileTypes:true})){
+  const path=join(dir,file.name);
+  if(file.isDirectory()){await resizeMobilePhotos(path);continue;}
+  if(!/\.webp$/i.test(file.name))continue;
+  const input=await readFile(path),meta=await sharp(input).metadata();
+  const width=meta.width??0,height=meta.height??0;
+  if(!width||!height||meta.pages&&meta.pages>1)continue;
+  const ratio=Math.min(1,1920/Math.max(width,height),Math.sqrt(2500000/(width*height)));
+  if(ratio>=1)continue;
+  const output=await sharp(input).resize(Math.max(1,Math.round(width*ratio)),Math.max(1,Math.round(height*ratio)),{fit:'inside',withoutEnlargement:true}).webp({quality:88,effort:5}).toBuffer();
+  await writeFile(path,output);
+ }
+}
+export default defineConfig({root:fileURLToPath(new URL('.',import.meta.url)),publicDir:'../public',plugins:[react(),{name:'compact-mobile-images',async closeBundle(){const output=fileURLToPath(new URL('../work/mobile-web',import.meta.url));await compactAssets(output);await resizeMobilePhotos(join(output,'images'));}}],css:{postcss:{plugins:[tailwind()]}},resolve:{alias:{'@':fileURLToPath(new URL('..',import.meta.url))}},build:{outDir:'../work/mobile-web',emptyOutDir:true,target:'es2022'}});

@@ -79,7 +79,9 @@ jobs:
           profile: pixel_2
           disable-animations: false
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot -camera-back none -camera-front none
-          script: python3 scripts/checks/motion_android.py
+          script: |
+            python3 scripts/checks/prepare-emulator-webview.py
+            python3 scripts/checks/motion_android.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:

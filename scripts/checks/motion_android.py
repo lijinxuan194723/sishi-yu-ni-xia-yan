@@ -67,6 +67,8 @@ def seed_note():
 
 sdk=adb('shell','getprop','ro.build.version.sdk').strip()
 try:
+ adb('shell','wm','size','720x1280');adb('shell','wm','density','320')
+ (out/'display.txt').write_text(adb('shell','wm','size')+adb('shell','wm','density'))
  (out/'webview-provider.txt').write_text(adb('shell','dumpsys','webviewupdate'))
  previous=list(pathlib.Path('work/motion-previous').glob('*.apk'))
  if previous:

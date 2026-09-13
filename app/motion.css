@@ -46,7 +46,7 @@
       background-color 400ms var(--motion-ease), color 400ms var(--motion-ease);
   }
   [data-slot="dialog-content"].settings[data-ending-style] { transition-duration: var(--motion-exit); }
-  .app-shell .light-layer, .settings .light-layer { transition: opacity 720ms var(--motion-ease); }
+  :root[data-manual] .light-layer, .app-shell .light-layer, .settings .light-layer { transition: opacity 720ms var(--motion-ease); }
   .dynamic-activity, .reading-book, .study-popover, .note-edit, .latest-message {
     animation: motion-local-enter 280ms var(--motion-ease) backwards;
   }
@@ -82,3 +82,6 @@
 }
 /* A decoded outgoing frame masks Embla's necessary geometry reset during season changes. */
 .hero .hero-season-cover { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; pointer-events: none; }
+
+/* Do not render several moving layers behind the opaque native launch screen. */
+:root[data-native-launching='true'] .season-particles span { animation-play-state: paused !important; }

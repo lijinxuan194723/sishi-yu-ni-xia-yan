@@ -164,6 +164,7 @@ public class MainActivity extends Activity {
   private void finishPlatform(){
    if(platformView!=null){platformView.animate().cancel();platformView=null;}
    if(removePlatform!=null){Runnable remove=removePlatform;removePlatform=null;remove.run();}
+   if(!disposed&&contentReady)web.evaluateJavascript("delete document.documentElement.dataset.nativeLaunching",null);
   }
   private void animateExit(android.view.View surface,android.view.View icon,long delay,Runnable remove,String name){
    final int token=generation;
@@ -174,7 +175,7 @@ public class MainActivity extends Activity {
     final int[] frames={0};
     android.util.Log.i("LukeMotion",name+" exit-start");
     if(icon!=null)icon.animate().scaleX(.98f).scaleY(.98f).setDuration(EXIT_MS).setInterpolator(ease).start();
-    surface.animate().alpha(0f).setDuration(EXIT_MS).setInterpolator(ease)
+    surface.animate().withLayer().alpha(0f).setDuration(EXIT_MS).setInterpolator(ease)
      .setUpdateListener(a->frames[0]++)
      .withEndAction(()->{
       if(disposed||token!=generation)return;
@@ -210,6 +211,7 @@ public class MainActivity extends Activity {
   private void removeLayer(){
    stopMark();
    if(layer!=null){layer.setVisibility(android.view.View.GONE);layer.setClickable(false);viewport.removeView(layer);}
+   if(!disposed&&contentReady&&android.os.Build.VERSION.SDK_INT<31)web.evaluateJavascript("delete document.documentElement.dataset.nativeLaunching",null);
   }
   void fail(){
    if(disposed||contentReady||finishing)return;
