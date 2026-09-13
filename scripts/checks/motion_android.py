@@ -1,7 +1,7 @@
-"""Runtime tests on an isolated Android emulator using the real signed APK.
-No model credentials or user records are loaded. A disposable note tests upgrade safety.
+"""Runtime tests on isolated Android emulators using the exact signed APK.
+No model credentials or personal records are loaded. A disposable note tests upgrade.
 """
-import hashlib,json,os,pathlib,re,subprocess,time,xml.etree.ElementTree as ET
+import hashlib,json,pathlib,re,subprocess,time,xml.etree.ElementTree as ET
 out=pathlib.Path('work/motion-android');out.mkdir(parents=True,exist_ok=True)
 pkg='com.luke.summer.preview';component=pkg+'/com.luke.summer.MainActivity'
 apk=next(pathlib.Path('work/motion-candidate').glob('*.apk'));results=[]
@@ -26,12 +26,15 @@ def wait_home():
   except subprocess.SubprocessError:pass
   time.sleep(.5)
  (out/'last-window.xml').write_text(last);raise AssertionError('Home did not become accessible')
+def tap_node(node):
+ x1,y1,x2,y2=map(int,re.findall(r'\d+',node.get('bounds')))
+ if x2<=x1 or y2<=y1:raise AssertionError('Control has empty bounds')
+ adb('shell','input','tap',str((x1+x2)//2),str((y1+y2)//2));time.sleep(.5)
 def tap(label):
  tree=ET.fromstring(dump())
  nodes=[e for e in tree.iter('node') if e.get('text')==label or e.get('content-desc')==label]
  if not nodes:raise AssertionError('Cannot find accessible control: '+label)
- node=nodes[-1];x1,y1,x2,y2=map(int,re.findall(r'\d+',node.get('bounds')))
- adb('shell','input','tap',str((x1+x2)//2),str((y1+y2)//2));time.sleep(.5)
+ tap_node(nodes[-1])
 def launch():
  adb('shell','am','start','-a','android.intent.action.MAIN','-c','android.intent.category.LAUNCHER','-f','0x10200000','-n',component)
 def scales(value):
@@ -46,8 +49,7 @@ def cold(name,night=False,reduced=False):
  time.sleep(.5)
  try:
   launch()
-  # Do not walk the accessibility tree on the UI thread during the measured fade.
-  # Poll logcat (outside the app) until animation completion, then inspect controls.
+  # Reading the accessibility tree forces work on the UI thread. Inspect after the fade.
   if reduced:time.sleep(3)
   else:
    deadline=time.monotonic()+18
@@ -70,7 +72,14 @@ def cold(name,night=False,reduced=False):
   subprocess.run(['adb','pull',remote,str(out/(name+'.mp4'))],check=False)
 
 def seed_note():
- tap('时光手记');tap('新建笔记');tap('笔记标题');adb('shell','input','text','MotionUpgrade902002');
+ tap('时光手记');tap('新建笔记')
+ xml=dump();tree=ET.fromstring(xml)
+ # UIAutomator omits HTML input aria-label/hint in these WebView versions.
+ # Identify the two actual EditText controls in the confirmed editor, top one is title.
+ fields=[e for e in tree.iter('node') if e.get('class')=='android.widget.EditText']
+ record('baseline editor exposes title and body fields','返回笔记列表' in xml and len(fields)==2)
+ fields.sort(key=lambda e:int(re.findall(r'\d+',e.get('bounds'))[1]))
+ tap_node(fields[0]);adb('shell','input','text','MotionUpgrade902002')
  adb('shell','input','keyevent','4');time.sleep(.4);tap('返回笔记列表')
  record('baseline contains disposable upgrade note','MotionUpgrade902002' in dump())
 
@@ -84,7 +93,6 @@ try:
   adb('install','-r',str(previous[0]),timeout=90);scales(1);launch();wait_home();seed_note()
  install=adb('install','-r',str(apk),timeout=90);record('signed candidate installs without uninstall','Success' in install,install.strip())
  cold('cold-light');cold('cold-dark',night=True)
- # Warm resume must not recreate the launch cover.
  before=len(re.findall('exit-start',logs()));adb('shell','input','keyevent','3');time.sleep(.5);launch();wait_home();time.sleep(.5)
  record('warm resume does not replay startup',len(re.findall('exit-start',logs()))==before)
  if previous:
@@ -92,8 +100,10 @@ try:
  cold('cold-reduced',reduced=True)
  scales(1)
  tap('打开设置');record('settings opens in Android WebView','日常与数据' in dump());tap('关闭')
- tap('他的此刻');tap('开始情景对话');record('topic dialog is usable in Android WebView','想和你聊聊' in dump() or '独立对话消息' in dump());tap('关闭')
- tap('计时');tap('学习科目');record('animated subject menu is usable','选择学习科目' in dump() or '输入其他科目' in dump());tap('学习科目')
+ tap('他的此刻');tap('开始情景对话');xml=dump()
+ record('topic dialog is usable in Android WebView','查看话题背景' in xml and '会话记录' in xml and 'android.widget.EditText' in xml);tap('关闭')
+ tap('计时');tap('学习科目');xml=dump()
+ record('animated subject menu is usable','输入其他科目' in xml);tap('学习科目')
  adb('shell','settings','put','system','accelerometer_rotation','0');adb('shell','settings','put','system','user_rotation','1');time.sleep(1)
  record('rotation does not show a failed startup','启动暂未完成' not in dump())
  record('no native crash during interaction smoke tests','FATAL EXCEPTION' not in logs())
