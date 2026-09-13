@@ -1,0 +1,29 @@
+name: Motion Verification
+
+on:
+  push:
+    branches: ['fix/motion-continuity']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  source-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Archive tracked source for reproducible audit
+        run: |
+          mkdir -p audit
+          git archive --format=zip HEAD --output=audit/motion-source.zip
+          git rev-parse HEAD > audit/commit.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: motion-source-audit
+          path: audit/
+          retention-days: 7
+          if-no-files-found: error
