@@ -2,7 +2,7 @@
 .background{padding:18px}.background h3{margin:0 0 8px;font-size:16px;line-height:1.5}.help{margin:10px 0;font-size:13px;line-height:1.7;color:var(--scene-muted)}
 .preview{display:block;width:100%;height:144px;object-fit:cover;border-radius:16px;margin:14px 0;border:1px solid var(--scene-border)}
 .actions{display:flex;flex-wrap:wrap;gap:8px;align-items:stretch;margin-top:12px}
-.actions :is(button,a),.actions .upload{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:44px;max-width:100%;padding:10px 14px;margin:0;border:1px solid var(--scene-border);border-radius:14px;background:var(--scene-paper);color:var(--scene-ink);font-size:13px;font-weight:500;line-height:1.45;text-decoration:none;cursor:pointer;transition:background-color 160ms ease,border-color 160ms ease}
+.actions :is(button,a),.actions .upload{position:relative;display:inline-flex;flex-direction:row;align-items:center;justify-content:center;gap:7px;min-height:44px;max-width:100%;padding:10px 14px;margin:0;border:1px solid var(--scene-border);border-radius:14px;background:var(--scene-paper);color:var(--scene-ink);font-size:13px;font-weight:500;line-height:1.45;text-decoration:none;cursor:pointer;transition:background-color 160ms ease,border-color 160ms ease}
 .actions svg{flex-shrink:0}.actions button:disabled{opacity:.5;cursor:default}.actions .upload{background:var(--season-soft);border-color:var(--season-accent)}
 .upload input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:16px}
 .actions :is(button,a):focus-visible,.upload:focus-within,.release summary:focus-visible,.copyText:focus-visible{outline:2px solid var(--season-accent);outline-offset:3px}
