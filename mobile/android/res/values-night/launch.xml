@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="luke_launch_background">#172B28</color>
+    <color name="luke_launch_halo">#1E3430</color>
+    <color name="luke_launch_ring">#3B5149</color>
+    <color name="luke_launch_disc">#34483B</color>
+    <color name="luke_launch_inner">#293F34</color>
+    <color name="luke_launch_key">#DFC48D</color>
+    <color name="luke_launch_spring">#A4BA93</color>
+    <color name="luke_launch_summer">#D6BC7F</color>
+    <color name="luke_launch_autumn">#C79A7F</color>
+    <color name="luke_launch_winter">#9AB7BF</color>
+    <bool name="luke_launch_light_bars">false</bool>
+</resources>

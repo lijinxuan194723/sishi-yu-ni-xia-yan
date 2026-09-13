@@ -19,6 +19,7 @@ import java.util.concurrent.*;
 public class MainActivity extends Activity {
  private static final String ORIGIN="https://appassets.androidplatform.net";
  private WebView web;
+ private SoftStartup startup;
  private android.widget.FrameLayout viewport;
  private boolean darkSystemBars=true;
  private boolean keyboardVisible=false;
@@ -33,7 +34,7 @@ public class MainActivity extends Activity {
 
  @Override public void onCreate(Bundle state){
   super.onCreate(state);
-  viewport=new android.widget.FrameLayout(this);viewport.setBackgroundColor(Color.rgb(33,79,76));web=new WebView(this);web.setVisibility(android.view.View.INVISIBLE);web.setBackgroundColor(Color.rgb(33,79,76));viewport.addView(web,new android.widget.FrameLayout.LayoutParams(-1,-1));setContentView(viewport);showSystemBars();
+  viewport=new android.widget.FrameLayout(this);web=new WebView(this);web.setVisibility(android.view.View.INVISIBLE);viewport.addView(web,new android.widget.FrameLayout.LayoutParams(-1,-1));setContentView(viewport);startup=new SoftStartup();startup.install();showSystemBars();
   if(android.os.Build.VERSION.SDK_INT>=30){getWindow().setDecorFitsSystemWindows(false);viewport.setOnApplyWindowInsetsListener((v,insets)->{setKeyboardVisible(insets.isVisible(android.view.WindowInsets.Type.ime()));android.graphics.Insets bars=insets.getInsets(android.view.WindowInsets.Type.systemBars()|android.view.WindowInsets.Type.displayCutout()|android.view.WindowInsets.Type.ime());android.widget.FrameLayout.LayoutParams lp=(android.widget.FrameLayout.LayoutParams)web.getLayoutParams();if(lp.leftMargin!=bars.left||lp.topMargin!=bars.top||lp.rightMargin!=bars.right||lp.bottomMargin!=bars.bottom){lp.setMargins(bars.left,bars.top,bars.right,bars.bottom);web.setLayoutParams(lp);}return android.view.WindowInsets.CONSUMED;});viewport.requestApplyInsets();}
   if(android.os.Build.VERSION.SDK_INT<30)viewport.getViewTreeObserver().addOnGlobalLayoutListener(()->{android.graphics.Rect frame=new android.graphics.Rect();viewport.getWindowVisibleDisplayFrame(frame);int height=viewport.getRootView().getHeight();setKeyboardVisible(height-frame.bottom>height*.2);});
   WebSettings s=web.getSettings();s.setJavaScriptEnabled(true);s.setDomStorageEnabled(true);s.setAllowFileAccess(false);s.setAllowContentAccess(true);s.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);s.setGeolocationEnabled(true);s.setSupportMultipleWindows(false);
@@ -46,6 +47,9 @@ public class MainActivity extends Activity {
     try{String mime=path.endsWith(".js")?"application/javascript":path.endsWith(".css")?"text/css":path.endsWith(".html")?"text/html":path.endsWith(".jpg")?"image/jpeg":path.endsWith(".png")?"image/png":path.endsWith(".svg")?"image/svg+xml":path.endsWith(".webp")?"image/webp":"application/octet-stream";
      return new WebResourceResponse(mime,"UTF-8",getAssets().open("web"+path));
     }catch(IOException e){return denied();}
+   }
+   @Override public void onReceivedError(WebView view,WebResourceRequest request,WebResourceError error){
+    if(request.isForMainFrame()&&!contentReady)startup.fail();
    }
    @Override public boolean shouldOverrideUrlLoading(WebView view,WebResourceRequest r){
     Uri u=r.getUrl();if((ORIGIN+"/").equals(u.toString()))return false;
@@ -82,17 +86,146 @@ public class MainActivity extends Activity {
   if(request==11){String text=exportText;exportText=null;if(result==RESULT_OK&&data!=null&&text!=null){Uri uri=data.getData();workers.execute(()->{try{try(OutputStream out=getContentResolver().openOutputStream(uri)){if(out==null)throw new IOException();out.write(text.getBytes(StandardCharsets.UTF_8));}runOnUiThread(()->{if(!isDestroyed())web.evaluateJavascript("localStorage.setItem('luke-backup-confirmed',Date.now().toString());window.dispatchEvent(new Event('luke-backup-saved'))",null);});toast("备份已保存");}catch(Exception e){toast("备份未保存，请重试");}});}}
  }
  @Override public boolean dispatchKeyEvent(android.view.KeyEvent event){if(event.getKeyCode()==android.view.KeyEvent.KEYCODE_BACK){if(event.getAction()==android.view.KeyEvent.ACTION_UP&&!event.isCanceled())onBackPressed();return true;}return super.dispatchKeyEvent(event);}
- @Override public void onBackPressed(){if(keyboardVisible){((android.view.inputmethod.InputMethodManager)getSystemService(INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(web.getWindowToken(),0);web.evaluateJavascript("document.activeElement instanceof HTMLElement&&document.activeElement.blur()",null);return;}web.evaluateJavascript("!!(window.__lukeBack&&window.__lukeBack())",handled->{if(!"true".equals(handled))moveTaskToBack(true);});}
- @Override protected void onDestroy(){for(HttpURLConnection c:requests.values())c.disconnect();workers.shutdownNow();web.removeJavascriptInterface("LukeAndroid");web.destroy();super.onDestroy();}
+ @Override public void onBackPressed(){if(!contentReady){moveTaskToBack(true);return;}if(keyboardVisible){((android.view.inputmethod.InputMethodManager)getSystemService(INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(web.getWindowToken(),0);web.evaluateJavascript("document.activeElement instanceof HTMLElement&&document.activeElement.blur()",null);return;}web.evaluateJavascript("!!(window.__lukeBack&&window.__lukeBack())",handled->{if(!"true".equals(handled))moveTaskToBack(true);});}
+ @Override protected void onDestroy(){if(startup!=null)startup.dispose();for(HttpURLConnection c:requests.values())c.disconnect();workers.shutdownNow();web.removeJavascriptInterface("LukeAndroid");web.destroy();super.onDestroy();}
  private void deliver(String id,int status,String body){if(!active.remove(id))return;String script="window.__lukeNetwork&&window.__lukeNetwork("+JSONObject.quote(id)+","+status+","+JSONObject.quote(body)+")";runOnUiThread(()->{if(!isDestroyed())web.evaluateJavascript(script,null);});}
  private void streamPart(String id,int status,String type,String text,boolean done){if(!active.contains(id))return;if(done)active.remove(id);String script="window.__lukeStreaming&&window.__lukeStreaming("+JSONObject.quote(id)+","+status+","+JSONObject.quote(type)+","+JSONObject.quote(text)+","+done+")";runOnUiThread(()->{if(!isDestroyed())web.evaluateJavascript(script,null);});}
  private void applySystemTheme(){String color=systemColor.isEmpty()?"#214f4c":systemColor;boolean dark=darkSystemBars;int value=Color.parseColor(color);viewport.setBackgroundColor(value);getWindow().setStatusBarColor(value);getWindow().setNavigationBarColor(value);if(android.os.Build.VERSION.SDK_INT>=30){android.view.WindowInsetsController c=getWindow().getInsetsController();if(c!=null){int mask=android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS|android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS;c.setSystemBarsAppearance(dark?0:mask,mask);}}else getWindow().getDecorView().setSystemUiVisibility(dark?0:android.view.View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR|android.view.View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);}
+ // Native startup only: no remote assets, new dependencies, or minimum display delay.
+ private final class SoftStartup {
+  private static final long EXIT_MS=260L, FAILURE_MS=8000L;
+  private final android.os.Handler handler=new android.os.Handler(android.os.Looper.getMainLooper());
+  private final Runnable watchdog=()->fail();
+  private final android.view.animation.Interpolator ease=new android.view.animation.PathInterpolator(.2f,0f,0f,1f);
+  private android.widget.FrameLayout layer;
+  private android.widget.ImageView mark;
+  private android.widget.LinearLayout failure;
+  private android.animation.ValueAnimator bars;
+  private android.view.ViewTreeObserver.OnPreDrawListener hold;
+  private Runnable removePlatform;
+  private boolean released,disposed,finishing;
+  private int background,generation;
+
+  private int resource(String name,String type){
+   int id=getResources().getIdentifier(name,type,getPackageName());
+   if(id==0)throw new IllegalStateException("Missing startup resource: "+name);
+   return id;
+  }
+  private int dp(float value){return Math.round(value*getResources().getDisplayMetrics().density);}
+  private boolean motion(){return android.animation.ValueAnimator.areAnimatorsEnabled();}
+  void install(){
+   background=getColor(resource("luke_launch_background","color"));
+   darkSystemBars=!getResources().getBoolean(resource("luke_launch_light_bars","bool"));
+   viewport.setBackgroundColor(background);web.setBackgroundColor(background);
+   getWindow().setStatusBarColor(background);getWindow().setNavigationBarColor(background);
+   layer=new android.widget.FrameLayout(MainActivity.this);layer.setBackgroundColor(background);
+   layer.setClickable(true);layer.setImportantForAccessibility(android.view.View.IMPORTANT_FOR_ACCESSIBILITY_YES);
+   layer.setContentDescription("四时与你，正在打开");
+   mark=new android.widget.ImageView(MainActivity.this);
+   mark.setImportantForAccessibility(android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+   mark.setImageResource(resource("luke_launch_mark","drawable"));
+   layer.addView(mark,new android.widget.FrameLayout.LayoutParams(dp(288),dp(288),android.view.Gravity.CENTER));
+   viewport.addView(layer,new android.widget.FrameLayout.LayoutParams(-1,-1));
+   if(android.os.Build.VERSION.SDK_INT>=31){
+    // Draw the WebView's prepared frame behind the one system splash, not a second splash.
+    hold=()->released;
+    viewport.getViewTreeObserver().addOnPreDrawListener(hold);
+    PlatformSplash.install(MainActivity.this,this);
+   }else{released=true;startMark();}
+   handler.postDelayed(watchdog,FAILURE_MS);
+  }
+  private void startMark(){
+   if(!motion()){mark.setImageResource(resource("luke_launch_mark","drawable"));return;}
+   mark.setImageResource(resource("luke_launch_animated","drawable"));
+   android.graphics.drawable.Drawable d=mark.getDrawable();
+   if(d instanceof android.graphics.drawable.Animatable)((android.graphics.drawable.Animatable)d).start();
+  }
+  private void stopMark(){
+   android.graphics.drawable.Drawable d=mark.getDrawable();
+   if(d instanceof android.graphics.drawable.Animatable)((android.graphics.drawable.Animatable)d).stop();
+  }
+  private void releaseDraw(){
+   released=true;
+   if(hold!=null){if(viewport.getViewTreeObserver().isAlive())viewport.getViewTreeObserver().removeOnPreDrawListener(hold);hold=null;}
+   viewport.invalidate();
+  }
+  void systemExit(android.view.View splash,android.view.View icon,Runnable remove){
+   if(disposed){remove.run();return;}
+   removePlatform=remove;
+   if(!motion()){remove.run();removePlatform=null;return;}
+   if(icon!=null)icon.animate().scaleX(.96f).scaleY(.96f).setDuration(EXIT_MS).setInterpolator(ease).start();
+   splash.animate().alpha(0f).setDuration(EXIT_MS).setInterpolator(ease).withEndAction(()->{
+    if(removePlatform!=null){removePlatform.run();removePlatform=null;}
+   }).start();
+  }
+  void ready(){
+   if(disposed||finishing)return;finishing=true;handler.removeCallbacks(watchdog);stopMark();
+   boolean wasHeld=!released;
+   // Never scale the WebView: text and the bottom navigation remain sharp and stationary.
+   web.setVisibility(android.view.View.VISIBLE);web.setAlpha(1f);
+   if(wasHeld||!motion())removeLayer();
+   else{
+    mark.animate().scaleX(.96f).scaleY(.96f).setDuration(EXIT_MS).setInterpolator(ease).start();
+    layer.animate().alpha(0f).setDuration(EXIT_MS).setInterpolator(ease).withEndAction(this::removeLayer).start();
+   }
+   applySystemTheme();
+   if(motion()){
+    int target=Color.parseColor(systemColor.isEmpty()?"#214f4c":systemColor);
+    bars=android.animation.ValueAnimator.ofArgb(background,target);bars.setDuration(EXIT_MS);bars.setInterpolator(ease);
+    bars.addUpdateListener(a->{if(!disposed){int c=(int)a.getAnimatedValue();getWindow().setStatusBarColor(c);getWindow().setNavigationBarColor(c);}});
+    bars.addListener(new android.animation.AnimatorListenerAdapter(){@Override public void onAnimationEnd(android.animation.Animator a){if(!disposed)applySystemTheme();}});bars.start();
+   }
+   releaseDraw();
+  }
+  private void removeLayer(){
+   if(layer!=null){layer.setVisibility(android.view.View.GONE);layer.setClickable(false);viewport.removeView(layer);}
+  }
+  void fail(){
+   if(disposed||contentReady||finishing)return;
+   handler.removeCallbacks(watchdog);stopMark();mark.setVisibility(android.view.View.GONE);
+   if(failure==null){
+    failure=new android.widget.LinearLayout(MainActivity.this);failure.setOrientation(android.widget.LinearLayout.VERTICAL);
+    failure.setPadding(dp(24),dp(24),dp(24),dp(24));
+    android.graphics.drawable.GradientDrawable card=new android.graphics.drawable.GradientDrawable();
+    card.setColor(getColor(resource("luke_launch_inner","color")));card.setCornerRadius(dp(28));failure.setBackground(card);
+    android.widget.TextView title=new android.widget.TextView(MainActivity.this);title.setText("启动暂未完成");title.setTextSize(20);title.setTextColor(getColor(resource("luke_launch_key","color")));
+    android.widget.TextView note=new android.widget.TextView(MainActivity.this);note.setText("可以重试打开，本地聊天和手记不会被清除。");note.setTextSize(15);note.setTextColor(getColor(resource("luke_launch_key","color")));note.setPadding(0,dp(12),0,dp(20));
+    android.widget.Button retry=new android.widget.Button(MainActivity.this);retry.setText("重新打开");retry.setTextColor(getColor(resource("luke_launch_key","color")));retry.setAllCaps(false);retry.setMinHeight(dp(48));
+    android.graphics.drawable.GradientDrawable pill=new android.graphics.drawable.GradientDrawable();pill.setColor(getColor(resource("luke_launch_disc","color")));pill.setCornerRadius(dp(24));retry.setBackground(pill);retry.setPadding(dp(20),dp(12),dp(20),dp(12));
+    retry.setOnClickListener(v->retry());failure.addView(title);failure.addView(note);failure.addView(retry,new android.widget.LinearLayout.LayoutParams(-1,-2));
+    android.widget.FrameLayout.LayoutParams lp=new android.widget.FrameLayout.LayoutParams(-1,-2,android.view.Gravity.CENTER);lp.setMargins(dp(24),dp(24),dp(24),dp(24));layer.addView(failure,lp);
+   }
+   failure.setVisibility(android.view.View.VISIBLE);layer.setContentDescription(null);
+   layer.announceForAccessibility("启动暂未完成，可以重试，本地记录不会被清除。");releaseDraw();
+  }
+  private void retry(){
+   if(disposed||contentReady)return;
+   generation++;readyPosted=false;failure.setVisibility(android.view.View.GONE);mark.setVisibility(android.view.View.VISIBLE);
+   layer.setContentDescription("四时与你，正在重新打开");startMark();web.stopLoading();web.loadUrl(ORIGIN+"/");
+   handler.removeCallbacks(watchdog);handler.postDelayed(watchdog,FAILURE_MS);
+  }
+  void dispose(){
+   disposed=true;handler.removeCallbacksAndMessages(null);releaseDraw();
+   if(bars!=null)bars.cancel();
+   if(layer!=null)layer.animate().cancel();
+   if(mark!=null){mark.animate().cancel();stopMark();}
+   if(removePlatform!=null){removePlatform.run();removePlatform=null;}
+  }
+ }
+ @android.annotation.TargetApi(31)
+ private static final class PlatformSplash {
+  static void install(Activity activity,SoftStartup owner){
+   activity.getSplashScreen().setOnExitAnimationListener(view->owner.systemExit(view,view.getIconView(),view::remove));
+  }
+ }
+
  public class Bridge {
   @JavascriptInterface public String defaultModel(){try(InputStream in=getAssets().open("personal-model.json");ByteArrayOutputStream out=new ByteArrayOutputStream()){byte[] buffer=new byte[1024];int n;while((n=in.read(buffer))!=-1)out.write(buffer,0,n);return out.toString("UTF-8");}catch(Exception ignored){return "{}";}}
   @JavascriptInterface public void haptic(){runOnUiThread(()->{if(!isDestroyed())web.performHapticFeedback(android.view.HapticFeedbackConstants.KEYBOARD_TAP);});}
   @JavascriptInterface public void pageReady(){
    runOnUiThread(()->{if(isDestroyed()||readyPosted)return;readyPosted=true;
-    web.postVisualStateCallback(0,new WebView.VisualStateCallback(){@Override public void onComplete(long id){if(isDestroyed())return;contentReady=true;publishKeyboard();applySystemTheme();web.setVisibility(android.view.View.VISIBLE);}});
+    final int generation=startup.generation;
+    web.postVisualStateCallback(generation,new WebView.VisualStateCallback(){@Override public void onComplete(long id){if(isDestroyed()||generation!=startup.generation||contentReady)return;contentReady=true;publishKeyboard();startup.ready();}});
    });
   }
   @JavascriptInterface public void systemTheme(String color,boolean dark){
