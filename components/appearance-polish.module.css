@@ -16,5 +16,5 @@
 @media(max-width:380px){.background{padding:14px}.actions>*{flex:1 1 auto}.release>summary{padding:14px}.releaseBody{padding:0 14px 14px}}
 @media(prefers-reduced-motion:reduce){.actions :is(button,a),.actions .upload,.release>summary>span:first-child::before{transition:none}}
 /* Keep the seasonal text veil, but actually display the user's selected image. */
-:global(:root[data-chat-background='custom'].chat-open .chat-page .messages){background-image:linear-gradient(color-mix(in srgb,var(--scene-paper) 91%,transparent),color-mix(in srgb,var(--scene-paper) 96%,transparent)),var(--chat-user-background)!important}
-:global(:root[data-chat-background='custom'].chat-open .chat-page .messages::before){background-image:var(--chat-user-background)!important;background-position:center center!important}
+:global(:root[data-chat-background='custom'] .chat-page .messages){background-image:linear-gradient(color-mix(in srgb,var(--scene-paper) 91%,transparent),color-mix(in srgb,var(--scene-paper) 96%,transparent)),var(--chat-user-background)!important}
+:global(:root[data-chat-background='custom'] .chat-page .messages::before){background-image:var(--chat-user-background)!important;background-position:center center!important}
