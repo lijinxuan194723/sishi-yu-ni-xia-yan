@@ -1,0 +1,9 @@
+/* Pause only decorative layers during a warm return; never freeze input. */
+:root[data-resuming='true'] .season-particles span{animation-play-state:paused!important}
+/* The app header's legacy journal count is not the unified workspace count.
+   Show the workspace's real persistence status instead, without a second title. */
+.app-shell:has(.main-nav button:nth-child(5)[data-active]) .page-bar .bar-title p{display:none}
+.app-shell:has(.main-nav button:nth-child(5)[data-active]) header:has(button[aria-label='搜索笔记']){display:flex!important;align-items:center;gap:12px;margin:12px 2px 8px;padding:0 0 10px}
+.app-shell:has(.main-nav button:nth-child(5)[data-active]) header:has(button[aria-label='搜索笔记'])>div:first-child>span,
+.app-shell:has(.main-nav button:nth-child(5)[data-active]) header:has(button[aria-label='搜索笔记']) h2{display:none}
+.app-shell:has(.main-nav button:nth-child(5)[data-active]) header:has(button[aria-label='搜索笔记']) p{margin:0;font-size:12px;line-height:1.75;color:var(--scene-muted)}

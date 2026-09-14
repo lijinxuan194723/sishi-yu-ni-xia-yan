@@ -9,5 +9,6 @@ import '../app/notes-polish.css';
 import '../app/motion.css';
 import '../app/interaction-polish.css';
 import '../app/companion-polish.css';
+import '../app/detail-six.css';
 if(window.LukeAndroid)document.documentElement.dataset.nativeLaunching='true';
 createRoot(document.getElementById('root')!).render(<ErrorBoundary><Page/></ErrorBoundary>);
