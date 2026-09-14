@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+ <style name="LukeSeasonalBase" parent="AppTheme">
+  <item name="android:windowBackground">?attr/lukeLaunchBackground</item>
+  <item name="android:statusBarColor">?attr/lukeLaunchBackground</item>
+  <item name="android:navigationBarColor">?attr/lukeLaunchBackground</item>
+  <item name="android:windowSplashScreenBackground">?attr/lukeLaunchBackground</item>
+  <item name="android:windowSplashScreenAnimatedIcon">?attr/lukeLaunchIcon</item>
+  <item name="android:windowSplashScreenAnimationDuration">520</item>
+ </style>
+</resources>

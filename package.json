@@ -1,6 +1,6 @@
 {
   "name": "sites-project",
-  "version": "2.0.1-preview.2",
+  "version": "2.0.1-preview.3",
   "private": true,
   "engines": {
     "node": ">=22.13.0"
@@ -12,7 +12,7 @@
     "lint": "oxlint",
     "format": "oxfmt",
     "test:detail-polish": "node --experimental-strip-types --test scripts/checks/topic-chat-polish.test.mjs scripts/checks/detail-round2.test.mjs",
-    "test:motion": "node --experimental-strip-types --test scripts/checks/motion.test.mjs"
+    "test:motion": "node --experimental-strip-types --test scripts/checks/motion.test.mjs scripts/checks/seasonal-polish.test.mjs"
   },
   "dependencies": {
     "@base-ui/react": "1.7.0",

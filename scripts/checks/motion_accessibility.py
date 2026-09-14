@@ -1,10 +1,10 @@
 """Geometry checks for reduced motion: centering is layout, not an animation."""
 from motion_secondary_dialogs import verify_secondary_dialogs
+from seasonal_browser import verify_seasonal_polish
 
 
 def verify_reduced_dialogs(page, check):
     # The preceding test ends on Notes, which deliberately has no settings entry.
-    # Use the real navigation and pointer path, not a hidden button or forced click.
     page.get_by_role('tab', name='回到身边', exact=True).click()
     for width, height in [(320, 568), (390, 844), (844, 390)]:
         page.set_viewport_size({'width': width, 'height': height})
@@ -21,7 +21,6 @@ def verify_reduced_dialogs(page, check):
               box is not None and box['width'] >= 44 and box['height'] >= 44 and
               box['x'] >= 0 and box['y'] >= 0 and box['x'] + box['width'] <= width + 1 and
               box['y'] + box['height'] <= height + 1, box)
-        # Real pointer click, not DOM click(): clipping/overlays must fail this test.
         close.click()
         dialog.wait_for(state='detached')
         check(f'no stranded modal after reduced close {width}x{height}',
@@ -40,3 +39,4 @@ def verify_reduced_dialogs(page, check):
     close.click()
     topic.wait_for(state='detached')
     verify_secondary_dialogs(page, check)
+    verify_seasonal_polish(page, check)

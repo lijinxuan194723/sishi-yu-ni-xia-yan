@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+ <attr name="lukeLaunchBackground" format="color"/>
+ <attr name="lukeLaunchHalo" format="color"/>
+ <attr name="lukeLaunchRing" format="color"/>
+ <attr name="lukeLaunchDisc" format="color"/>
+ <attr name="lukeLaunchInner" format="color"/>
+ <attr name="lukeLaunchKey" format="color"/>
+ <attr name="lukeLaunchIcon" format="reference"/>
+ <attr name="lukeLaunchStaticIcon" format="reference"/>
+ <style name="LukeSeasonalBase" parent="AppTheme">
+  <item name="android:windowBackground">@drawable/luke_launch_seasonal_window</item>
+  <item name="android:statusBarColor">?attr/lukeLaunchBackground</item>
+  <item name="android:navigationBarColor">?attr/lukeLaunchBackground</item>
+ </style>
+ <color name="luke_launch_background_spring_day">#F3FCF7</color>
+ <color name="luke_launch_halo_spring_day">#E5F2E9</color>
+ <color name="luke_launch_ring_spring_day">#C3DED0</color>
+ <color name="luke_launch_disc_spring_day">#CCE5D6</color>
+ <color name="luke_launch_inner_spring_day">#EBF6EF</color>
+ <color name="luke_launch_key_spring_day">#286A57</color>
+ <style name="LukeSpringDay" parent="LukeSeasonalBase">
+  <item name="lukeLaunchBackground">@color/luke_launch_background_spring_day</item>
+  <item name="lukeLaunchHalo">@color/luke_launch_halo_spring_day</item>
+  <item name="lukeLaunchRing">@color/luke_launch_ring_spring_day</item>
+  <item name="lukeLaunchDisc">@color/luke_launch_disc_spring_day</item>
+  <item name="lukeLaunchInner">@color/luke_launch_inner_spring_day</item>
+  <item name="lukeLaunchKey">@color/luke_launch_key_spring_day</item>
+  <item name="lukeLaunchIcon">@drawable/luke_launch_spring_animated</item>
+  <item name="lukeLaunchStaticIcon">@drawable/luke_launch_spring_mark</item>
+  <item name="android:windowLightStatusBar">true</item>
+  <item name="android:windowLightNavigationBar">true</item>
+ </style>
+ <color name="luke_launch_background_spring_night">#202C37</color>
+ <color name="luke_launch_halo_spring_night">#293E3E</color>
+ <color name="luke_launch_ring_spring_night">#49665B</color>
+ <color name="luke_launch_disc_spring_night">#344F47</color>
+ <color name="luke_launch_inner_spring_night">#293C39</color>
+ <color name="luke_launch_key_spring_night">#9BC7B8</color>
+ <style name="LukeSpringNight" parent="LukeSeasonalBase">
+  <item name="lukeLaunchBackground">@color/luke_launch_background_spring_night</item>
+  <item name="lukeLaunchHalo">@color/luke_launch_halo_spring_night</item>
+  <item name="lukeLaunchRing">@color/luke_launch_ring_spring_night</item>
+  <item name="lukeLaunchDisc">@color/luke_launch_disc_spring_night</item>
+  <item name="lukeLaunchInner">@color/luke_launch_inner_spring_night</item>
+  <item name="lukeLaunchKey">@color/luke_launch_key_spring_night</item>
+  <item name="lukeLaunchIcon">@drawable/luke_launch_spring_animated</item>
+  <item name="lukeLaunchStaticIcon">@drawable/luke_launch_spring_mark</item>
+  <item name="android:windowLightStatusBar">false</item>
+  <item name="android:windowLightNavigationBar">false</item>
+ </style>
+ <color name="luke_launch_background_summer_day">#F2FBFF</color>
+ <color name="luke_launch_halo_summer_day">#E3F1F7</color>
+ <color name="luke_launch_ring_summer_day">#BDDDE8</color>
+ <color name="luke_launch_disc_summer_day">#C5E4EF</color>
+ <color name="luke_launch_inner_summer_day">#E9F7FC</color>
+ <color name="luke_launch_key_summer_day">#187592</color>
+ <style name="LukeSummerDay" parent="LukeSeasonalBase">
+  <item name="lukeLaunchBackground">@color/luke_launch_background_summer_day</item>
+  <item name="lukeLaunchHalo">@color/luke_launch_halo_summer_day</item>
+  <item name="lukeLaunchRing">@color/luke_launch_ring_summer_day</item>
+  <item name="lukeLaunchDisc">@color/luke_launch_disc_summer_day</item>
+  <item name="lukeLaunchInner">@color/luke_launch_inner_summer_day</item>
+  <item name="lukeLaunchKey">@color/luke_launch_key_summer_day</item>
+  <item name="lukeLaunchIcon">@drawable/luke_launch_summer_animated</item>
+  <item name="lukeLaunchStaticIcon">@drawable/luke_launch_summer_mark</item>
+  <item name="android:windowLightStatusBar">true</item>
+  <item name="android:windowLightNavigationBar">true</item>
+ </style>
+ <color name="luke_launch_background_summer_night">#202C37</color>
+ <color name="luke_launch_halo_summer_night">#273E4A</color>
+ <color name="luke_launch_ring_summer_night">#496C7C</color>
+ <color name="luke_launch_disc_summer_night">#314F5E</color>
+ <color name="luke_launch_inner_summer_night">#263D4A</color>
+ <color name="luke_launch_key_summer_night">#96CDDD</color>
+ <style name="LukeSummerNight" parent="LukeSeasonalBase">
+  <item name="lukeLaunchBackground">@color/luke_launch_background_summer_night</item>
+  <item name="lukeLaunchHalo">@color/luke_launch_halo_summer_night</item>
+  <item name="lukeLaunchRing">@color/luke_launch_ring_summer_night</item>
+  <item name="lukeLaunchDisc">@color/luke_launch_disc_summer_night</item>
+  <item name="lukeLaunchInner">@color/luke_launch_inner_summer_night</item>
+  <item name="lukeLaunchKey">@color/luke_launch_key_summer_night</item>
+  <item name="lukeLaunchIcon">@drawable/luke_launch_summer_animated</item>
+  <item name="lukeLaunchStaticIcon">@drawable/luke_launch_summer_mark</item>
+  <item name="android:windowLightStatusBar">false</item>
+  <item name="android:windowLightNavigationBar">false</item>
+ </style>
+ <color name="luke_launch_background_autumn_day">#FFF5E5</color>
+ <color name="luke_launch_halo_autumn_day">#F5E8D5</color>
+ <color name="luke_launch_ring_autumn_day">#E2C9A6</color>
+ <color name="luke_launch_disc_autumn_day">#EFD5AF</color>
+ <color name="luke_launch_inner_autumn_day">#FCEDDA</color>
+ <color name="luke_launch_key_autumn_day">#975027</color>
+ <style name="LukeAutumnDay" parent="LukeSeasonalBase">
+  <item name="lukeLaunchBackground">@color/luke_launch_background_autumn_day</item>
+  <item name="lukeLaunchHalo">@color/luke_launch_halo_autumn_day</item>
+  <item name="lukeLaunchRing">@color/luke_launch_ring_autumn_day</item>
+  <item name="lukeLaunchDisc">@color/luke_launch_disc_autumn_day</item>
+  <item name="lukeLaunchInner">@color/luke_launch_inner_autumn_day</item>
+  <item name="lukeLaunchKey">@color/luke_launch_key_autumn_day</item>
+  <item name="lukeLaunchIcon">@drawable/luke_launch_autumn_animated</item>
+  <item name="lukeLaunchStaticIcon">@drawable/luke_launch_autumn_mark</item>
+  <item name="android:windowLightStatusBar">true</item>
+  <item name="android:windowLightNavigationBar">true</item>
+ </style>
+ <color name="luke_launch_background_autumn_night">#202C37</color>
+ <color name="luke_launch_halo_autumn_night">#443C35</color>
+ <color name="luke_launch_ring_autumn_night">#77624C</color>
+ <color name="luke_launch_disc_autumn_night">#574734</color>
+ <color name="luke_launch_inner_autumn_night">#3C342D</color>
+ <color name="luke_launch_key_autumn_night">#DFB58E</color>
+ <style name="LukeAutumnNight" parent="LukeSeasonalBase">
+  <item name="lukeLaunchBackground">@color/luke_launch_background_autumn_night</item>
+  <item name="lukeLaunchHalo">@color/luke_launch_halo_autumn_night</item>
+  <item name="lukeLaunchRing">@color/luke_launch_ring_autumn_night</item>
+  <item name="lukeLaunchDisc">@color/luke_launch_disc_autumn_night</item>
+  <item name="lukeLaunchInner">@color/luke_launch_inner_autumn_night</item>
+  <item name="lukeLaunchKey">@color/luke_launch_key_autumn_night</item>
+  <item name="lukeLaunchIcon">@drawable/luke_launch_autumn_animated</item>
+  <item name="lukeLaunchStaticIcon">@drawable/luke_launch_autumn_mark</item>
+  <item name="android:windowLightStatusBar">false</item>
+  <item name="android:windowLightNavigationBar">false</item>
+ </style>
+ <color name="luke_launch_background_winter_day">#F8F9FF</color>
+ <color name="luke_launch_halo_winter_day">#ECEDF7</color>
+ <color name="luke_launch_ring_winter_day">#D2D5E9</color>
+ <color name="luke_launch_disc_winter_day">#DADEF2</color>
+ <color name="luke_launch_inner_winter_day">#F1F2FC</color>
+ <color name="luke_launch_key_winter_day">#636999</color>
+ <style name="LukeWinterDay" parent="LukeSeasonalBase">
+  <item name="lukeLaunchBackground">@color/luke_launch_background_winter_day</item>
+  <item name="lukeLaunchHalo">@color/luke_launch_halo_winter_day</item>
+  <item name="lukeLaunchRing">@color/luke_launch_ring_winter_day</item>
+  <item name="lukeLaunchDisc">@color/luke_launch_disc_winter_day</item>
+  <item name="lukeLaunchInner">@color/luke_launch_inner_winter_day</item>
+  <item name="lukeLaunchKey">@color/luke_launch_key_winter_day</item>
+  <item name="lukeLaunchIcon">@drawable/luke_launch_winter_animated</item>
+  <item name="lukeLaunchStaticIcon">@drawable/luke_launch_winter_mark</item>
+  <item name="android:windowLightStatusBar">true</item>
+  <item name="android:windowLightNavigationBar">true</item>
+ </style>
+ <color name="luke_launch_background_winter_night">#202C37</color>
+ <color name="luke_launch_halo_winter_night">#33384F</color>
+ <color name="luke_launch_ring_winter_night">#5F668E</color>
+ <color name="luke_launch_disc_winter_night">#444B6A</color>
+ <color name="luke_launch_inner_winter_night">#30364C</color>
+ <color name="luke_launch_key_winter_night">#BBC1ED</color>
+ <style name="LukeWinterNight" parent="LukeSeasonalBase">
+  <item name="lukeLaunchBackground">@color/luke_launch_background_winter_night</item>
+  <item name="lukeLaunchHalo">@color/luke_launch_halo_winter_night</item>
+  <item name="lukeLaunchRing">@color/luke_launch_ring_winter_night</item>
+  <item name="lukeLaunchDisc">@color/luke_launch_disc_winter_night</item>
+  <item name="lukeLaunchInner">@color/luke_launch_inner_winter_night</item>
+  <item name="lukeLaunchKey">@color/luke_launch_key_winter_night</item>
+  <item name="lukeLaunchIcon">@drawable/luke_launch_winter_animated</item>
+  <item name="lukeLaunchStaticIcon">@drawable/luke_launch_winter_mark</item>
+  <item name="android:windowLightStatusBar">false</item>
+  <item name="android:windowLightNavigationBar">false</item>
+ </style>
+</resources>

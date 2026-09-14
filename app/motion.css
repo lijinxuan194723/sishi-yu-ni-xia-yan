@@ -31,11 +31,11 @@
   [data-motion-presence] button {
     transition: background-color 220ms var(--motion-ease), border-color 220ms var(--motion-ease),
       color 220ms var(--motion-ease), opacity var(--motion-press) var(--motion-ease),
-      transform var(--motion-press) var(--motion-ease);
+      scale var(--motion-press) var(--motion-ease);
   }
   .app-shell button:active:not(:disabled),
   [data-slot="dialog-content"] button:active:not(:disabled),
-  [data-motion-presence] button:active:not(:disabled) { transform: scale(.97); }
+  [data-motion-presence] button:active:not(:disabled) { scale: .97; }
   /* Palette fades are short and scoped; never interpolate every inherited property. */
   body, .card, .sidebar, .chat-head, .composer, .scene-label, .settings {
     transition: background-color 400ms var(--motion-ease), border-color 400ms var(--motion-ease), color 400ms var(--motion-ease);

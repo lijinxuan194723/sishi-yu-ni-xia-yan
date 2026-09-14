@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="288dp" android:height="288dp" android:viewportWidth="288" android:viewportHeight="288">
+ <group android:name="halo" android:pivotX="144" android:pivotY="144">
+  <path android:fillColor="?attr/lukeLaunchHalo" android:pathData="M144,56 A88,88 0,1 1,144,232 A88,88 0,1 1,144,56 Z"/>
+  <path android:fillColor="#00000000" android:strokeColor="?attr/lukeLaunchRing" android:strokeWidth="1" android:strokeLineCap="round" android:pathData="M144,60 A84,84 0,1 1,144,228 A84,84 0,1 1,144,60 Z"/>
+  <path android:fillColor="@color/luke_launch_spring" android:pathData="M139,60 A5,5 0,1 1,149,60 A5,5 0,1 1,139,60 Z"/>
+  <path android:fillColor="@color/luke_launch_summer" android:pathData="M223,144 A5,5 0,1 1,233,144 A5,5 0,1 1,223,144 Z"/>
+  <path android:fillColor="@color/luke_launch_autumn" android:pathData="M139,228 A5,5 0,1 1,149,228 A5,5 0,1 1,139,228 Z"/>
+  <path android:fillColor="@color/luke_launch_winter" android:pathData="M55,144 A5,5 0,1 1,65,144 A5,5 0,1 1,55,144 Z"/>
+ </group>
+ <group android:name="medallion" android:pivotX="144" android:pivotY="144">
+  <path android:fillColor="?attr/lukeLaunchDisc" android:pathData="M144,76 A68,68 0,1 1,144,212 A68,68 0,1 1,144,76 Z"/>
+  <path android:fillColor="?attr/lukeLaunchInner" android:pathData="M144,80 A64,64 0,1 1,144,208 A64,64 0,1 1,144,80 Z"/>
+  <group android:translateX="80" android:translateY="78" android:scaleX="1.2" android:scaleY="1.2">
+   <path android:fillColor="#00000000" android:strokeColor="?attr/lukeLaunchKey" android:strokeWidth="4.5" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M60,53 A17,17 0,1 0,55,48 L30,73 Q29,74 29,76 L29,80 Q29,83 32,83 L36,83 Q39,83 39,80 L39,77 Q39,74 42,74 L45,74 Q48,74 48,71 L48,68 Q48,66 50,64 L60,53"/>
+   <path android:fillColor="?attr/lukeLaunchKey" android:pathData="M72,31 A3,3 0,1 0,72,37 A3,3 0,1 0,72,31 Z"/>
+  </group>
+ </group>
+ <group android:name="seasonMotif"><path android:fillColor="#00000000" android:strokeColor="?attr/lukeLaunchKey" android:strokeWidth="2" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M144,170 L144,198 M132,177 L156,191 M132,191 L156,177 M140,174 L144,178 L148,174 M140,194 L144,190 L148,194 M133,182 L139,181 L136,176 M152,192 L150,186 L156,185 M132,186 L138,187 L136,193 M152,176 L150,182 L156,182"/></group>
+</vector>

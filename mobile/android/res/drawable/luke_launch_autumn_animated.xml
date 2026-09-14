@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<animated-vector xmlns:android="http://schemas.android.com/apk/res/android" android:drawable="@drawable/luke_launch_autumn_mark">
+ <target android:name="halo" android:animation="@animator/luke_launch_halo"/>
+ <target android:name="medallion" android:animation="@animator/luke_launch_settle"/>
+</animated-vector>

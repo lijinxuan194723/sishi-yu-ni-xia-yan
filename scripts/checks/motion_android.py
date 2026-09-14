@@ -2,6 +2,7 @@
 No model credentials or personal records are loaded. A disposable note tests upgrade.
 """
 import hashlib,json,pathlib,re,subprocess,time,xml.etree.ElementTree as ET
+from seasonal_android import verify_seasonal_android
 from motion_device_environment import prepare, check_visible_close
 out=pathlib.Path('work/motion-android');out.mkdir(parents=True,exist_ok=True)
 pkg='com.luke.summer.preview';component=pkg+'/com.luke.summer.MainActivity'
@@ -45,7 +46,6 @@ def editor_values():
  fields.sort(key=lambda e:int(re.findall(r'\d+',e.get('bounds'))[1]))
  return [e.get('text','') for e in fields]
 def tap(label):
- # WebView publishes accessibility subtrees asynchronously after a transition.
  end=time.monotonic()+12;last=''
  while time.monotonic()<end:
   last=dump();tree=ET.fromstring(last)
@@ -64,18 +64,15 @@ def scales(value):
   adb('shell','settings','put','global',key,str(value))
 def logs():return adb('logcat','-d','-v','threadtime','LukeMotion:I','AndroidRuntime:E','*:S')
 def cold(name,night=False,reduced=False):
- # Stop the app before changing global configuration. Otherwise Android can queue a
- # night-mode Activity recreation concurrently with the supposedly isolated cold launch.
+ # Isolate emulator configuration changes from application launch.
  adb('shell','am','force-stop',pkg)
  scales(0 if reduced else 1);adb('shell','cmd','uimode','night','yes' if night else 'no')
- time.sleep(1)
- adb('logcat','-c')
+ time.sleep(1);adb('logcat','-c')
  remote='/sdcard/motion-'+name+'.mp4'
  recorder=subprocess.Popen(['adb','shell','screenrecord','--size','720x1280','--bit-rate','2500000','--time-limit','30',remote],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
  time.sleep(.5)
  try:
   launch()
-  # Accessibility inspection itself forces work on the UI thread. Inspect after the fade.
   if reduced:time.sleep(3)
   else:
    deadline=time.monotonic()+18
@@ -108,8 +105,6 @@ def seed_note():
  record('baseline note editor contains the exact fixture title',editor_values()[0]=='MotionUpgrade902002')
  (out/'baseline-note.png').write_bytes(adb('exec-out','screencap','-p',binary=True))
  adb('shell','input','keyevent','4');time.sleep(.4);tap('返回笔记列表')
- # Some WebViews collapse named tabpanels in UIAutomator while rendering their lists.
- # Assert the actual editor value before and after upgrade instead of an absent list node.
 
 def verify_upgrade_note():
  tap('时光手记');xml=dump();tree=ET.fromstring(xml)
@@ -117,8 +112,7 @@ def verify_upgrade_note():
  (out/'upgraded-list.png').write_bytes(adb('exec-out','screencap','-p',binary=True))
  if rows:tap_node(rows[-1])
  else:
-  # Fixed isolated 720x1280/density320 fixture: the first note title is at x360/y550.
-  # Checked against the baseline screenshot. A missed tap fails the editor-value assert.
+  # Fixed isolated 720x1280/density320 fixture; missed taps fail the value assertion.
   adb('shell','input','tap','360','550');time.sleep(.6)
  wait_text('返回笔记列表','android.widget.EditText');values=editor_values()
  record('in-place upgrade retains exact saved note title',bool(values) and values[0]=='MotionUpgrade902002',values)
@@ -148,6 +142,7 @@ try:
  adb('shell','settings','put','system','accelerometer_rotation','0');adb('shell','settings','put','system','user_rotation','1');time.sleep(1)
  record('rotation does not show a failed startup','启动暂未完成' not in dump())
  record('no native crash during interaction smoke tests','FATAL EXCEPTION' not in logs())
+ verify_seasonal_android(adb,tap,dump,wait_home,wait_text,launch,record,out,pkg)
 except Exception as e:
  results.append({'name':'runtime failure','passed':False,'detail':str(e)});save()
  try:(out/'failure.png').write_bytes(adb('exec-out','screencap','-p',binary=True));(out/'failure.log').write_text(adb('logcat','-d','-v','threadtime'));(out/'failure.xml').write_text(dump())

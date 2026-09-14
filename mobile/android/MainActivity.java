@@ -20,6 +20,53 @@ public class MainActivity extends Activity {
  private static final String ORIGIN="https://appassets.androidplatform.net";
  private WebView web;
  private SoftStartup startup;
+ private String launchSeason="spring",launchMode="day",launchStyle="",shownSplashStyle="";
+ private android.view.ContextThemeWrapper launchContext;
+ private boolean feedbackAllowed=true;
+ private long lastFeedback=-1000L;
+ private android.content.SharedPreferences uiPreferences(){return getSharedPreferences("luke-ui-preferences-v1",MODE_PRIVATE);}
+ private static String seasonAtMonth(int month){return new String[]{"spring","summer","autumn","winter"}[((month+10)%12)/3];}
+ private static boolean darkAtPeriod(String period,double hour){
+  if("清晨".equals(period))hour=6.5;else if("早上".equals(period))hour=9;
+  else if("正午".equals(period))hour=12;else if("午后".equals(period))hour=15;
+  else if("傍晚".equals(period))hour=18;else if("夜晚".equals(period))hour=20;else if("深夜".equals(period))hour=23;
+  return hour<5.75||hour>19;
+ }
+ private int launchResource(String name,String type){return getResources().getIdentifier(name,type,getPackageName());}
+ private void configureLaunch(){
+  android.content.SharedPreferences prefs=uiPreferences();Calendar clock=Calendar.getInstance();
+  String selected=prefs.getString("season","auto"),period=prefs.getString("period","auto");
+  launchSeason=Arrays.asList("spring","summer","autumn","winter").contains(selected)?selected:seasonAtMonth(clock.get(Calendar.MONTH));
+  double hour=clock.get(Calendar.HOUR_OF_DAY)+clock.get(Calendar.MINUTE)/60.0+clock.get(Calendar.SECOND)/3600.0;
+  launchMode=darkAtPeriod(period,hour)?"night":"day";
+  launchStyle="Luke"+launchSeason.substring(0,1).toUpperCase(Locale.ROOT)+launchSeason.substring(1)+(launchMode.equals("night")?"Night":"Day");
+  int theme=launchResource(launchStyle,"style");
+  if(theme!=0){launchContext=new android.view.ContextThemeWrapper(this,theme);if(web==null)setTheme(theme);}
+  else launchContext=new android.view.ContextThemeWrapper(this,getApplicationInfo().theme);
+  if(android.os.Build.VERSION.SDK_INT>=31&&theme!=0){
+   try{getSplashScreen().setSplashScreenTheme(theme);prefs.edit().putString("cachedSplashStyle",launchStyle).apply();}catch(RuntimeException ignored){}
+  }
+ }
+ private int launchColor(String name){
+  int id=launchResource(name+"_"+launchSeason+"_"+launchMode,"color");
+  return getColor(id!=0?id:launchResource(name,"color"));
+ }
+ private android.graphics.drawable.Drawable launchMark(boolean animated){
+  int id=launchResource("luke_launch_"+launchSeason+(animated?"_animated":"_mark"),"drawable");
+  return launchContext.getDrawable(id);
+ }
+ private void touchFeedback(String kind){
+  if(!Arrays.asList("press","selection","confirm").contains(kind))return;
+  runOnUiThread(()->{
+   if(isDestroyed()||!contentReady||!feedbackAllowed||!web.isShown()||!web.hasWindowFocus())return;
+   long now=android.os.SystemClock.elapsedRealtime();if(now-lastFeedback<90L)return;lastFeedback=now;
+   int effect=android.view.HapticFeedbackConstants.VIRTUAL_KEY;
+   if("selection".equals(kind))effect=android.view.HapticFeedbackConstants.CLOCK_TICK;
+   else if("confirm".equals(kind)&&android.os.Build.VERSION.SDK_INT>=30)effect=android.view.HapticFeedbackConstants.CONFIRM;
+   boolean applied=web.performHapticFeedback(effect);
+   android.util.Log.d("LukeFeedback","kind="+kind+" accepted="+applied);
+  });
+ }
  private android.widget.FrameLayout viewport;
  private boolean darkSystemBars=true;
  private boolean keyboardVisible=false;
@@ -33,6 +80,9 @@ public class MainActivity extends Activity {
  private String locationOrigin,exportText;
 
  @Override public void onCreate(Bundle state){
+  shownSplashStyle=uiPreferences().getString("cachedSplashStyle","");
+  feedbackAllowed=uiPreferences().getBoolean("feedbackEnabled",true);
+  configureLaunch();
   super.onCreate(state);
   viewport=new android.widget.FrameLayout(this);web=new WebView(this);web.setVisibility(android.view.View.INVISIBLE);viewport.addView(web,new android.widget.FrameLayout.LayoutParams(-1,-1));setContentView(viewport);startup=new SoftStartup();startup.install();showSystemBars();
   if(android.os.Build.VERSION.SDK_INT>=30){getWindow().setDecorFitsSystemWindows(false);viewport.setOnApplyWindowInsetsListener((v,insets)->{setKeyboardVisible(insets.isVisible(android.view.WindowInsets.Type.ime()));android.graphics.Insets bars=insets.getInsets(android.view.WindowInsets.Type.systemBars()|android.view.WindowInsets.Type.displayCutout()|android.view.WindowInsets.Type.ime());android.widget.FrameLayout.LayoutParams lp=(android.widget.FrameLayout.LayoutParams)web.getLayoutParams();if(lp.leftMargin!=bars.left||lp.topMargin!=bars.top||lp.rightMargin!=bars.right||lp.bottomMargin!=bars.bottom){lp.setMargins(bars.left,bars.top,bars.right,bars.bottom);web.setLayoutParams(lp);}return android.view.WindowInsets.CONSUMED;});viewport.requestApplyInsets();}
@@ -121,8 +171,9 @@ public class MainActivity extends Activity {
   private int dp(float value){return Math.round(value*getResources().getDisplayMetrics().density);}
   private boolean motion(){return android.animation.ValueAnimator.areAnimatorsEnabled();}
   void install(){
-   background=getColor(resource("luke_launch_background","color"));
-   darkSystemBars=!getResources().getBoolean(resource("luke_launch_light_bars","bool"));
+   background=launchColor("luke_launch_background");
+   android.util.Log.i("LukeSeason","launch season="+launchSeason+" mode="+launchMode);
+   darkSystemBars="night".equals(launchMode);
    viewport.setBackgroundColor(background);web.setBackgroundColor(background);
    getWindow().setStatusBarColor(background);getWindow().setNavigationBarColor(background);
    layer=new android.widget.FrameLayout(MainActivity.this);layer.setBackgroundColor(background);
@@ -130,7 +181,7 @@ public class MainActivity extends Activity {
    layer.setContentDescription("四时与你，正在打开");
    mark=new android.widget.ImageView(MainActivity.this);
    mark.setImportantForAccessibility(android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO);
-   mark.setImageResource(resource("luke_launch_mark","drawable"));
+   mark.setImageDrawable(launchMark(false));
    layer.addView(mark,new android.widget.FrameLayout.LayoutParams(dp(288),dp(288),android.view.Gravity.CENTER));
    viewport.addView(layer,new android.widget.FrameLayout.LayoutParams(-1,-1));
    if(android.os.Build.VERSION.SDK_INT>=31){
@@ -143,8 +194,8 @@ public class MainActivity extends Activity {
   }
   private void startMark(){
    markStarted=android.os.SystemClock.uptimeMillis();
-   if(!motion()){mark.setImageResource(resource("luke_launch_mark","drawable"));return;}
-   mark.setImageResource(resource("luke_launch_animated","drawable"));
+   if(!motion()){mark.setImageDrawable(launchMark(false));return;}
+   mark.setImageDrawable(launchMark(true));
    android.graphics.drawable.Drawable d=mark.getDrawable();
    if(d instanceof android.graphics.drawable.Animatable)((android.graphics.drawable.Animatable)d).start();
   }
@@ -160,12 +211,45 @@ public class MainActivity extends Activity {
   void systemExit(android.view.View splash,android.view.View icon,Runnable remove,long introRemaining){
    if(disposed){remove.run();return;}
    removePlatform=remove;platformView=splash;
+   icon=seasonalSystemIcon(splash,icon);
    if(!motion()){finishPlatform();return;}
    // Let the ongoing vector settle; never reset it to its final frame at pageReady.
    long delay=Math.min(180L,Math.max(0L,introRemaining-EXIT_MS));
    animateExit(splash,icon,delay,this::finishPlatform,"system");
   }
+  private android.widget.ImageView seasonalOverlay;
+  private android.view.View seasonalOriginal;
+  private int seasonalFrom;
+  private android.view.View seasonalSystemIcon(android.view.View splash,android.view.View icon){
+   if(launchStyle.equals(shownSplashStyle)||!(splash instanceof android.widget.FrameLayout)||icon==null)return icon;
+   android.graphics.drawable.Drawable bg=splash.getBackground();
+   seasonalFrom=bg instanceof android.graphics.drawable.ColorDrawable?((android.graphics.drawable.ColorDrawable)bg).getColor():background;
+   seasonalOriginal=icon;seasonalOverlay=new android.widget.ImageView(MainActivity.this);
+   seasonalOverlay.setImageDrawable(launchMark(false));seasonalOverlay.setImportantForAccessibility(android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+   int width=icon.getWidth(),height=icon.getHeight();if(width<1||height<1){width=dp(288);height=dp(288);}
+   android.widget.FrameLayout.LayoutParams lp=new android.widget.FrameLayout.LayoutParams(width,height);
+   lp.leftMargin=icon.getLeft();lp.topMargin=icon.getTop();
+   seasonalOverlay.setAlpha(0f);((android.widget.FrameLayout)splash).addView(seasonalOverlay,lp);
+   return seasonalOverlay;
+  }
+  private void blendSeasonalSystem(float progress){
+   if(seasonalOverlay==null||platformView==null)return;
+   float blend=ease.getInterpolation(Math.min(1f,progress));
+   seasonalOverlay.setAlpha(blend);if(seasonalOriginal!=null)seasonalOriginal.setAlpha(1f-blend);
+   int target=launchColor("luke_launch_background");
+   int c=Color.rgb(Math.round(Color.red(seasonalFrom)+(Color.red(target)-Color.red(seasonalFrom))*blend),Math.round(Color.green(seasonalFrom)+(Color.green(target)-Color.green(seasonalFrom))*blend),Math.round(Color.blue(seasonalFrom)+(Color.blue(target)-Color.blue(seasonalFrom))*blend));
+   platformView.setBackgroundColor(c);
+  }
+  void appearanceUpdated(){
+   if(disposed||contentReady||finishing)return;
+   int color=launchColor("luke_launch_background");background=color;layer.setBackgroundColor(color);viewport.setBackgroundColor(color);web.setBackgroundColor(color);
+   android.graphics.drawable.Drawable before=mark.getDrawable();
+   android.graphics.drawable.TransitionDrawable blend=new android.graphics.drawable.TransitionDrawable(new android.graphics.drawable.Drawable[]{before,launchMark(false)});
+   mark.setImageDrawable(blend);blend.setCrossFadeEnabled(true);blend.startTransition(motion()?160:0);
+   android.util.Log.i("LukeSeason","resolved season="+launchSeason+" mode="+launchMode);
+  }
   private void finishPlatform(){
+   seasonalOverlay=null;seasonalOriginal=null;
    if(platformView!=null){platformView.animate().cancel();platformView=null;}
    if(removePlatform!=null){Runnable remove=removePlatform;removePlatform=null;remove.run();}
    if(!disposed&&contentReady){web.getSettings().setOffscreenPreRaster(false);web.evaluateJavascript("delete document.documentElement.dataset.nativeLaunching",null);}
@@ -204,6 +288,7 @@ public class MainActivity extends Activity {
      }
      previous[0]=now;frames[0]++;
      float progress=ease.getInterpolation(Math.min(1f,elapsed[0]/EXIT_MS));
+     if(surface==platformView)blendSeasonalSystem(elapsed[0]/180f);
      surface.setAlpha(fromAlpha*(1f-progress));
      if(icon!=null){icon.setScaleX(fromX*(1f-.02f*progress));icon.setScaleY(fromY*(1f-.02f*progress));}
      if(elapsed[0]>=EXIT_MS){if(finishExit!=null)finishExit.run();}
@@ -263,11 +348,11 @@ public class MainActivity extends Activity {
     failure=new android.widget.LinearLayout(MainActivity.this);failure.setOrientation(android.widget.LinearLayout.VERTICAL);
     failure.setPadding(dp(24),dp(24),dp(24),dp(24));
     android.graphics.drawable.GradientDrawable card=new android.graphics.drawable.GradientDrawable();
-    card.setColor(getColor(resource("luke_launch_inner","color")));card.setCornerRadius(dp(28));failure.setBackground(card);
-    android.widget.TextView title=new android.widget.TextView(MainActivity.this);title.setText("启动暂未完成");title.setTextSize(20);title.setTextColor(getColor(resource("luke_launch_key","color")));
-    android.widget.TextView note=new android.widget.TextView(MainActivity.this);note.setText("可以重试打开，本地聊天和手记不会被清除。");note.setTextSize(15);note.setTextColor(getColor(resource("luke_launch_key","color")));note.setPadding(0,dp(12),0,dp(20));
-    android.widget.Button retry=new android.widget.Button(MainActivity.this);retry.setText("重新打开");retry.setTextColor(getColor(resource("luke_launch_key","color")));retry.setAllCaps(false);retry.setMinHeight(dp(48));
-    android.graphics.drawable.GradientDrawable pill=new android.graphics.drawable.GradientDrawable();pill.setColor(getColor(resource("luke_launch_disc","color")));pill.setCornerRadius(dp(24));retry.setBackground(pill);retry.setPadding(dp(20),dp(12),dp(20),dp(12));
+    card.setColor(launchColor("luke_launch_inner"));card.setCornerRadius(dp(28));failure.setBackground(card);
+    android.widget.TextView title=new android.widget.TextView(MainActivity.this);title.setText("启动暂未完成");title.setTextSize(20);title.setTextColor(launchColor("luke_launch_key"));
+    android.widget.TextView note=new android.widget.TextView(MainActivity.this);note.setText("可以重试打开，本地聊天和手记不会被清除。");note.setTextSize(15);note.setTextColor(launchColor("luke_launch_key"));note.setPadding(0,dp(12),0,dp(20));
+    android.widget.Button retry=new android.widget.Button(MainActivity.this);retry.setText("重新打开");retry.setTextColor(launchColor("luke_launch_key"));retry.setAllCaps(false);retry.setMinHeight(dp(48));
+    android.graphics.drawable.GradientDrawable pill=new android.graphics.drawable.GradientDrawable();pill.setColor(launchColor("luke_launch_disc"));pill.setCornerRadius(dp(24));retry.setBackground(pill);retry.setPadding(dp(20),dp(12),dp(20),dp(12));
     retry.setOnClickListener(v->retry());failure.addView(title);failure.addView(note);failure.addView(retry,new android.widget.LinearLayout.LayoutParams(-1,-2));
     android.widget.FrameLayout.LayoutParams lp=new android.widget.FrameLayout.LayoutParams(-1,-2,android.view.Gravity.CENTER);lp.setMargins(dp(24),dp(24),dp(24),dp(24));layer.addView(failure,lp);
    }
@@ -304,7 +389,20 @@ public class MainActivity extends Activity {
 
  public class Bridge {
   @JavascriptInterface public String defaultModel(){try(InputStream in=getAssets().open("personal-model.json");ByteArrayOutputStream out=new ByteArrayOutputStream()){byte[] buffer=new byte[1024];int n;while((n=in.read(buffer))!=-1)out.write(buffer,0,n);return out.toString("UTF-8");}catch(Exception ignored){return "{}";}}
-  @JavascriptInterface public void haptic(){runOnUiThread(()->{if(!isDestroyed())web.performHapticFeedback(android.view.HapticFeedbackConstants.KEYBOARD_TAP);});}
+  @JavascriptInterface public void haptic(){touchFeedback("press");}
+  @JavascriptInterface public void hapticEvent(String kind){touchFeedback(kind);}
+  @JavascriptInterface public void feedbackEnabled(boolean enabled){runOnUiThread(()->{if(isDestroyed())return;feedbackAllowed=enabled;uiPreferences().edit().putBoolean("feedbackEnabled",enabled).apply();});}
+  @JavascriptInterface public void startupAppearance(String season,String period){
+   if(!Arrays.asList("auto","spring","summer","autumn","winter").contains(season)||!Arrays.asList("auto","清晨","早上","正午","午后","傍晚","夜晚","深夜").contains(period))return;
+   runOnUiThread(()->{
+    if(isDestroyed())return;
+    android.content.SharedPreferences prefs=uiPreferences();
+    boolean changed=!season.equals(prefs.getString("season","auto"))||!period.equals(prefs.getString("period","auto"));
+    if(changed)prefs.edit().putString("season",season).putString("period",period).apply();
+    String previous=launchStyle;configureLaunch();
+    if(startup!=null&&!previous.equals(launchStyle))startup.appearanceUpdated();
+   });
+  }
   @JavascriptInterface public void pageReady(){
    runOnUiThread(()->{if(isDestroyed()||readyPosted)return;readyPosted=true;
     final int generation=startup.generation;

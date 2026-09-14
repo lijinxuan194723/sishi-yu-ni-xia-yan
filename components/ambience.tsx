@@ -2,13 +2,14 @@
 import {memo,useMemo,useEffect,useLayoutEffect,useState,useRef,type CSSProperties} from 'react';
 import {flushSync} from 'react-dom';
 import {seasonAlbums} from '@/lib/season-albums';
+import {syncNativeAppearance} from '@/lib/interaction-feedback';
 import {swapPhoto} from '@/lib/photo-transition';
 import {Flower2,Leaf,Snowflake,Sparkles,Sunrise,Sun,Sunset,Moon} from 'lucide-react';
 import {ambienceAt,seasonPhotos,seasons,autoAppearance,readAppearance,type Appearance} from '@/lib/ambience';
 export function useAmbience(paused=false,preview=false){
  const [options,setOptionsState]=useState<Appearance>(autoAppearance),[loaded,setLoaded]=useState(false),[appearanceError,setAppearanceError]=useState('');
  useEffect(()=>{try{setOptionsState(readAppearance(JSON.parse(localStorage.getItem('luke-appearance-v1')||'null')));}catch{}setLoaded(true);},[]);
- function setOptions(next:Appearance){setOptionsState(next);try{localStorage.setItem('luke-appearance-v1',JSON.stringify(next));setAppearanceError('');}catch{setAppearanceError('外观已切换，但当前设备未能保存设置。');}}
+ function setOptions(next:Appearance){setOptionsState(next);try{localStorage.setItem('luke-appearance-v1',JSON.stringify(next));syncNativeAppearance();setAppearanceError('');}catch{setAppearanceError('外观已切换，但当前设备未能保存设置。');}}
  const [scene,setScene]=useState<ReturnType<typeof ambienceAt>|null>(null);
  useEffect(()=>{
   if(!loaded||paused)return;
@@ -58,7 +59,3 @@ export function SeasonPhoto({season,className="",src}:{season:typeof seasons[num
  const position='center '+({spring:'40%',summer:'32%',autumn:'32%',winter:'40%'})[initial.current];
  return <div className={"season-photo "+className}><img ref={first} src={initialPhoto.current} alt="四季中的夏彦" style={{objectPosition:position}}/><img ref={second} alt="" style={{opacity:0,objectPosition:position}}/></div>;
 }
-
-
-
-

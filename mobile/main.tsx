@@ -7,5 +7,6 @@ import '../app/theme.css';
 import '../app/ambience.css';
 import '../app/notes-polish.css';
 import '../app/motion.css';
+import '../app/interaction-polish.css';
 if(window.LukeAndroid)document.documentElement.dataset.nativeLaunching='true';
 createRoot(document.getElementById('root')!).render(<ErrorBoundary><Page/></ErrorBoundary>);

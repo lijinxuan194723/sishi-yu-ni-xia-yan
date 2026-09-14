@@ -20,7 +20,7 @@ with zipfile.ZipFile(apk) as z:
    if '..' in rel.parts:raise SystemExit('Unsafe archive path')
    dest=pathlib.Path('work/mobile-web')/rel;dest.parent.mkdir(parents=True,exist_ok=True);dest.write_bytes(z.read(name))
 (path/'build.json').write_text(json.dumps({'commit':sha,'branch':branch,'runId':run['id'],'runUrl':run['html_url']},indent=2))
-# The existing preview branch has its own stable signing cache; test real upgrade there.
+# Compare the last delivered preview. This is a disposable emulator fixture.
 if branch=='fix/rounded-native-startup':
  previous=pathlib.Path('work/motion-previous');previous.mkdir(parents=True,exist_ok=True)
- subprocess.run(['gh','run','download','34759435825','--repo',repo,'--name','Four-Seasons-Luke-Memo-Preview','--dir',str(previous)],check=True)
+ subprocess.run(['gh','run','download','34810383900','--repo',repo,'--name','Four-Seasons-Luke-Memo-Preview','--dir',str(previous)],check=True)

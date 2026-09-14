@@ -1,5 +1,6 @@
 'use client';
 import { useEffect } from 'react';
+import { installFeedback, syncNativeAppearance } from '@/lib/interaction-feedback';
 import { CHAT_BACKGROUND_KEY, applyChatBackground } from '@/lib/chat-background';
 
 export function useStartup(ready: boolean) {
@@ -20,19 +21,12 @@ export function useStartup(ready: boolean) {
   useEffect(() => {
     const pointer = () => { delete document.documentElement.dataset.keyboardFocus; };
     const keyboard = (event: KeyboardEvent) => { if (event.key === 'Tab') document.documentElement.dataset.keyboardFocus = 'true'; };
-    let last = 0;
-    const tap = (event: MouseEvent) => {
-      if (!event.isTrusted) return;
-      const button = (event.target as Element)?.closest('button,[role="button"],input[type="checkbox"],input[type="radio"]');
-      if (!button || button.matches(':disabled,[aria-disabled="true"]')) return;
-      const now = performance.now(); if (now - last < 70) return; last = now;
-      window.LukeAndroid?.haptic?.();
-    };
+    const removeFeedback = installFeedback();
+    syncNativeAppearance();
     document.addEventListener('pointerdown', pointer, true);
     document.addEventListener('keydown', keyboard, true);
-    document.addEventListener('click', tap, true);
     return () => {
-      document.removeEventListener('click', tap, true);
+      removeFeedback();
       document.removeEventListener('pointerdown', pointer, true);
       document.removeEventListener('keydown', keyboard, true);
     };
