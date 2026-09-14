@@ -1,9 +1,10 @@
 """Actual signed APK: eight seasonal cold starts and real native UI actions."""
 import re,subprocess,time,xml.etree.ElementTree as ET
+from motion_observation import wait_rotation
 
 def verify_seasonal_android(adb,tap,dump,wait_home,wait_text,launch,record,out,pkg):
-    adb('shell','settings','put','system','user_rotation','0');time.sleep(1)
-    tap('回到身边')
+    adb('shell','settings','put','system','user_rotation','0');wait_rotation(dump,0)
+    tap('回到身边');wait_home()
     def visible(label):
         for _ in range(5):
             xml=dump()

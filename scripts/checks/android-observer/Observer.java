@@ -30,11 +30,16 @@ public final class Observer extends Instrumentation {
   xml.endTag("","node");
  }
  private String dump() throws Exception {
+  if(android.os.Build.VERSION.SDK_INT>=34)automation.clearCache();
   AccessibilityNodeInfo root=automation.getRootInActiveWindow();
   if(root==null)throw new IOException("No active accessibility root");
   try{
+   if(!root.refresh())throw new IOException("No active accessibility root");
+   android.graphics.Point size=new android.graphics.Point();
+   android.view.Display display=((android.view.WindowManager)getContext().getSystemService(android.content.Context.WINDOW_SERVICE)).getDefaultDisplay();
+   display.getRealSize(size);
    StringWriter output=new StringWriter();XmlSerializer xml=android.util.Xml.newSerializer();xml.setOutput(output);
-   xml.startDocument("UTF-8",true);xml.startTag("","hierarchy");node(xml,root,0,new int[]{0});xml.endTag("","hierarchy");xml.endDocument();return output.toString();
+   xml.startDocument("UTF-8",true);xml.startTag("","hierarchy");xml.attribute("","rotation",String.valueOf(display.getRotation()));xml.attribute("","width",String.valueOf(size.x));xml.attribute("","height",String.valueOf(size.y));node(xml,root,0,new int[]{0});xml.endTag("","hierarchy");xml.endDocument();return output.toString();
   }finally{root.recycle();}
  }
  @Override public void onStart(){

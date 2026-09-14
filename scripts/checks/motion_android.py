@@ -5,6 +5,7 @@ import hashlib,json,pathlib,re,subprocess,time,xml.etree.ElementTree as ET
 from seasonal_android import verify_seasonal_android
 from android_observer import AndroidObserver
 from renderer_recovery import verify_renderer_recovery
+from motion_observation import choose_control, wait_rotation
 from motion_device_environment import prepare, check_visible_close
 out=pathlib.Path('work/motion-android');out.mkdir(parents=True,exist_ok=True)
 pkg='com.luke.summer.preview';component=pkg+'/com.luke.summer.MainActivity'
@@ -47,17 +48,23 @@ def editor_values():
  fields.sort(key=lambda e:int(re.findall(r'\d+',e.get('bounds'))[1]))
  return [e.get('text','') for e in fields]
 def tap(label):
- end=time.monotonic()+12;last=''
+ end=time.monotonic()+12;last='';previous=None
  while time.monotonic()<end:
   last=dump();tree=ET.fromstring(last)
-  for e in reversed(list(tree.iter('node'))):
-   if e.get('text')!=label and e.get('content-desc')!=label:continue
-   bounds=list(map(int,re.findall(r'\d+',e.get('bounds',''))))
-   if len(bounds)==4 and bounds[2]>bounds[0] and bounds[3]>bounds[1]:
-    tap_node(e);return
-  time.sleep(.3)
+  node=choose_control(tree,label)
+  if node is not None:
+   # Require two equal post-layout samples. A single stale landscape rectangle
+   # must never cause a touch on an unrelated portrait control.
+   state=(tree.get('rotation'),tree.get('width'),tree.get('height'),node.get('bounds'))
+   if state==previous:
+    with (out/'touch-actions.jsonl').open('a') as stream:
+     stream.write(json.dumps({'label':label,'state':state,'time':time.monotonic()},ensure_ascii=False)+'\n')
+    tap_node(node);return
+   previous=state
+  else:previous=None
+  time.sleep(.2)
  (out/'missing-control.xml').write_text(last)
- raise AssertionError('Cannot find visible accessible control: '+label)
+ raise AssertionError('Cannot find stable visible accessible control: '+label)
 def launch():
  adb('shell','am','start','-a','android.intent.action.MAIN','-c','android.intent.category.LAUNCHER','-f','0x10200000','-n',component)
 def scales(value):
@@ -142,7 +149,7 @@ try:
  record('topic dialog is usable in Android WebView','查看话题背景' in xml and '会话记录' in xml and 'android.widget.EditText' in xml);check_visible_close(xml,record,'topic dialog');tap('关闭')
  tap('计时');tap('学习科目');xml=wait_text('输入其他科目')
  record('animated subject menu is usable','输入其他科目' in xml);tap('学习科目')
- adb('shell','settings','put','system','accelerometer_rotation','0');adb('shell','settings','put','system','user_rotation','1');time.sleep(1)
+ adb('shell','settings','put','system','accelerometer_rotation','0');adb('shell','settings','put','system','user_rotation','1');wait_rotation(dump,1)
  record('rotation does not show a failed startup','启动暂未完成' not in dump())
  record('no native crash during interaction smoke tests',all(marker not in logs() for marker in ['FATAL EXCEPTION','terminated crashed=','Fatal signal']))
  verify_seasonal_android(adb,tap,dump,wait_home,wait_text,launch,record,out,pkg)
