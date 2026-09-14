@@ -5,6 +5,7 @@ mocked storage and local data-URL images; neither mode claims Android coverage.
 from pathlib import Path
 import argparse, base64, functools, http.server, io, json, os, threading, traceback
 from playwright.sync_api import sync_playwright
+from motion_accessibility import verify_reduced_dialogs
 
 parser=argparse.ArgumentParser()
 parser.add_argument('--root',default='work/mobile-web')
@@ -141,6 +142,7 @@ with sync_playwright() as p:
   f=trace(page,'reduce-note-out','[data-memo-editor=true]',button('返回笔记列表'),200)
   check('reduced motion removes editor without a stranded layer',not any(v['exists'] for v in f))
   check('reduced motion leaves no running UI animation',page.evaluate("document.getAnimations().filter(a=>a.playState==='running').length") == 0)
+  verify_reduced_dialogs(page, check)
   page.close();check('no uncaught browser exceptions',not errors,errors)
  except Exception as exc:
   results.append({'name':'uncaught test failure','passed':False,'detail':str(exc)});save()

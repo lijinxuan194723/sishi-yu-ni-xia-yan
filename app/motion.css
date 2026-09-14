@@ -77,7 +77,9 @@
     transition: none !important;
     scroll-behavior: auto !important;
   }
-  [data-slot="dialog-content"], [data-motion-presence] { scale: 1; translate: none; }
+  /* Dialog translate centres the popup; it is layout, not motion. */
+  [data-slot="dialog-content"] { scale: 1; }
+  [data-motion-presence] { scale: 1; translate: none; }
   .typing-dots i, .typing-caret { opacity: .6; }
 }
 /* A decoded outgoing frame masks Embla's necessary geometry reset during season changes. */

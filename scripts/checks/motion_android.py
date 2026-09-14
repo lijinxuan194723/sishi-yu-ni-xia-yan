@@ -2,6 +2,7 @@
 No model credentials or personal records are loaded. A disposable note tests upgrade.
 """
 import hashlib,json,pathlib,re,subprocess,time,xml.etree.ElementTree as ET
+from motion_device_environment import prepare, check_visible_close
 out=pathlib.Path('work/motion-android');out.mkdir(parents=True,exist_ok=True)
 pkg='com.luke.summer.preview';component=pkg+'/com.luke.summer.MainActivity'
 apk=next(pathlib.Path('work/motion-candidate').glob('*.apk'));results=[]
@@ -129,6 +130,7 @@ try:
  adb('shell','wm','size','720x1280');adb('shell','wm','density','320')
  (out/'display.txt').write_text(adb('shell','wm','size')+adb('shell','wm','density'))
  (out/'webview-provider.txt').write_text(adb('shell','dumpsys','webviewupdate'))
+ prepare(adb,dump,out,pkg)
  previous=list(pathlib.Path('work/motion-previous').glob('*.apk'))
  if previous:
   adb('install','-r',str(previous[0]),timeout=90);scales(1);launch();wait_home();seed_note()
@@ -138,9 +140,9 @@ try:
  record('warm resume does not replay startup',len(re.findall('exit-start',logs()))==before)
  if previous:verify_upgrade_note()
  cold('cold-reduced',reduced=True);scales(1)
- tap('打开设置');xml=wait_text('日常与数据');record('settings opens in Android WebView','日常与数据' in xml);tap('关闭')
+ tap('打开设置');xml=wait_text('日常与数据');record('settings opens in Android WebView','日常与数据' in xml);check_visible_close(xml,record,'settings');tap('关闭')
  tap('他的此刻');tap('开始情景对话');xml=wait_text('查看话题背景','会话记录','android.widget.EditText')
- record('topic dialog is usable in Android WebView','查看话题背景' in xml and '会话记录' in xml and 'android.widget.EditText' in xml);tap('关闭')
+ record('topic dialog is usable in Android WebView','查看话题背景' in xml and '会话记录' in xml and 'android.widget.EditText' in xml);check_visible_close(xml,record,'topic dialog');tap('关闭')
  tap('计时');tap('学习科目');xml=wait_text('输入其他科目')
  record('animated subject menu is usable','输入其他科目' in xml);tap('学习科目')
  adb('shell','settings','put','system','accelerometer_rotation','0');adb('shell','settings','put','system','user_rotation','1');time.sleep(1)
@@ -148,7 +150,7 @@ try:
  record('no native crash during interaction smoke tests','FATAL EXCEPTION' not in logs())
 except Exception as e:
  results.append({'name':'runtime failure','passed':False,'detail':str(e)});save()
- try:(out/'failure.png').write_bytes(adb('exec-out','screencap','-p',binary=True));(out/'failure.log').write_text(logs());(out/'failure.xml').write_text(dump())
+ try:(out/'failure.png').write_bytes(adb('exec-out','screencap','-p',binary=True));(out/'failure.log').write_text(adb('logcat','-d','-v','threadtime'));(out/'failure.xml').write_text(dump())
  except Exception:pass
  raise
 finally:save()
