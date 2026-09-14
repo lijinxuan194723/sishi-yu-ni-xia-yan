@@ -1,0 +1,136 @@
+"""2.0.3 interactions on the APK bundle. Connection tests use an in-page fixture,
+not a real service/key. Existing records and storage guards are never bypassed.
+"""
+import re
+from playwright.sync_api import expect
+
+
+def verify_interaction203(page, check, out):
+    page.emulate_media(reduced_motion='no-preference')
+    page.set_viewport_size({'width':390,'height':844})
+    def settings():
+        page.get_by_role('tab',name='回到身边',exact=True).click()
+        page.get_by_role('button',name='打开设置',exact=True).first.click()
+        page.get_by_label('搜索设置',exact=True).wait_for()
+    def close_settings():
+        page.locator('.settings').get_by_role('button',name='关闭',exact=True).click()
+        page.locator('.settings').wait_for(state='detached')
+    def section(name):page.get_by_role('tab',name=name,exact=True).click()
+    def back():page.get_by_role('button',name='返回设置目录',exact=True).click()
+    settings()
+    search=page.get_by_label('搜索设置',exact=True)
+    search.fill('没有这个设置')
+    check('settings empty search offers recovery',page.get_by_role('button',name='查看全部设置',exact=True).is_visible())
+    page.get_by_role('button',name='查看全部设置',exact=True).click()
+    check('clear search restores nine destinations',page.locator('.settings-sections [role=tab]').count()==9)
+    search.fill('天气');section('天气与位置')
+    weather=page.locator('[data-connection-form=weather]')
+    place=page.get_by_label('地点名称',exact=True);original_place=place.input_value()
+    original_storage=page.evaluate("localStorage.getItem('luke-connections-v1')")
+    place.fill('周末自习室')
+    back()
+    check('settings retains result query',search.input_value()=='天气')
+    check('settings returns focus to chosen destination',page.get_by_role('tab',name='天气与位置',exact=True).evaluate('(e)=>document.activeElement===e'))
+    section('天气与位置')
+    check('weather draft survives subpage return',page.get_by_label('地点名称',exact=True).input_value()=='周末自习室')
+    check('draft has not silently applied weather',page.evaluate("localStorage.getItem('luke-connections-v1')")==original_storage)
+    close_settings();settings();section('天气与位置')
+    check('weather draft survives closing settings',page.get_by_label('地点名称',exact=True).input_value()=='周末自习室')
+    page.get_by_role('button',name='撤销本次修改',exact=True).click()
+    check('discard restores applied weather',page.get_by_label('地点名称',exact=True).input_value()==original_place)
+    back();section('聊天模型')
+    name=page.get_by_label('模型名称',exact=True);original_name=name.input_value()
+    stored_credentials=page.evaluate("localStorage.getItem('luke-model-credentials-v1')")
+    page.get_by_label('模型接口地址',exact=True).fill('https://interaction-fixture.invalid/v1')
+    name.fill('interaction-fixture-model');page.get_by_label('模型密钥',exact=True).fill('fixture-not-a-real-key')
+    # A pending fetch obeys AbortSignal, but never reaches a remote host.
+    page.evaluate('''()=>{
+      window.__interactionOriginalFetch=window.fetch;
+      window.__interactionRequests=0;window.__interactionAborts=0;
+      window.fetch=(url,options)=>{
+        if(!String(url).startsWith('https://interaction-fixture.invalid/'))return window.__interactionOriginalFetch(url,options);
+        window.__interactionRequests++;
+        return new Promise((resolve,reject)=>{
+          const stop=()=>{window.__interactionAborts++;reject(new DOMException('Aborted','AbortError'));};
+          if(options.signal.aborted)stop();else options.signal.addEventListener('abort',stop,{once:true});
+        });
+      };
+    }''')
+    try:
+        page.get_by_role('button',name='测试连接',exact=True).click()
+        page.get_by_role('button',name='取消连接测试',exact=True).wait_for()
+        check('connection test has an explicit cancel control',page.get_by_role('button',name='取消连接测试',exact=True).is_enabled())
+        page.get_by_role('button',name='取消连接测试',exact=True).click()
+        check('cancel aborts one isolated request',page.evaluate('window.__interactionRequests===1&&window.__interactionAborts===1'))
+        check('cancel unlocks form without clearing input',name.input_value()=='interaction-fixture-model' and page.get_by_role('button',name='保存模型设置',exact=True).is_enabled())
+        page.get_by_role('button',name='测试连接',exact=True).click()
+        page.get_by_role('button',name='取消连接测试',exact=True).wait_for()
+        name.fill('interaction-edited')
+        check('editing cancels stale connection test',page.evaluate('window.__interactionRequests===2&&window.__interactionAborts===2'))
+    finally:
+        page.evaluate('window.fetch=window.__interactionOriginalFetch;delete window.__interactionOriginalFetch')
+    page.screenshot(path=str(out/'interaction-settings-draft.png'))
+    back();section('聊天模型')
+    check('model input persists without applying credentials',name.input_value()=='interaction-edited' and page.evaluate("localStorage.getItem('luke-model-credentials-v1')")==stored_credentials)
+    page.get_by_role('button',name='撤销本次修改',exact=True).click()
+    check('model discard restores original fields',name.input_value()==original_name)
+    page.keyboard.press('Escape')
+    page.get_by_label('搜索设置',exact=True).wait_for()
+    check('Escape returns subsection to directory before closing',page.locator('.settings-directory').is_visible())
+    last=page.get_by_role('tab',name='权限与隐私',exact=True);last.scroll_into_view_if_needed()
+    saved_scroll=page.locator('.settings [data-slot=dialog-scroll-body]').evaluate('(e)=>e.scrollTop')
+    last.click();back()
+    restored=page.locator('.settings [data-slot=dialog-scroll-body]').evaluate('(e)=>e.scrollTop')
+    check('settings directory restores scroll position',abs(restored-saved_scroll)<=2,{'before':saved_scroll,'after':restored})
+    check('settings directory restores focused item',last.evaluate('(e)=>document.activeElement===e'))
+    page.get_by_label('搜索设置',exact=True).fill('xyz');page.keyboard.press('Escape')
+    check('Escape clears search without closing settings',page.get_by_label('搜索设置',exact=True).input_value()=='' and page.locator('.settings').is_visible())
+    close_settings()
+    page.get_by_role('tab',name='一起计划',exact=True).click()
+    jump=page.get_by_role('button',name='跳转到指定日期',exact=True);jump.click()
+    field=page.get_by_label('输入指定日期',exact=True)
+    field.fill('20260131')
+    check('numeric date entry becomes an ISO date',field.input_value()=='2026-01-31')
+    day=page.locator('.date-grid button[aria-pressed=true]');day.focus();day.press('PageDown')
+    check('PageDown clamps January 31 to February 28',field.input_value()=='2026-02-28')
+    page.keyboard.press('Home')
+    check('Home moves to Monday of selected week',field.input_value()=='2026-02-23')
+    check('date grid has exactly one tab stop',page.locator('.date-grid button[tabindex="0"]').count()==1)
+    year=page.get_by_label('选择年份',exact=True);year.fill('');year.press_sequentially('2000');year.press('Enter')
+    check('year can be cleared and retyped',page.locator('.date-grid').get_attribute('aria-label').startswith('2000年'))
+    field.fill('2000/2/29')
+    check('pasted date permits a leap day',field.input_value()=='2000-02-29' and page.get_by_role('button',name='确定日期',exact=True).is_enabled())
+    field.fill('20010229')
+    check('normalized invalid leap date cannot be applied',not page.get_by_role('button',name='确定日期',exact=True).is_enabled())
+    field.fill('20261001')
+    for width,height in [(320,568),(390,844),(844,390)]:
+        page.set_viewport_size({'width':width,'height':height});page.wait_for_timeout(200)
+        apply=page.get_by_role('button',name='确定日期',exact=True);b=apply.bounding_box()
+        check(f'date footer remains visible {width}x{height}',b and b['x']>=0 and b['y']>=0 and b['x']+b['width']<=width+1 and b['y']+b['height']<=height+1,b)
+        page.locator('.date-picker-body').evaluate('(e)=>e.scrollTop=e.scrollHeight')
+        check(f'date footer reachable after inner scroll {width}x{height}',apply.is_visible())
+    page.set_viewport_size({'width':390,'height':844});page.screenshot(path=str(out/'interaction-date.png'))
+    page.get_by_role('button',name='取消',exact=True).click();page.locator('.date-picker').wait_for(state='detached')
+    check('date cancellation returns focus to the invoking button',jump.evaluate('(e)=>document.activeElement===e'))
+    # Successful note operations must not repeat during the exit animation.
+    page.get_by_role('tab',name='时光手记',exact=True).click()
+    page.get_by_role('button',name='新建笔记',exact=True).click()
+    page.get_by_label('笔记标题',exact=True).fill('交互回归测试专用手记')
+    page.get_by_label('笔记正文',exact=True).fill('只存在于隔离浏览器的测试记录。')
+    page.get_by_role('button',name='返回笔记列表',exact=True).click();page.locator('[data-memo-editor=true]').wait_for(state='detached')
+    more=page.get_by_role('button',name='手记操作：交互回归测试专用手记',exact=True);more.click()
+    sheet=page.locator('[data-memo-actions=true]');sheet.wait_for()
+    sheet.get_by_role('button',name='移到回收站',exact=True).click()
+    check('trash step retains a labelled back action',sheet.get_by_role('button',name='返回手记操作',exact=True).is_visible())
+    page.keyboard.press('Escape');expect(sheet).to_have_attribute('data-action-step','main')
+    check('Escape leaves confirmation without closing parent actions',sheet.is_visible())
+    sheet.get_by_role('button',name='移动到笔记本',exact=True).click()
+    sheet.get_by_role('button',name='返回手记操作',exact=True).click()
+    expect(sheet).to_have_attribute('data-action-step','main')
+    page.screenshot(path=str(out/'interaction-note-actions.png'))
+    sheet.get_by_role('button',name='置顶',exact=True).evaluate('(button)=>{button.click();button.click()}')
+    sheet.wait_for(state='detached')
+    check('duplicate note choice commits once',page.evaluate("!!JSON.parse(localStorage.getItem('luke-memo-workspace-v1')).memos.find(n=>n.title==='交互回归测试专用手记').pinnedAt"))
+    check('interaction flow leaves no stranded dialogs',page.locator('[role=dialog]').count()==0)
+    page.get_by_role('tab',name='回到身边',exact=True).click()
+    page.emulate_media(reduced_motion='reduce')

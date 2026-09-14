@@ -4,3 +4,5 @@
 @media(hover:hover){.sheetBody button:hover,.cancel:hover{background:var(--season-soft)}}
 @media(max-width:700px){.sheet{top:auto!important;bottom:max(12px,env(safe-area-inset-bottom))!important;translate:-50% 0!important;max-height:calc(100dvh - 28px);border-radius:28px!important}.handle{display:block;width:30px;height:4px;background:var(--scene-border);border-radius:9px;margin:0 auto 12px}.sheetHeader{padding-top:0}.sheetHeader .handle{margin-left:calc(50% + 17px)}}
 @media(max-height:480px){.sheet{width:min(600px,calc(100vw - 24px))!important;max-height:calc(100dvh - 20px);bottom:10px!important}.sheetHeader p{display:none}.sheetHeader{padding-bottom:8px}.handle{display:none}.sheetHeader h2{font-size:17px}.eyebrow{margin-bottom:4px}}
+
+.back{display:inline-flex;align-items:center;gap:3px;min-height:44px;padding:6px 8px;margin:-6px 0 6px -8px;color:var(--season-accent);border-radius:12px;background:transparent}.error{padding:10px 12px;line-height:1.7;color:var(--scene-danger);font-size:13px}.sheetHeader:has(.back) .eyebrow{display:none}

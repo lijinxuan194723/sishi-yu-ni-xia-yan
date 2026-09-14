@@ -1,0 +1,29 @@
+/* 2.0.3: scoped interaction refinements, no blanket transition suppression. */
+.settings-search:focus-within{outline:2px solid var(--season-accent);outline-offset:2px}
+.settings-search .settings-clear{display:grid;place-items:center;flex:none;min-width:44px;min-height:44px;padding:8px;border:0;border-radius:50%;background:transparent;color:var(--scene-muted)}
+.settings-search-count{color:var(--scene-muted);font-size:.78rem;margin:12px 4px 0;min-height:1.5em}
+.settings-no-results{text-align:center;display:grid;justify-items:center;gap:12px;padding:32px 12px;color:var(--scene-muted);font-size:.88rem}
+.settings-subhead h3:focus{outline:none}
+.settings-sections button:focus-visible{position:relative;z-index:1;outline:2px solid var(--season-accent);outline-offset:-3px}
+.settings-sections button{transition:background-color 180ms ease,color 180ms ease}
+@media(hover:hover){.settings-sections button:hover{background:var(--season-soft)!important}}
+.settings-form-status{display:flex;align-items:center;gap:9px;flex-wrap:wrap;min-height:42px;padding:10px 12px;border:1px solid var(--scene-border);border-radius:14px;background:var(--season-soft);color:var(--scene-muted);font-size:.78rem;line-height:1.6}
+.settings-form-status[data-unsaved=true]{color:var(--scene-ink)}
+.settings-form-status>span{flex:1;min-width:140px}
+.settings-form-status button{min-height:44px;flex:none;padding:8px 10px;border-radius:12px;color:var(--season-accent)}
+.settings-form-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:stretch}
+.settings-form-actions>button{flex:1;min-height:46px;min-width:125px;margin:0;justify-content:center}
+.settings-request-notice{min-height:1.7em;font-size:.84rem;line-height:1.7;overflow-wrap:anywhere;color:var(--scene-muted)}
+:root .date-picker.date-picker-refined{padding:0;display:flex;flex-direction:column;overflow:hidden;gap:0}
+.date-picker-refined .date-picker-body{padding:24px 18px 4px;min-height:0;overflow-y:auto;overscroll-behavior:contain}
+.date-picker-refined .date-actions{margin:0;flex:none;position:relative;padding:12px 16px max(12px,env(safe-area-inset-bottom));border-top:1px solid var(--scene-border);background:var(--scene-paper);display:flex;gap:8px;justify-content:flex-end}
+.date-picker-refined .date-actions>button{min-height:44px;margin:0;border-radius:14px;font-size:.84rem;white-space:nowrap;padding:8px 12px}
+.date-picker-refined .date-actions>.text-button{margin-right:auto;padding-inline:8px}
+.date-picker-refined .date-grid{min-height:280px;align-content:start}
+.date-picker-refined .date-grid button:focus-visible{outline:2px solid var(--season-accent);outline-offset:-2px}
+.date-picker-refined .date-jump input[aria-invalid=true],.date-picker-refined .date-month input[aria-invalid=true]{border:1px solid var(--scene-danger)}
+.date-picker-refined .date-month input{min-height:44px;border:1px solid var(--scene-border);border-radius:12px;font-variant-numeric:tabular-nums}
+.date-picker-refined .date-context{min-height:2.2em;line-height:1.6;margin:12px 0 6px}
+@media(max-height:480px){.date-picker-refined .date-picker-body{padding-top:18px}.date-picker-refined .date-grid{min-height:0}.date-picker-refined .date-actions{padding-block:8px}.date-picker-refined .date-jump{margin-bottom:8px}}
+@media(max-width:350px){.date-picker-refined .date-picker-body{padding-inline:10px}.date-picker-refined .date-actions{padding-inline:10px;gap:6px}.date-picker-refined .date-actions>button{padding-inline:9px}.date-picker-refined .date-grid{gap:2px}}
+@media(prefers-reduced-motion:reduce){.settings-sections button{transition:none}}

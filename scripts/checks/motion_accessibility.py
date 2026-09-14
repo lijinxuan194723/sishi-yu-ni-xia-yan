@@ -54,3 +54,6 @@ def verify_reduced_dialogs(page, check):
         (out / 'companion-frames.json').write_text(json.dumps(traces, ensure_ascii=False, indent=2))
     from settings_calendar_browser import verify_settings_calendar
     verify_settings_calendar(page, check, out)
+
+    from interaction203_browser import verify_interaction203
+    verify_interaction203(page, check, out)
