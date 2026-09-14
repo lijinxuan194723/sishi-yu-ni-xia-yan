@@ -44,8 +44,7 @@ def editor_values():
  fields.sort(key=lambda e:int(re.findall(r'\d+',e.get('bounds'))[1]))
  return [e.get('text','') for e in fields]
 def tap(label):
- # Android publishes WebView accessibility subtrees asynchronously after a transition.
- # Wait for an actual visible matching node instead of declaring a one-snapshot miss a bug.
+ # WebView publishes accessibility subtrees asynchronously after a transition.
  end=time.monotonic()+12;last=''
  while time.monotonic()<end:
   last=dump();tree=ET.fromstring(last)
@@ -64,14 +63,18 @@ def scales(value):
   adb('shell','settings','put','global',key,str(value))
 def logs():return adb('logcat','-d','-v','threadtime','LukeMotion:I','AndroidRuntime:E','*:S')
 def cold(name,night=False,reduced=False):
+ # Stop the app before changing global configuration. Otherwise Android can queue a
+ # night-mode Activity recreation concurrently with the supposedly isolated cold launch.
+ adb('shell','am','force-stop',pkg)
  scales(0 if reduced else 1);adb('shell','cmd','uimode','night','yes' if night else 'no')
- adb('shell','am','force-stop',pkg);adb('logcat','-c')
+ time.sleep(1)
+ adb('logcat','-c')
  remote='/sdcard/motion-'+name+'.mp4'
  recorder=subprocess.Popen(['adb','shell','screenrecord','--size','720x1280','--bit-rate','2500000','--time-limit','30',remote],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
  time.sleep(.5)
  try:
   launch()
-  # Reading the accessibility tree forces work on the UI thread. Inspect after the fade.
+  # Accessibility inspection itself forces work on the UI thread. Inspect after the fade.
   if reduced:time.sleep(3)
   else:
    deadline=time.monotonic()+18
@@ -88,6 +91,7 @@ def cold(name,night=False,reduced=False):
    record(name+' uses the expected native path',bool(matches) and matches[-1][0]==('system' if int(sdk)>=31 else 'legacy'))
   (out/(name+'.png')).write_bytes(adb('exec-out','screencap','-p',binary=True))
  finally:
+  (out/(name+'-system.log')).write_text(adb('logcat','-d','-v','threadtime'))
   subprocess.run(['adb','shell','pkill','-2','screenrecord'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
   try:recorder.wait(timeout=6)
   except subprocess.TimeoutExpired:recorder.terminate();recorder.wait(timeout=6)
