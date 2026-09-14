@@ -57,3 +57,5 @@ def verify_reduced_dialogs(page, check):
 
     from interaction203_browser import verify_interaction203
     verify_interaction203(page, check, out)
+    from memo_focus_browser import verify_memo_focus
+    verify_memo_focus(page, check)
