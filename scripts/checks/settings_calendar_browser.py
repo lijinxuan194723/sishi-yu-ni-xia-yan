@@ -8,6 +8,7 @@ def verify_settings_calendar(page, check, out):
     header=page.locator('main > .page-bar')
     check('home has one settings action and no redundant birthday button',header.get_by_role('button').count()==1)
     def settings():
+        page.get_by_role('tab',name='回到身边',exact=True).click()
         page.get_by_role('button',name='打开设置',exact=True).first.click()
         page.get_by_label('搜索设置',exact=True).wait_for()
     def close():
@@ -69,13 +70,13 @@ def verify_settings_calendar(page, check, out):
     for season in ['春','夏','秋','冬']:
         settings();section('四季与昼夜')
         page.get_by_role('button',name=season,exact=True).click()
-        page.get_by_role('button',name='正午',exact=True).click();close();page.wait_for_timeout(600)
+        page.get_by_role('button',name='正午',exact=True).click();close();page.get_by_role('tab',name='一起计划',exact=True).click();page.wait_for_timeout(600)
         page.get_by_role('button',name='跳转到指定日期',exact=True).click()
         colors.append(page.locator('.date-picker').evaluate('(e)=>[getComputedStyle(e).color,getComputedStyle(e).backgroundColor]'))
         if season=='冬':page.screenshot(path=str(out/'theme-date-picker.png'))
         page.locator('.date-picker').get_by_role('button',name='关闭',exact=True).click();page.locator('.date-picker').wait_for(state='detached')
     check('four seasons change date text and surface colors',len(set(c[0] for c in colors))==4 and len(set(c[1] for c in colors))==4,colors)
-    settings();section('四季与昼夜');page.get_by_role('button',name='深夜',exact=True).click();close();page.wait_for_timeout(600)
+    settings();section('四季与昼夜');page.get_by_role('button',name='深夜',exact=True).click();close();page.get_by_role('tab',name='一起计划',exact=True).click();page.wait_for_timeout(600)
     page.get_by_role('button',name='跳转到指定日期',exact=True).click()
     night=page.locator('.date-picker').evaluate('(e)=>[getComputedStyle(e).color,getComputedStyle(e).backgroundColor]')
     check('night palette differs from day without native picker',night!=colors[-1],night)
@@ -111,7 +112,10 @@ if __name__=='__main__':
             page.goto(f'http://127.0.0.1:{server.server_port}/');page.get_by_role('button',name='打开设置',exact=True).first.wait_for();page.wait_for_timeout(500)
             verify_settings_calendar(page,check,out);check('no unhandled exceptions during new UI checks',not errors,errors)
         except Exception:
-            page.screenshot(path=str(out/'failure.png'));traceback.print_exc();raise
+            traceback.print_exc()
+            try:page.screenshot(path=str(out/'failure.png'))
+            except Exception as shot:print('Screenshot unavailable:',str(shot))
+            raise
         finally:
             (out/'results.json').write_text(json.dumps({'tests':results,'pageErrors':errors,'network':'HTTPS and API requests blocked; no model requests'},ensure_ascii=False,indent=2))
             browser.close();server.shutdown()
