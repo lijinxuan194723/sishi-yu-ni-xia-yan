@@ -64,20 +64,16 @@ test('button press uses scale without overwriting positional transforms',()=>{
  const css=read('app/motion.css');assert.ok(css.includes('{ scale: .97; }'));
  assert.ok(!css.includes('transform: scale(.97)'));
 });
-
 test('settings dismissal stays outside its inner scroll body in one modal scope',()=>{
  const source=read('components/ui/dialog.tsx');
  const popup=source.slice(source.indexOf('<DialogPrimitive.Popup'),source.indexOf('</DialogPrimitive.Popup>'));
  assert.ok(popup.includes('data-slot="dialog-scroll-body"'));
  assert.ok(popup.indexOf('aria-label="关闭"')<popup.indexOf('data-slot="dialog-scroll-body"'));
  assert.ok(!popup.includes('dialog-close-anchor'));
- const css=read('app/interaction-polish.css');
- assert.ok(css.includes('overflow-y:auto'));
+ const css=read('app/interaction-polish.css');assert.ok(css.includes('overflow-y:auto'));
  assert.ok(css.includes('.settings>[data-slot="dialog-close"]{position:absolute;top:8px;right:8px'));
- assert.ok(!css.includes('display:contents}'));
- assert.ok(!css.includes('position:sticky;top:0;height:0'));
+ assert.ok(!css.includes('display:contents}'));assert.ok(!css.includes('position:sticky;top:0;height:0'));
 });
-
 test('renderer termination destroys the old view and offers manual non-destructive recovery',()=>{
  const java=read('mobile/android/MainActivity.java');
  assert.ok(java.includes('onRenderProcessGone(WebView view,RenderProcessGoneDetail detail)'));
@@ -85,8 +81,10 @@ test('renderer termination destroys the old view and offers manual non-destructi
  assert.ok(java.includes('view.destroy();web=null;'));
  assert.ok(java.includes('if(canUseWeb())web.evaluateJavascript'));
  assert.ok(java.includes('if(!canUseWeb()||readyPosted)return'));
- const recovery=java.slice(java.indexOf('private boolean rendererTerminated'),java.indexOf('// Native startup only:'));
- assert.ok(recovery.includes('recreate()'));
- assert.ok(recovery.includes('return true;'));
+ // Scope by adjacent method declarations, not a non-semantic deleted comment.
+ const start=java.indexOf('private boolean rendererTerminated'),end=java.indexOf('private void actionResult',start);
+ assert.ok(start>=0&&end>start,'recovery method boundaries are present');
+ const recovery=java.slice(start,end);
+ assert.ok(recovery.includes('recreate()'));assert.ok(recovery.includes('return true;'));
  for(const destructive of ['clearCache','clearData','deleteDatabase','removeAllCookies','deleteAllData','loadUrl'])assert.ok(!recovery.includes(destructive));
 });

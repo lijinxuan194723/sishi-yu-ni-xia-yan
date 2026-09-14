@@ -90,15 +90,21 @@ def cold(name,night=False,reduced=False):
   except subprocess.TimeoutExpired:recorder.terminate();recorder.wait(timeout=6)
   subprocess.run(['adb','pull',remote,str(out/(name+'.mp4'))],check=False)
 def warm_checks():
- for n in range(3):
-  before=len(re.findall('exit-start',logs()));adb('logcat','-c')
-  adb('shell','input','keyevent','3');time.sleep(.5);launch();time.sleep(1)
-  wait_home();text=logs();(out/('warm-'+str(n)+'.log')).write_text(text)
-  record('warm '+str(n)+' does not replay cold startup','exit-start' not in text)
-  record('warm '+str(n)+' has a completed return transition','LukeReturn' in text and 'show ' in text and 'finished' in text,text)
-  record('warm '+str(n)+' has no renderer failure',all(m not in text for m in ['FATAL EXCEPTION','terminated crashed=','Fatal signal']))
- scales(0);adb('logcat','-c');adb('shell','input','keyevent','3');time.sleep(.5);launch();wait_home()
- record('warm disabled animations skip the cover','LukeReturn' not in logs());scales(1)
+ recorder=subprocess.Popen(['adb','shell','screenrecord','--size','720x1280','--bit-rate','2500000','--time-limit','40','/sdcard/motion-warm.mp4'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+ try:
+  for n in range(3):
+   adb('logcat','-c');adb('shell','input','keyevent','3');time.sleep(.5);launch();time.sleep(1)
+   wait_home();text=logs();(out/('warm-'+str(n)+'.log')).write_text(text)
+   record('warm '+str(n)+' does not replay cold startup','exit-start' not in text)
+   record('warm '+str(n)+' has a completed return transition','LukeReturn' in text and 'show ' in text and 'finished' in text,text)
+   record('warm '+str(n)+' has no renderer failure',all(m not in text for m in ['FATAL EXCEPTION','terminated crashed=','Fatal signal']))
+  scales(0);adb('logcat','-c');adb('shell','input','keyevent','3');time.sleep(.5);launch();wait_home()
+  record('warm disabled animations skip the cover','LukeReturn' not in logs());scales(1)
+ finally:
+  subprocess.run(['adb','shell','pkill','-2','screenrecord'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+  try:recorder.wait(timeout=6)
+  except subprocess.TimeoutExpired:recorder.terminate();recorder.wait(timeout=6)
+  subprocess.run(['adb','pull','/sdcard/motion-warm.mp4',str(out/'warm-return.mp4')],check=False)
 def seed_note():
  tap('时光手记');tap('新建笔记');xml=wait_text('返回笔记列表','android.widget.EditText');tree=ET.fromstring(xml)
  fields=[e for e in tree.iter('node') if e.get('class')=='android.widget.EditText']
@@ -109,11 +115,22 @@ def seed_note():
  (out/'baseline-note.png').write_bytes(adb('exec-out','screencap','-p',binary=True))
  adb('shell','input','keyevent','4');time.sleep(.4);tap('返回笔记列表')
 def verify_upgrade_note(label='in-place upgrade retains exact saved note title'):
- tap('时光手记');xml=dump();tree=ET.fromstring(xml)
- rows=[e for e in tree.iter('node') if 'MotionUpgrade902002' in (e.get('text','')+e.get('content-desc','')) and not e.get('content-desc','').startswith('手记操作：')]
+ tap('时光手记');opened=False
+ # A redesigned list may put the fixture below the viewport. Use real swipes,
+ # and exclude the separate More button even when WebView exposes aria-label as text.
+ for _ in range(6):
+  xml=dump();tree=ET.fromstring(xml)
+  candidates=[]
+  for e in tree.iter('node'):
+   text=e.get('text','') or e.get('content-desc','')
+   if 'MotionUpgrade902002' not in text or text.startswith('手记操作：') or e.get('clickable')!='true':continue
+   b=list(map(int,re.findall(r'\d+',e.get('bounds',''))))
+   if len(b)==4 and b[2]>b[0] and b[3]>b[1] and b[1]>=160 and b[3]<=1040:candidates.append(e)
+  if candidates:
+   tap_node(candidates[0]);opened=True;break
+  adb('shell','input','swipe','360','940','360','460','450');time.sleep(.5)
  (out/'upgraded-list.png').write_bytes(adb('exec-out','screencap','-p',binary=True))
- if rows:tap_node(rows[-1])
- else:adb('shell','input','tap','360','550');time.sleep(.6)
+ record('saved note can be opened with an on-screen touch',opened)
  wait_text('返回笔记列表','android.widget.EditText');values=editor_values()
  record(label,bool(values) and values[0]=='MotionUpgrade902002',values)
  (out/'upgraded-note.png').write_bytes(adb('exec-out','screencap','-p',binary=True))
