@@ -76,7 +76,7 @@ export function BirthdayGreeting({ name, open, preview, onClose, onComplete }: {
       <div className="birthday-confetti" aria-hidden="true">{Array.from({ length: 12 }, (_, index) =>
         <i key={index} style={{ '--piece': index, left: `${(index * 37 + 7) % 100}%` } as CSSProperties} />)}</div>
       <div className="birthday-scroll"><div className="birthday-card">
-        <p className="birthday-eyebrow">{preview ? '一份生日祝福 · 预览' : '今天，为你留一份温柔'}</p>
+        <p className="birthday-eyebrow">{preview ? '一份生日祝福' : '今天，为你留一份温柔'}</p>
         <div className="birthday-emblem" aria-hidden="true"><Cake className="birthday-cake" size={58} strokeWidth={1.5} /></div>
         <DialogTitle>{name === '我' ? '亲爱的你' : name}，生日快乐</DialogTitle>
         <DialogDescription>新的一岁，也想陪你收藏每一个开心的瞬间。<br />今天的愿望，慢慢许，我在这里。<span>—— 夏彦</span></DialogDescription>
@@ -84,7 +84,7 @@ export function BirthdayGreeting({ name, open, preview, onClose, onComplete }: {
           <button type="button" className="primary" data-haptic="confirm" onClick={onClose}>收下这份祝福 <Heart size={18} aria-hidden="true" /></button>
           <button type="button" className="birthday-later" onClick={onClose}>{preview ? '返回生日设置' : '先回到身边'}</button>
         </div>
-        <small className="birthday-hint">无需等动画结束，随时可以关闭。</small>
+        
       </div></div>
     </DialogContent>
   </Dialog>;

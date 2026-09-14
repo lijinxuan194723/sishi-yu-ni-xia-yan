@@ -22,7 +22,7 @@ export function ReminderPanel() {
   <div className="reminder-fields">{mode === 'timer' ? <label>倒计时（分钟）<input type="number" min={1} max={1439} step={1} value={minutes} onChange={e => setMinutes(Number(e.target.value))}/></label> : <label>闹钟时间<input type="time" value={time} onChange={e => setTime(e.target.value)}/></label>}<label>提醒文字<input maxLength={80} value={label} onChange={e => setLabel(e.target.value)}/></label></div>
   <button type="button" className="primary" disabled={!supported || busy} data-haptic="confirm" onClick={() => void openClock(mode)}>{busy ? '正在打开系统时钟…' : '到系统时钟确认提醒'}</button>
   <button type="button" className="soft-button" disabled={!supported || busy} onClick={() => void openClock('manage')}>查看或管理系统闹钟</button>
-  <div className="reminder-help"><p>{supported ? '铃声、振动、重复日期和最终确认在系统时钟中完成。此处不会冒充已设置成功。' : '此功能需要新版 Android 安装包及可接收请求的系统时钟。网页不提供后台闹钟。'}</p><p>系统提醒独立于上方学习计时：结束学习不会自动取消闹钟，暂停或取消提醒请到系统时钟操作。静音、勿扰和厂商设置仍可能影响提醒。</p></div>
+
   {notice && <p role="status">{notice}</p>}
  </section>;
 }

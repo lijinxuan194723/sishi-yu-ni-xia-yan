@@ -1,0 +1,14 @@
+'use client';
+import {useState,useLayoutEffect} from 'react';
+import {ChevronLeft,ChevronRight,Search,Palette,MessageCircle,BookHeart,Shield,Database,CloudSun,Gift,UserRound,SlidersHorizontal} from 'lucide-react';
+const sections=[
+ {group:'日常与外观',items:[{id:'appearance',title:'四季与昼夜',hint:'季节、背景与按钮触感',Icon:Palette},{id:'celebrations',title:'生日与纪念日',hint:'生日祝福与相伴日期',Icon:Gift}]},
+ {group:'聊天与记忆',items:[{id:'model',title:'聊天模型',hint:'服务地址、模型与连接',Icon:SlidersHorizontal},{id:'memory',title:'长期聊天记忆',hint:'摘要、重要约定与聊天备份',Icon:BookHeart},{id:'luke-memory',title:'夏彦的记忆',hint:'角色资料与内容范围',Icon:UserRound},{id:'context',title:'聊天近况',hint:'选择向对话分享的近况',Icon:MessageCircle}]},
+ {group:'数据与权限',items:[{id:'general',title:'日常与数据',hint:'称呼、备份与恢复',Icon:Database},{id:'weather',title:'天气与位置',hint:'天气服务与定位',Icon:CloudSun},{id:'permissions',title:'权限与隐私',hint:'何时申请、数据去向',Icon:Shield}]}];
+export function SettingsNavigation({value,onChange}:{value:string;onChange:(value:string)=>void}){
+ useLayoutEffect(()=>{const body=document.querySelector<HTMLElement>('.settings [data-slot=dialog-scroll-body]');if(body)body.scrollTop=0;},[value]);
+ const [query,setQuery]=useState('');const current=sections.flatMap(g=>g.items).find(i=>i.id===value);
+ if(value!=='index')return <div className="settings-subhead"><button type="button" aria-label="返回设置目录" className="round" onClick={()=>{setQuery('');onChange('index');}}><ChevronLeft size={22}/></button><div><h3>{current?.title??'设置'}</h3><p>{current?.hint}</p></div></div>;
+ return <div className="settings-directory"><div className="settings-search"><Search size={18}/><input aria-label="搜索设置" placeholder="搜索设置" value={query} onChange={e=>setQuery(e.target.value)}/></div><div role="tablist" aria-label="设置目录" className="settings-sections">{sections.map(group=>{const items=group.items.filter(i=>`${i.title}${i.hint}`.includes(query.trim()));return items.length?<section key={group.group}><h3>{group.group}</h3>{items.map(({id,title,hint,Icon})=><button role="tab" type="button" aria-label={title} aria-selected={false} key={id} onClick={()=>onChange(id)}><span className="settings-item-icon"><Icon size={20}/></span><span><strong>{title}</strong><small>{hint}</small></span><ChevronRight size={18}/></button>)}</section>:null;})}</div>{!sections.some(g=>g.items.some(i=>`${i.title}${i.hint}`.includes(query.trim())))&&<p className="empty">没有匹配的设置</p>}</div>;
+}
+export function PermissionsPanel(){return <div className="settings-stack permission-cards"><section><h3>图片与文件</h3><p>只在选择图片、导入或导出时打开系统文件选择器。不索取整个相册、存储空间或摄像头权限。</p></section><section><h3>天气位置</h3><p>点击定位后才申请位置权限，用于获取天气。可以拒绝并手动填写坐标，不影响聊天、手记与计时。</p></section><section><h3>聊天与自动记忆</h3><p>聊天和记忆整理会把相关聊天内容发送到你配置的模型服务，产生该服务的用量。API 密钥不包含在完整备份中。重要约定可在“长期聊天记忆”中手动固定。</p></section><section><h3>按钮触感与系统提醒</h3><p>触感遵循手机设置。闹钟与倒计时交给系统时钟确认，不在后台自行常驻或索取通知、精确闹钟权限。</p></section></div>;}

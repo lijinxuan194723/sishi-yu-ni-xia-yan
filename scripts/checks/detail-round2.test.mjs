@@ -69,7 +69,7 @@ test('version matches npm and Android manifest', () => {
   assert.equal(pkg.version, RELEASE_INFO.version);
   assert.ok(manifest.includes(`android:versionName='${RELEASE_INFO.version}'`));
   assert.ok(manifest.includes(`android:versionCode='${RELEASE_INFO.androidVersionCode}'`));
-  assert.ok(manifest.includes("android:label='四时与你·预览'"));
+  assert.ok(manifest.includes("android:label='四时与你'"));
 });
 test('copyable information includes version and precise branch URL', () => {
   assert.ok(releaseSummary().includes(RELEASE_INFO.version)); assert.ok(releaseSummary().includes(RELEASE_SOURCE_URL));

@@ -1,4 +1,6 @@
 'use client';
+import {DateField} from '@/components/date-field';
+import {holidayFor,HOLIDAY_SOURCE} from '@/lib/china-holidays';
 import { ChevronLeft, ChevronRight, KeyRound } from 'lucide-react';
 import { dateKey, type Data } from '@/lib/companion';
 import { annualDate } from '@/lib/daily';
@@ -19,16 +21,16 @@ export function PlanCalendar({ month, onMonth, today, selected, onSelect, data }
       {'一二三四五六日'.split('').map(d => <small key={d}>{d}</small>)}
       {Array.from({ length: (new Date(year, m, 1).getDay() + 6) % 7 }, (_, i) => <span key={`blank-${i}`} aria-hidden="true"/>)}
       {Array.from({ length: new Date(year, m + 1, 0).getDate() }, (_, i) => {
-        const day = dateKey(new Date(year, m, i + 1)), isToday = day === today;
+        const day = dateKey(new Date(year, m, i + 1)), isToday = day === today,holiday=holidayFor(day);
         const count = data.tasks.filter(t => t.date === day).length;
-        const tag = day === birthday ? '你的生日' : day.slice(5) === '12-05' ? '夏彦生日' : anniversaries.has(day) ? '纪念日' : count ? `${count}项约定` : isToday ? '今天' : '';
+        const tag = day === birthday ? '你的生日' : day.slice(5) === '12-05' ? '夏彦生日' : anniversaries.has(day) ? '纪念日' : count ? `${count}项约定` : isToday ? '今天' : holiday?.name??'';
         return <button type="button" key={day} className={`${selected === day ? 'selected ' : ''}${isToday ? 'today' : ''}`}
-          aria-label={`${day}${isToday ? '，今天' : ''}${tag && tag !== '今天' ? '，' + tag : ''}`} aria-current={isToday ? 'date' : undefined}
+          aria-label={`${day}${isToday ? '，今天' : ''}${tag && tag !== '今天' ? '，' + tag : ''}${holiday?holiday.kind==='work'?'，调休上班':'，放假':''}`} aria-current={isToday ? 'date' : undefined}
           aria-pressed={selected === day} data-haptic="selection" onClick={() => onSelect(day)}>
-          {isToday && <img className="luke-today-head" src="/images/luke-today.webp" alt="" width={40} height={34} decoding="async"/>}
+          {holiday&&<i className="holiday-mark" data-kind={holiday.kind}>{holiday.kind==='rest'?'休':'班'}</i>}{isToday && <img className="luke-today-head" src="/images/luke-today.webp" alt="" width={40} height={34} decoding="async"/>}
           <span className="calendar-day-number">{i + 1}</span><small>{tag}</small>
         </button>;
       })}
-    </div><p className="luke-calendar-caption"><img src="/images/luke-today.webp" alt="" width={23} height={20}/><span>小夏彦标记今天；浅色圆框标记你选中的日期。</span></p>
+    </div><div className="calendar-tools"><DateField aria-label="跳转到指定日期" allowClear={false} value={selected} onValueChange={day=>{onSelect(day);onMonth(new Date(day.slice(0,7)+'-01T12:00:00'));}}/><small>{year===2026?'休 · 放假　班 · 调休上班':'此年份未收录官方调休安排'}</small></div><details className="holiday-source"><summary>放假调休来源</summary><p>中国大陆 · 2026 年国务院办公厅通知</p><a href={HOLIDAY_SOURCE} target="_blank" rel="noreferrer">查看官方安排</a></details>
   </section>;
 }

@@ -23,10 +23,10 @@ export function BuildInfo() {
   return <details className={styles.release}>
     <summary><span>版本与更新位置</span><span className={styles.version}>{RELEASE_INFO.version}</span></summary>
     <div className={styles.releaseBody}>
-      <dl><div><dt>版本</dt><dd>{RELEASE_INFO.version} · {RELEASE_INFO.channel}</dd></div>
+      <dl><div><dt>版本</dt><dd>{RELEASE_INFO.version}</dd></div>
         <div><dt>构建编号</dt><dd>{RELEASE_INFO.androidVersionCode}</dd></div>
         <div><dt>代码分支</dt><dd><code>{RELEASE_INFO.branch}</code></dd></div></dl>
-      <p className={styles.help}>预览版与正式版并存。请保留原应用，两个版本的本地记录不会自动互通。</p>
+      
       <div className={styles.actions}>
         <button type="button" disabled={copying} onClick={() => void copy()}><Copy size={16} aria-hidden="true" />{copying ? '正在复制…' : '复制版本信息'}</button>
         <a href={RELEASE_SOURCE_URL} target="_blank" rel="noreferrer">源码位置<ExternalLink size={15} aria-hidden="true" /></a>
