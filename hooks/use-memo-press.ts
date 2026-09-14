@@ -2,17 +2,18 @@ import {useEffect,useRef,type PointerEvent,type MouseEvent,type KeyboardEvent} f
 import {longPressController} from '@/lib/long-press';
 import {FEEDBACK_KEY,feedbackMode} from '@/lib/interaction-feedback';
 
-/** The pointer may end over the newly opened sheet rather than its original card.
- * Consume only that compatibility click. A new gesture or keyboard input releases
- * the guard immediately, so the next intentional action is never swallowed. */
+/** Consume the release click before document-level button feedback or actions.
+ * A new gesture/keyboard input cancels the guard immediately. */
 function guardReleaseClick(){
  let timer:ReturnType<typeof setTimeout>;
- const clear=()=>{clearTimeout(timer);document.removeEventListener('click',consume,true);document.removeEventListener('pointerdown',clear,true);document.removeEventListener('keydown',clear,true);};
+ const clear=()=>{clearTimeout(timer);window.removeEventListener('click',consume,true);window.removeEventListener('pointerdown',clear,true);window.removeEventListener('keydown',clear,true);window.removeEventListener('pointerup',released,true);};
  const consume=(event:globalThis.MouseEvent)=>{event.preventDefault();event.stopImmediatePropagation();clear();};
- document.addEventListener('click',consume,true);
- document.addEventListener('pointerdown',clear,true);
- document.addEventListener('keydown',clear,true);
- timer=setTimeout(clear,1800);
+ const released=()=>{clearTimeout(timer);timer=setTimeout(clear,350);};
+ window.addEventListener('click',consume,true);
+ window.addEventListener('pointerdown',clear,true);
+ window.addEventListener('keydown',clear,true);
+ window.addEventListener('pointerup',released,true);
+ timer=setTimeout(clear,5000);
  return clear;
 }
 export function useMemoPress(open:(id:string)=>void){
