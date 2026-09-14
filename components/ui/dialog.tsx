@@ -75,8 +75,9 @@ function DialogContent({
         )}
         {...props}
       >
-        {children}
+        {/* Keep the dismissal anchor before scrollable content; other dialogs use display: contents. */}
         {showCloseButton && (
+          <div data-slot="dialog-close-anchor">
           <DialogPrimitive.Close
             data-slot="dialog-close"
             aria-label="关闭"
@@ -91,7 +92,9 @@ function DialogContent({
             <XIcon aria-hidden="true" />
             <span className="sr-only">关闭</span>
           </DialogPrimitive.Close>
+          </div>
         )}
+        {children}
       </DialogPrimitive.Popup>
     </DialogPortal>
   );

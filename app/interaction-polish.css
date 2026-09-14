@@ -37,3 +37,12 @@
  .app-shell .sidebar .nav-caption{margin-top:24px}
  .app-shell .sidebar .sidebar-bottom{padding-top:16px}
 }
+
+/* Scrolling settings must never take the only dismissal control out of reach.
+   A zero-height sticky anchor preserves layout, the existing modal/focus scope,
+   and a single close button. Other dialog layouts remain unchanged. */
+[data-slot="dialog-close-anchor"]{display:contents}
+.settings>[data-slot="dialog-close-anchor"]{display:block;position:sticky;top:0;height:0;z-index:5;pointer-events:none}
+.settings>[data-slot="dialog-close-anchor"]>[data-slot="dialog-close"]{position:absolute;top:-22px;right:-22px;min-width:44px;min-height:44px;pointer-events:auto;border-radius:50%;background:var(--scene-paper);color:var(--scene-ink);border:1px solid var(--scene-border);box-shadow:0 2px 8px color-mix(in srgb,var(--season-accent) 12%,transparent)}
+.settings>[data-slot="dialog-title"],.settings>[data-slot="dialog-description"]{padding-inline-end:38px}
+@media(max-width:600px){.settings>[data-slot="dialog-close-anchor"]>[data-slot="dialog-close"]{top:-16px;right:-16px}}

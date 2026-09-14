@@ -64,3 +64,15 @@ test('button press uses scale without overwriting positional transforms',()=>{
  const css=read('app/motion.css');assert.ok(css.includes('{ scale: .97; }'));
  assert.ok(!css.includes('transform: scale(.97)'));
 });
+
+test('settings dismissal stays within modal scope and precedes scrollable children',()=>{
+ const source=read('components/ui/dialog.tsx');
+ const popup=source.slice(source.indexOf('<DialogPrimitive.Popup'),source.indexOf('</DialogPrimitive.Popup>'));
+ assert.ok(popup.includes('data-slot="dialog-close-anchor"'));
+ assert.ok(popup.indexOf('data-slot="dialog-close-anchor"')<popup.indexOf('{children}'));
+ assert.ok(popup.includes('aria-label="关闭"'));
+ const css=read('app/interaction-polish.css');
+ assert.ok(css.includes('[data-slot="dialog-close-anchor"]{display:contents}'));
+ assert.ok(css.includes('position:sticky;top:0;height:0'));
+ assert.ok(css.includes('pointer-events:auto'));
+});

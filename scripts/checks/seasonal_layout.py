@@ -30,3 +30,30 @@ def verify_layout_polish(page, check):
         page.locator('.settings').wait_for(state='detached')
         check(f'no modal lock after birthday back {width}x{height}', page.locator('[role=dialog],[data-slot=dialog-overlay]').count() == 0)
     page.set_viewport_size({'width': 390, 'height': 844})
+
+    # The same close control must remain hit-testable after scrolling, not just
+    # be brought back into view by Playwright's locator auto-scroll.
+    for width, height, reduced in [(360,592,False),(320,568,True),(844,390,False),(390,300,True)]:
+        page.set_viewport_size({'width':width,'height':height})
+        page.emulate_media(reduced_motion='reduce' if reduced else 'no-preference')
+        page.get_by_role('button',name='打开设置',exact=True).first.click()
+        dialog=page.locator('.settings');dialog.wait_for();page.wait_for_timeout(380)
+        page.get_by_role('tab',name='四季与昼夜',exact=True).click()
+        close=dialog.get_by_role('button',name='关闭',exact=True)
+        origin=close.bounding_box()
+        page.mouse.move(width/2,height/2);page.mouse.wheel(0,3000);page.wait_for_timeout(220)
+        check(f'settings actually scrolls {width}x{height} reduced={reduced}',dialog.evaluate('(d)=>d.scrollTop>50'))
+        for fraction in [.5,1]:
+            dialog.evaluate('(d,f)=>d.scrollTop=(d.scrollHeight-d.clientHeight)*f',fraction)
+            rect=close.bounding_box()
+            hit=close.evaluate('(b)=>{const r=b.getBoundingClientRect();return b.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2));}')
+            check(f'settings close pinned and hit-testable {width}x{height} scroll={fraction}',
+                  origin is not None and rect is not None and abs(origin['y']-rect['y'])<.5 and
+                  rect['x']>=0 and rect['y']>=0 and rect['x']+rect['width']<=width+1 and
+                  rect['y']+rect['height']<=height+1 and rect['width']>=44 and rect['height']>=44 and hit,rect)
+        # Raw pointer click intentionally avoids locator scrolling.
+        rect=close.bounding_box();page.mouse.click(rect['x']+rect['width']/2,rect['y']+rect['height']/2)
+        dialog.wait_for(state='detached')
+        check(f'no stranded modal after scrolled close {width}x{height}',page.locator('[role=dialog],[data-slot=dialog-overlay]').count()==0)
+    page.set_viewport_size({'width':390,'height':844})
+    page.emulate_media(reduced_motion='no-preference')
