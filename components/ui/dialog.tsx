@@ -60,7 +60,7 @@ function DialogContent({
   showCloseButton?: boolean;
   fullScreen?: boolean;
 }) {
-  const scrollable = className?.split(/\s+/).includes('settings') ?? false;
+  const scrollable = typeof className === 'string' && className.split(/\s+/).includes('settings');
   return (
     <DialogPortal>
       <DialogOverlay />
