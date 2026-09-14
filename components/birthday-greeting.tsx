@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
-import { Cake, Heart } from 'lucide-react';
+import { Cake, Heart, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
 /** Settings and the greeting never own focus/scroll locks at the same time. */
@@ -71,10 +71,11 @@ export function BirthdayGreeting({ name, open, preview, onClose, onComplete }: {
   name: string; open: boolean; preview: boolean; onClose: () => void; onComplete: (open: boolean) => void;
 }) {
   return <Dialog open={open} onOpenChange={next => { if (!next) onClose(); }} onOpenChangeComplete={onComplete}>
-    <DialogContent fullScreen className="birthday-screen birthday-refined">
+    <DialogContent fullScreen showCloseButton={false} className="birthday-screen birthday-refined">
+      <button type="button" className="birthday-close" data-slot="dialog-close" aria-label="关闭" onClick={onClose}><X size={20} aria-hidden="true" /></button>
       <div className="birthday-confetti" aria-hidden="true">{Array.from({ length: 12 }, (_, index) =>
         <i key={index} style={{ '--piece': index, left: `${(index * 37 + 7) % 100}%` } as CSSProperties} />)}</div>
-      <div className="birthday-card">
+      <div className="birthday-scroll"><div className="birthday-card">
         <p className="birthday-eyebrow">{preview ? '一份生日祝福 · 预览' : '今天，为你留一份温柔'}</p>
         <div className="birthday-emblem" aria-hidden="true"><Cake className="birthday-cake" size={58} strokeWidth={1.5} /></div>
         <DialogTitle>{name === '我' ? '亲爱的你' : name}，生日快乐</DialogTitle>
@@ -84,7 +85,7 @@ export function BirthdayGreeting({ name, open, preview, onClose, onComplete }: {
           <button type="button" className="birthday-later" onClick={onClose}>{preview ? '返回生日设置' : '先回到身边'}</button>
         </div>
         <small className="birthday-hint">无需等动画结束，随时可以关闭。</small>
-      </div>
+      </div></div>
     </DialogContent>
   </Dialog>;
 }

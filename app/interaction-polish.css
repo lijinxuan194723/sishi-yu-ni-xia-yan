@@ -5,8 +5,9 @@
 .app-shell button.round,[data-slot="dialog-content"] button.round{min-height:44px;min-width:44px}
 .app-shell :is(button,a,input,textarea):focus-visible,[data-slot="dialog-content"] :is(button,a,input,textarea,summary):focus-visible{outline:2px solid var(--season-accent);outline-offset:3px}
 :where(button,[role="button"],[role="tab"],summary){touch-action:manipulation;-webkit-tap-highlight-color:transparent}
-.birthday-screen.birthday-refined[data-fullscreen]{box-sizing:border-box;display:flex!important;align-items:center;justify-content:flex-start;gap:0;padding:max(64px,env(safe-area-inset-top)) max(18px,env(safe-area-inset-right)) max(24px,env(safe-area-inset-bottom)) max(18px,env(safe-area-inset-left))!important;overflow-y:auto;overscroll-behavior:contain;background:var(--scene-paper)!important;color:var(--scene-ink)!important;isolation:isolate}
-.birthday-screen.birthday-refined>.birthday-card{position:relative;flex:0 0 auto;box-sizing:border-box;width:min(100%,440px);margin:auto 0;display:flex;flex-direction:column;align-items:center;gap:18px;padding:30px 22px;border-radius:32px;border:1px solid var(--scene-border);background:var(--scene-paper);box-shadow:0 12px 48px color-mix(in srgb,var(--season-accent) 12%,transparent);overflow-wrap:anywhere}
+.birthday-screen.birthday-refined[data-fullscreen]{box-sizing:border-box;display:flex!important;align-items:stretch;justify-content:flex-start;gap:0;padding:0!important;overflow:hidden;overscroll-behavior:contain;background:var(--scene-paper)!important;color:var(--scene-ink)!important;isolation:isolate}
+.birthday-refined>.birthday-scroll{box-sizing:border-box;display:flex;flex:1 1 auto;min-height:0;min-width:0;flex-direction:column;align-items:center;padding:max(64px,env(safe-area-inset-top)) max(18px,env(safe-area-inset-right)) max(24px,env(safe-area-inset-bottom)) max(18px,env(safe-area-inset-left));overflow-y:auto;overscroll-behavior:contain;scroll-padding-block:24px}
+.birthday-screen.birthday-refined .birthday-card{position:relative;flex:0 0 auto;box-sizing:border-box;width:min(100%,440px);margin:auto 0;display:flex;flex-direction:column;align-items:center;gap:18px;padding:30px 22px;border-radius:32px;border:1px solid var(--scene-border);background:var(--scene-paper);box-shadow:0 12px 48px color-mix(in srgb,var(--season-accent) 12%,transparent);overflow-wrap:anywhere}
 .birthday-refined .birthday-eyebrow{font-size:12px;letter-spacing:2px;color:var(--scene-muted);margin:0}
 .birthday-refined .birthday-emblem{display:grid;place-items:center;width:104px;height:104px;flex:none;border-radius:50%;background:var(--season-soft);color:var(--season-accent)}
 .birthday-refined .birthday-cake{color:inherit;animation:birthday-soft-arrival 1600ms ease-in-out 1 both;filter:none!important}
@@ -18,14 +19,14 @@
 .birthday-refined .primary{background:var(--season-accent)!important;color:var(--on-accent,#fff)!important;display:flex;align-items:center;justify-content:center;gap:8px}
 .birthday-refined .birthday-later{background:transparent;color:var(--scene-muted);border:1px solid var(--scene-border)}
 .birthday-refined .birthday-hint{font-size:12px;color:var(--scene-muted);line-height:1.6}
-.birthday-screen.birthday-refined [data-slot="dialog-close"]{position:fixed!important;top:max(10px,env(safe-area-inset-top))!important;right:max(12px,env(safe-area-inset-right))!important;width:44px;height:44px;z-index:3;border-radius:50%;background:var(--scene-paper);color:var(--scene-ink);border:1px solid var(--scene-border)}
+.birthday-screen.birthday-refined [data-slot="dialog-close"]{display:grid;place-items:center;position:absolute!important;top:max(10px,env(safe-area-inset-top))!important;right:max(12px,env(safe-area-inset-right))!important;width:44px;height:44px;z-index:3;border-radius:50%;background:var(--scene-paper);color:var(--scene-ink);border:1px solid var(--scene-border)}
 .birthday-screen.birthday-refined>.birthday-confetti{position:fixed!important;inset:0;overflow:hidden;z-index:0;pointer-events:none;contain:strict}
 .birthday-refined .birthday-confetti i{width:6px;height:10px;border-radius:999px;background:var(--season-accent)!important;opacity:0;animation:birthday-soft-confetti 3600ms cubic-bezier(.15,.45,.45,1) calc(var(--piece)*60ms) 1 both}
 .birthday-refined .birthday-confetti i:nth-child(3n){background:var(--scene-muted)!important;width:5px;height:5px}
 .birthday-refined[data-ending-style] .birthday-confetti i,.birthday-refined[data-ending-style] .birthday-cake{animation-play-state:paused}
 @keyframes birthday-soft-confetti{0%{opacity:0;transform:translate3d(0,0,0) rotate(0)}15%{opacity:.4}80%{opacity:.3}100%{opacity:0;transform:translate3d(18px,92dvh,0) rotate(130deg)}}
 @keyframes birthday-soft-arrival{0%{transform:scale(.96)}50%{transform:scale(1.025)}100%{transform:scale(1)}}
-@media(max-height:480px){.birthday-screen.birthday-refined[data-fullscreen]{padding-top:58px!important}.birthday-screen.birthday-refined>.birthday-card{padding:22px 20px;gap:12px}.birthday-refined .birthday-emblem{width:76px;height:76px}}
+@media(max-height:480px){.birthday-screen.birthday-refined>.birthday-scroll{padding-top:58px}.birthday-screen.birthday-refined .birthday-card{padding:22px 20px;gap:12px}.birthday-refined .birthday-emblem{width:76px;height:76px}}
 @media(prefers-reduced-motion:reduce){.birthday-refined .birthday-confetti{display:none}.birthday-refined .birthday-cake{animation:none!important}}
 :root[data-effects="off"] .birthday-refined .birthday-confetti{display:none}
 :root[data-effects="off"] .birthday-refined .birthday-cake{animation:none!important}
