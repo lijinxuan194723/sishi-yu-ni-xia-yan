@@ -1,7 +1,6 @@
 'use client';
 import { useCallback, useEffect, useLayoutEffect, useState, useRef, type ReactNode } from 'react';
 import { flushSync } from 'react-dom';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
 import useEmblaCarousel from 'embla-carousel-react';
 import { useReducedMotion } from '@/hooks/use-reduced-motion';
 import { seasonAlbums } from '@/lib/season-albums';
@@ -91,17 +90,12 @@ export function HeroGallery({ season, children }: { season: GallerySeason; child
     if (!alive.current || token !== navigation.current || swapping.current || shown.current !== currentSeason) return;
     setError(''); carousel.scrollTo(index, prefersReducedMotion());
   }
-  return <section ref={viewport} className="hero hero-gallery" data-album-season={displayed} aria-label="四季相册" tabIndex={0} onKeyDown={event => {
+  return <section ref={viewport} className="hero hero-gallery" data-album-season={displayed} data-photo-index={selected} aria-roledescription="可左右滑动的相册" aria-label="四季相册" tabIndex={0} onKeyDown={event => {
     if (event.target !== event.currentTarget) return;
     if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') { event.preventDefault(); void go(selectedRef.current + (event.key === 'ArrowLeft' ? -1 : 1)); }
   }}><div className="hero-track">{seasonAlbums[displayed].map((src, i) => {
     const distance = Math.abs(i - selected), near = distance <= 1 || distance === seasonAlbums[displayed].length - 1;
     return <div className="hero-slide season-photo" key={i}><img src={src} alt={`${{ spring: '春', summer: '夏', autumn: '秋', winter: '冬' }[displayed]}日夏彦 ${i + 1}`} style={{ objectPosition: photoPosition(displayed) }} loading={near ? 'eager' : 'lazy'} decoding="async" draggable={false} /></div>;
   })}</div>{cover && <img ref={coverNode} className="hero-season-cover" src={cover.src} alt="" aria-hidden="true" style={{ objectPosition: cover.position }} />}
-    {children}<div className="photo-navigation" aria-label="相册翻页">
-      <button type="button" aria-label="上一张照片" disabled={!!cover} onClick={() => void go(selectedRef.current - 1)}><ChevronLeft size={16} /></button>
-      <div className="photo-dots">{seasonAlbums[displayed].map((_src, i) => <button type="button" key={i} disabled={!!cover} aria-label={`查看第 ${i + 1} 张照片`} aria-current={i === selected ? 'true' : undefined} onClick={() => void go(i)}><span /></button>)}</div>
-      <span className="sr-only" role="status">{error || `第 ${selected + 1} 张，共 ${seasonAlbums[displayed].length} 张`}</span>
-      <button type="button" aria-label="下一张照片" disabled={!!cover} onClick={() => void go(selectedRef.current + 1)}><ChevronRight size={16} /></button>
-    </div></section>;
+    {children}<span className="sr-only" role="status">{error || `第 ${selected + 1} 张，共 ${seasonAlbums[displayed].length} 张；左右滑动切换照片。`}</span></section>;
 }

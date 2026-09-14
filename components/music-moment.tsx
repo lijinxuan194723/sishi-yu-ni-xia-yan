@@ -1,4 +1,5 @@
 'use client';
+import {SongListen} from './song-listen';
 import {Music2,RefreshCw} from 'lucide-react';
 import {dateKey} from '@/lib/companion';
 import type {DailyState} from '@/components/daily-picks';
@@ -11,6 +12,7 @@ export function MusicMoment({daily,onChat}:{daily?:DailyState;onChat?:(text:stri
   {track&&<div className="song-detail" aria-live="polite"><strong>{track.title}</strong><small>{track.artist}</small></div>}
   <RecommendationComment item={track?{kind:'song',title:track.title,creator:track.artist,thought:track.thought,date:daily!.picks!.date}:undefined}/>
   <p role="status">{daily?.loading?'夏彦正在挑选今天想分享的歌…':daily?.error||(!track?'联网后，让夏彦为你挑一首歌。':'更新于 '+new Date(daily!.picks!.updatedAt).toLocaleString('zh-CN'))}</p>
+  {track&&<SongListen song={track}/>}
   <div className="moment-footer"><button className="soft-button" disabled={!daily||daily.loading} onClick={daily?.refresh}><RefreshCw size={16}/> {track?'再推荐一次':'获取今日推荐'}</button>{track&&<button className="primary" onClick={()=>onChat?.(`想和你聊聊这首歌《${track.title}》，歌手是${track.artist}。你刚才给它的评价是：${track.thought}`)}>聊聊这首歌</button>}</div>
  </section>;
 }

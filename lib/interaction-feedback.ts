@@ -1,16 +1,16 @@
 /** Local, optional touch feedback. No timers, network requests or vibration loops. */
 export const FEEDBACK_KEY = 'luke-touch-feedback-v1';
-export type FeedbackMode = 'gentle' | 'off';
+export type FeedbackMode = 'gentle' | 'clear' | 'off';
 export type FeedbackKind = 'press' | 'selection' | 'confirm';
-type NativeUI = { haptic?: () => void; hapticEvent?: (kind: FeedbackKind) => void; feedbackEnabled?: (enabled: boolean) => void; startupAppearance?: (season: string, period: string) => void };
+type NativeUI = { haptic?: () => void; hapticEvent?: (kind: FeedbackKind) => void; feedbackEnabled?: (enabled: boolean) => void; feedbackStyle?: (mode: string) => void; startupAppearance?: (season: string, period: string) => void };
 const nativeUI = (): NativeUI | undefined => (window as unknown as { LukeAndroid?: NativeUI }).LukeAndroid;
-export function feedbackMode(value: string | null): FeedbackMode { return value === 'off' ? 'off' : 'gentle'; }
+export function feedbackMode(value: string | null): FeedbackMode { return value === 'off' ? 'off' : value === 'clear' ? 'clear' : 'gentle'; }
 export function feedbackKind(element: Element): FeedbackKind | null {
   if (element.closest('[inert],[aria-disabled="true"],[data-haptic="off"],[data-ending-style],[data-motion-presence="exiting"]') || element.matches(':disabled')) return null;
-  if (element.matches('[role="tab"][aria-selected="true"]')) return null;
+  if (element.matches('[role="tab"][aria-selected="true"],[role="option"][aria-selected="true"]')) return null;
   const explicit = element.getAttribute('data-haptic');
   if (explicit === 'confirm') return 'confirm';
-  if (explicit === 'selection' || element.matches('[role="tab"],[role="switch"],[aria-pressed],input[type="checkbox"],input[type="radio"],summary')) return 'selection';
+  if (explicit === 'selection' || element.matches('[role="tab"],[role="option"],[role="switch"],[aria-pressed],input[type="checkbox"],input[type="radio"],summary')) return 'selection';
   return 'press';
 }
 export function createFeedbackGate(cooldown = 90) {
@@ -31,14 +31,14 @@ export function installFeedback() {
   let mode: FeedbackMode = 'gentle';
   const sync = () => {
     try { mode = feedbackMode(localStorage.getItem(FEEDBACK_KEY)); } catch { mode = 'off'; }
-    try { nativeUI()?.feedbackEnabled?.(mode !== 'off'); } catch { /* Older bridges stay usable. */ }
+    try { nativeUI()?.feedbackEnabled?.(mode !== 'off'); nativeUI()?.feedbackStyle?.(mode); } catch { /* Older bridges stay usable. */ }
   };
   sync();
   const accept = createFeedbackGate();
   const tap = (event: MouseEvent) => {
     const origin = event.target;
     if (!(origin instanceof Element)) return;
-    const control = origin.closest('button,[role="button"],[role="tab"],[role="switch"],input[type="checkbox"],input[type="radio"],summary');
+    const control = origin.closest('button,a[href],[role="button"],[role="tab"],[role="option"],[role="switch"],input[type="checkbox"],input[type="radio"],summary');
     if (!control) return;
     const kind = feedbackKind(control);
     if (!kind || !accept(performance.now(), event.isTrusted, !document.hidden, mode !== 'off')) return;

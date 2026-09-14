@@ -1,12 +1,24 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.luke.summer" android:versionCode='902004' android:versionName='2.0.1-preview.4'>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.luke.summer" android:versionCode='902005' android:versionName='2.0.1-preview.5'>
  <uses-sdk android:minSdkVersion="26" android:targetSdkVersion="35"/>
  <uses-permission android:name="android.permission.INTERNET"/>
  <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
  <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
  <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+ <uses-permission android:name="com.android.alarm.permission.SET_ALARM"/>
+ <queries>
+  <package android:name="com.tencent.qqmusic"/>
+  <package android:name="com.netease.cloudmusic"/>
+  <intent><action android:name="android.intent.action.SET_ALARM"/></intent>
+  <intent><action android:name="android.intent.action.SET_TIMER"/></intent>
+  <intent><action android:name="android.intent.action.SHOW_ALARMS"/></intent>
+ </queries>
  <application android:label='四时与你·预览' android:icon="@drawable/icon" android:theme="@style/AppTheme" android:allowBackup="false" android:usesCleartextTraffic="false" android:supportsRtl="true" android:enableOnBackInvokedCallback="false">
   <activity android:name=".MainActivity" android:exported="true" android:configChanges="orientation|screenSize|keyboardHidden" android:windowSoftInputMode="adjustResize">
    <intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter>
   </activity>
  </application>
 </manifest>
+
+
+
+
