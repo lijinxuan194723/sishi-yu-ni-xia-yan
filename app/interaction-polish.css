@@ -30,3 +30,10 @@
 @media(prefers-reduced-motion:reduce){.birthday-refined .birthday-confetti{display:none}.birthday-refined .birthday-cake{animation:none!important}}
 :root[data-effects="off"] .birthday-refined .birthday-confetti{display:none}
 :root[data-effects="off"] .birthday-refined .birthday-cake{animation:none!important}
+/* Short landscape windows must keep every navigation item reachable. */
+@media(min-width:601px) and (max-height:700px){
+ .app-shell .sidebar{overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}
+ .app-shell .sidebar>*{flex-shrink:0}
+ .app-shell .sidebar .nav-caption{margin-top:24px}
+ .app-shell .sidebar .sidebar-bottom{padding-top:16px}
+}

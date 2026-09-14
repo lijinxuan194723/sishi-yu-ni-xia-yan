@@ -1,6 +1,7 @@
 """Geometry checks for reduced motion: centering is layout, not an animation."""
 from motion_secondary_dialogs import verify_secondary_dialogs
 from seasonal_browser import verify_seasonal_polish
+from seasonal_layout import verify_layout_polish
 
 
 def verify_reduced_dialogs(page, check):
@@ -40,3 +41,4 @@ def verify_reduced_dialogs(page, check):
     topic.wait_for(state='detached')
     verify_secondary_dialogs(page, check)
     verify_seasonal_polish(page, check)
+    verify_layout_polish(page, check)
