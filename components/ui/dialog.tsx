@@ -60,6 +60,7 @@ function DialogContent({
   showCloseButton?: boolean;
   fullScreen?: boolean;
 }) {
+  const scrollable = className?.split(/\s+/).includes('settings') ?? false;
   return (
     <DialogPortal>
       <DialogOverlay />
@@ -75,9 +76,8 @@ function DialogContent({
         )}
         {...props}
       >
-        {/* Keep the dismissal anchor before scrollable content; other dialogs use display: contents. */}
+        {/* The close button lives outside the inner scroller, within the same focus scope. */}
         {showCloseButton && (
-          <div data-slot="dialog-close-anchor">
           <DialogPrimitive.Close
             data-slot="dialog-close"
             aria-label="关闭"
@@ -92,9 +92,8 @@ function DialogContent({
             <XIcon aria-hidden="true" />
             <span className="sr-only">关闭</span>
           </DialogPrimitive.Close>
-          </div>
         )}
-        {children}
+        {scrollable ? <div data-slot="dialog-scroll-body">{children}</div> : children}
       </DialogPrimitive.Popup>
     </DialogPortal>
   );

@@ -42,9 +42,9 @@ def verify_layout_polish(page, check):
         close=dialog.get_by_role('button',name='关闭',exact=True)
         origin=close.bounding_box()
         page.mouse.move(width/2,height/2);page.mouse.wheel(0,3000);page.wait_for_timeout(220)
-        check(f'settings actually scrolls {width}x{height} reduced={reduced}',dialog.evaluate('(d)=>d.scrollTop>50'))
+        check(f'settings actually scrolls {width}x{height} reduced={reduced}',dialog.locator('[data-slot=dialog-scroll-body]').evaluate('(d)=>d.scrollTop>50'))
         for fraction in [.5,1]:
-            dialog.evaluate('(d,f)=>d.scrollTop=(d.scrollHeight-d.clientHeight)*f',fraction)
+            dialog.locator('[data-slot=dialog-scroll-body]').evaluate('(d,f)=>d.scrollTop=(d.scrollHeight-d.clientHeight)*f',fraction)
             rect=close.bounding_box()
             hit=close.evaluate('(b)=>{const r=b.getBoundingClientRect();return b.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2));}')
             check(f'settings close pinned and hit-testable {width}x{height} scroll={fraction}',

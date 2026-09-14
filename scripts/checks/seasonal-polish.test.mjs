@@ -65,18 +65,18 @@ test('button press uses scale without overwriting positional transforms',()=>{
  assert.ok(!css.includes('transform: scale(.97)'));
 });
 
-test('settings dismissal stays within modal scope and precedes scrollable children',()=>{
+test('settings dismissal stays outside its inner scroll body in one modal scope',()=>{
  const source=read('components/ui/dialog.tsx');
  const popup=source.slice(source.indexOf('<DialogPrimitive.Popup'),source.indexOf('</DialogPrimitive.Popup>'));
- assert.ok(popup.includes('data-slot="dialog-close-anchor"'));
- assert.ok(popup.indexOf('data-slot="dialog-close-anchor"')<popup.indexOf('{children}'));
- assert.ok(popup.includes('aria-label="关闭"'));
+ assert.ok(popup.includes('data-slot="dialog-scroll-body"'));
+ assert.ok(popup.indexOf('aria-label="关闭"')<popup.indexOf('data-slot="dialog-scroll-body"'));
+ assert.ok(!popup.includes('dialog-close-anchor'));
  const css=read('app/interaction-polish.css');
- assert.ok(css.includes('[data-slot="dialog-close-anchor"]{display:contents}'));
- assert.ok(css.includes('position:sticky;top:0;height:0'));
- assert.ok(css.includes('pointer-events:auto'));
+ assert.ok(css.includes('overflow-y:auto'));
+ assert.ok(css.includes('.settings>[data-slot="dialog-close"]{position:absolute;top:8px;right:8px'));
+ assert.ok(!css.includes('display:contents}'));
+ assert.ok(!css.includes('position:sticky;top:0;height:0'));
 });
-
 
 test('renderer termination destroys the old view and offers manual non-destructive recovery',()=>{
  const java=read('mobile/android/MainActivity.java');
