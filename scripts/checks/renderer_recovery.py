@@ -10,11 +10,12 @@ def verify_renderer_recovery(adb,tap,dump,wait_home,wait_text,record,out,pkg,obs
     wait_home()
     host=adb('shell','pidof',pkg).strip()
     if not re.fullmatch(r'[0-9]+',host):raise AssertionError('Expected one host process')
-    root=adb('root');adb('wait-for-device');time.sleep(.5)
-    adb('forward','tcp:'+str(observer.port),'tcp:'+str(observer.port))
+    # adbd must already be root before the observer starts. Do not restart the
+    # daemon underneath a live instrumentation/UiAutomation connection.
     uid=adb('shell','id','-u').strip()
-    (out/'recovery-environment.txt').write_text(root+'\nuid='+uid+'\nScope: disposable emulator only, no production debug access enabled.\n')
-    if uid!='0':raise AssertionError('Fault injection requires a rootable test image')
+    (out/'recovery-environment.txt').write_text('uid='+uid+'\nScope: disposable emulator only, no production debug access enabled.\n')
+    if uid!='0':raise AssertionError('Fault injection UID must be prepared before observation')
+    record('UI observer is connected before renderer injection',observer.request('ping').get('ready') is True)
     processes=adb('shell','ps','-A','-o','PID,NAME');(out/'recovery-processes.txt').write_text(processes)
     services=adb('shell','dumpsys','activity','services');(out/'recovery-services.txt').write_text(services)
     # Other system applications can have their own renderer. Prove this process

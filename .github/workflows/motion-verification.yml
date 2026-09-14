@@ -27,6 +27,7 @@ jobs:
           npm run test:detail-polish | tee work/motion-browser/detail.tap
           npm run test:motion | tee work/motion-browser/motion.tap
           python3 scripts/checks/check-rounded-startup.py > work/motion-browser/native-contracts.txt
+          python3 scripts/checks/test_motion_observation.py 2>&1 | tee work/motion-browser/observation.txt
       - name: Fetch the exact-commit signed APK
         env:
           GH_TOKEN: ${{ github.token }}
@@ -61,6 +62,12 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+      - name: Install recorded-frame decoder
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends ffmpeg
+          mkdir -p work/motion-android
+          ffmpeg -version > work/motion-android/video-decoder.txt
       - name: Fetch the exact-commit signed APK
         env:
           GH_TOKEN: ${{ github.token }}

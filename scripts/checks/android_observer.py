@@ -9,6 +9,15 @@ class AndroidObserver:
         self.adb=adb;self.output=output;self.port=37621;self.process=None;self.log=None
         self.calls=0;self.root_waits=0
     def start(self):
+        # Establish adbd's test-only UID before opening the long-lived instrumentation
+        # stream. Restarting adbd during renderer injection can disconnect that stream
+        # and invalidates UiAutomation's active-window connection.
+        if self.adb('shell','getprop','ro.kernel.qemu').strip()!='1':
+            raise RuntimeError('Observer requires a disposable emulator')
+        elevation=self.adb('root');self.adb('wait-for-device')
+        uid=self.adb('shell','id','-u').strip()
+        (self.output/'observer-preflight.txt').write_text(elevation+'\nuid='+uid+'\nRoot configured before opening UiAutomation; no physical device access.\n')
+        if uid!='0':raise RuntimeError('Recovery validation requires a rootable emulator image')
         home=pathlib.Path(os.environ['ANDROID_HOME'])
         tools=home/'build-tools'/'35.0.0'
         if not tools.exists():tools=sorted((home/'build-tools').iterdir())[-1]
