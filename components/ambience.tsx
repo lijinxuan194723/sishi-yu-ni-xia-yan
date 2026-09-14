@@ -14,7 +14,14 @@ export function useAmbience(paused=false,preview=false){
  useEffect(()=>{
   if(!loaded||paused)return;
   let alive=true,request=0;
+  let deferred:ReturnType<typeof setTimeout>|undefined;
   const update=async()=>{
+   if(!alive)return;
+   // Commit the page palette only after settings has finished its own exit.
+   // Rapid re-opening cancels this effect rather than queuing obsolete themes.
+   if(!preview&&document.querySelector('.settings')){
+    clearTimeout(deferred);deferred=setTimeout(update,50);return;
+   }
    const id=++request;
    let current=options;
    try{if(!preview)current=readAppearance(JSON.parse(localStorage.getItem('luke-appearance-v1')||'null'));}catch{}
@@ -37,7 +44,7 @@ export function useAmbience(paused=false,preview=false){
   const timer=setInterval(()=>{if(!document.hidden)void update();},30000);
   const wake=()=>{document.documentElement.dataset.paused=document.hidden?'true':'false';if(!document.hidden)void update();};
   document.addEventListener('visibilitychange',wake);window.addEventListener('focus',update);
-  return()=>{alive=false;clearInterval(timer);document.removeEventListener('visibilitychange',wake);window.removeEventListener('focus',update);};
+  return()=>{alive=false;clearTimeout(deferred);clearInterval(timer);document.removeEventListener('visibilitychange',wake);window.removeEventListener('focus',update);};
  },[options,loaded,paused,preview]);
  return {scene,options,setOptions,appearanceError};
 }

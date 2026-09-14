@@ -42,3 +42,13 @@ def verify_reduced_dialogs(page, check):
     verify_secondary_dialogs(page, check)
     verify_seasonal_polish(page, check)
     verify_layout_polish(page, check)
+    from pathlib import Path
+    import json
+    from companion_theme_browser import verify_companion_theme
+    traces = {}
+    out = Path('work/motion-browser')
+    out.mkdir(parents=True, exist_ok=True)
+    try:
+        verify_companion_theme(page, check, traces, out)
+    finally:
+        (out / 'companion-frames.json').write_text(json.dumps(traces, ensure_ascii=False, indent=2))
