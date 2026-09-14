@@ -77,7 +77,7 @@ def mark_case(name):
 def case_log(token):return after_marker(logs(),token)
 def cold(name,night=False,reduced=False):
  adb('shell','am','force-stop',pkg);scales(0 if reduced else 1);adb('shell','cmd','uimode','night','yes' if night else 'no')
- time.sleep(1);adb('logcat','-c');remote='/sdcard/motion-'+name+'.mp4'
+ time.sleep(1);adb('logcat','-c');token=mark_case(name);remote='/sdcard/motion-'+name+'.mp4'
  recorder=subprocess.Popen(['adb','shell','screenrecord','--size','720x1280','--bit-rate','2500000','--time-limit','30',remote],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
  time.sleep(.5)
  try:
@@ -86,9 +86,10 @@ def cold(name,night=False,reduced=False):
   else:
    deadline=time.monotonic()+18
    while time.monotonic()<deadline:
-    if 'exit-complete' in logs():break
+    if 'exit-complete' in case_log(token):break
     time.sleep(.2)
-  wait_home();time.sleep(.6);text=logs();(out/(name+'.log')).write_text(text)
+  wait_home();time.sleep(.6);text=case_log(token);(out/(name+'.log')).write_text(text)
+  (out/(name+'-unfiltered.log')).write_text(logs())
   record(name+' reaches home without native crash','FATAL EXCEPTION' not in text and 'terminated crashed=' not in text and 'Fatal signal' not in text)
   matches=re.findall(r'(system|legacy) exit-complete ms=(\d+) frames=(\d+)',text)
   if reduced:record(name+' respects disabled system animations','exit-start' not in text)
