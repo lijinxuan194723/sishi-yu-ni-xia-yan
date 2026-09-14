@@ -30,6 +30,11 @@ def tap_node(node):
  x1,y1,x2,y2=map(int,re.findall(r'\d+',node.get('bounds')))
  if x2<=x1 or y2<=y1:raise AssertionError('Control has empty bounds')
  adb('shell','input','tap',str((x1+x2)//2),str((y1+y2)//2));time.sleep(.5)
+def editor_values():
+ tree=ET.fromstring(dump())
+ fields=[e for e in tree.iter('node') if e.get('class')=='android.widget.EditText']
+ fields.sort(key=lambda e:int(re.findall(r'\d+',e.get('bounds'))[1]))
+ return [e.get('text','') for e in fields]
 def tap(label):
  tree=ET.fromstring(dump())
  nodes=[e for e in tree.iter('node') if e.get('text')==label or e.get('content-desc')==label]
@@ -74,14 +79,29 @@ def cold(name,night=False,reduced=False):
 def seed_note():
  tap('时光手记');tap('新建笔记')
  xml=dump();tree=ET.fromstring(xml)
- # UIAutomator omits HTML input aria-label/hint in these WebView versions.
- # Identify the two actual EditText controls in the confirmed editor, top one is title.
  fields=[e for e in tree.iter('node') if e.get('class')=='android.widget.EditText']
  record('baseline editor exposes title and body fields','返回笔记列表' in xml and len(fields)==2)
  fields.sort(key=lambda e:int(re.findall(r'\d+',e.get('bounds'))[1]))
- tap_node(fields[0]);adb('shell','input','text','MotionUpgrade902002')
+ tap_node(fields[0]);adb('shell','input','text','MotionUpgrade902002');time.sleep(.4)
+ record('baseline note editor contains the exact fixture title',editor_values()[0]=='MotionUpgrade902002')
+ (out/'baseline-note.png').write_bytes(adb('exec-out','screencap','-p',binary=True))
  adb('shell','input','keyevent','4');time.sleep(.4);tap('返回笔记列表')
- record('baseline contains disposable upgrade note','MotionUpgrade902002' in dump())
+ # Some WebViews collapse named tabpanels in UIAutomator while rendering their lists.
+ # Assert the actual editor value before and after upgrade instead of an absent list node.
+
+def verify_upgrade_note():
+ tap('时光手记');xml=dump();tree=ET.fromstring(xml)
+ rows=[e for e in tree.iter('node') if 'MotionUpgrade902002' in (e.get('text','')+e.get('content-desc',''))]
+ (out/'upgraded-list.png').write_bytes(adb('exec-out','screencap','-p',binary=True))
+ if rows:tap_node(rows[-1])
+ else:
+  # Fixed isolated 720x1280/density320 fixture: the first note title is at x360/y550.
+  # Checked against the baseline screenshot. A missed tap fails the editor-value assert.
+  adb('shell','input','tap','360','550');time.sleep(.6)
+ values=editor_values()
+ record('in-place upgrade retains exact saved note title',bool(values) and values[0]=='MotionUpgrade902002',values)
+ (out/'upgraded-note.png').write_bytes(adb('exec-out','screencap','-p',binary=True))
+ tap('返回笔记列表');tap('回到身边')
 
 sdk=adb('shell','getprop','ro.build.version.sdk').strip()
 try:
@@ -95,10 +115,8 @@ try:
  cold('cold-light');cold('cold-dark',night=True)
  before=len(re.findall('exit-start',logs()));adb('shell','input','keyevent','3');time.sleep(.5);launch();wait_home();time.sleep(.5)
  record('warm resume does not replay startup',len(re.findall('exit-start',logs()))==before)
- if previous:
-  tap('时光手记');record('in-place upgrade retains the existing note','MotionUpgrade902002' in dump());tap('回到身边')
- cold('cold-reduced',reduced=True)
- scales(1)
+ if previous:verify_upgrade_note()
+ cold('cold-reduced',reduced=True);scales(1)
  tap('打开设置');record('settings opens in Android WebView','日常与数据' in dump());tap('关闭')
  tap('他的此刻');tap('开始情景对话');xml=dump()
  record('topic dialog is usable in Android WebView','查看话题背景' in xml and '会话记录' in xml and 'android.widget.EditText' in xml);tap('关闭')
