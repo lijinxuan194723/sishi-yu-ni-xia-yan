@@ -1,4 +1,7 @@
 """Geometry checks for reduced motion: centering is layout, not an animation."""
+from motion_secondary_dialogs import verify_secondary_dialogs
+
+
 def verify_reduced_dialogs(page, check):
     # The preceding test ends on Notes, which deliberately has no settings entry.
     # Use the real navigation and pointer path, not a hidden button or forced click.
@@ -31,5 +34,9 @@ def verify_reduced_dialogs(page, check):
     rect = topic.bounding_box()
     check('reduced topic dialog preserves centering', rect is not None and rect['x'] >= 0 and
           rect['y'] >= 0 and rect['x'] + rect['width'] <= 391 and rect['y'] + rect['height'] <= 845, rect)
-    topic.get_by_role('button', name='关闭', exact=True).click()
+    close = topic.get_by_role('button', name='关闭', exact=True)
+    box = close.bounding_box()
+    check('topic close retains a 44px touch target', box is not None and box['width'] >= 44 and box['height'] >= 44, box)
+    close.click()
     topic.wait_for(state='detached')
+    verify_secondary_dialogs(page, check)

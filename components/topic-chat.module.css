@@ -19,7 +19,7 @@
 .feedback { display: flex; flex-direction: column; flex: 0 1 auto; gap: 6px; min-height: 0; max-height: 26%; overflow-y: auto; overscroll-behavior: contain; }
 .feedback:empty { display: none; }
 .header, .background, .history, .composer, .composerHint, .editStatus, .alert, .latest { flex-shrink: 0; }
-.header { padding-right: 34px; }
+.header { padding-right: 38px; }
 .header h2 { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; line-height: 1.5; overflow-wrap: anywhere; padding-right: 0; }
 .header p { margin: 4px 0 0; line-height: 1.6; font-size: 12px; color: var(--scene-muted); }
 .panel summary { cursor: pointer; min-height: 36px; padding: 7px 0; font-size: 13px; line-height: 1.5; }
@@ -59,7 +59,7 @@
 .panel button { cursor: pointer; touch-action: manipulation; transition: background-color 140ms ease, opacity 140ms ease; }
 .panel button:disabled { opacity: .46; cursor: not-allowed; }
 .panel button svg { flex-shrink: 0; }
-.panel [data-slot='dialog-close'] { min-width: 40px; min-height: 40px; }
+.panel [data-slot='dialog-close'] { min-width: 44px; min-height: 44px; }
 .srOnly { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
 @media (hover: hover) { .panel button:not(:disabled):hover { filter: brightness(.97); }.messageTools button:hover, .result:hover { background: var(--season-soft); } }
 @media (max-width: 480px) {
