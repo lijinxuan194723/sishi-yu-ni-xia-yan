@@ -76,3 +76,17 @@ test('settings dismissal stays within modal scope and precedes scrollable childr
  assert.ok(css.includes('position:sticky;top:0;height:0'));
  assert.ok(css.includes('pointer-events:auto'));
 });
+
+
+test('renderer termination destroys the old view and offers manual non-destructive recovery',()=>{
+ const java=read('mobile/android/MainActivity.java');
+ assert.ok(java.includes('onRenderProcessGone(WebView view,RenderProcessGoneDetail detail)'));
+ assert.ok(java.includes('rendererGone=true;contentReady=false;readyPosted=true'));
+ assert.ok(java.includes('view.destroy();web=null;'));
+ assert.ok(java.includes('if(canUseWeb())web.evaluateJavascript'));
+ assert.ok(java.includes('if(!canUseWeb()||readyPosted)return'));
+ const recovery=java.slice(java.indexOf('private boolean rendererTerminated'),java.indexOf('// Native startup only:'));
+ assert.ok(recovery.includes('recreate()'));
+ assert.ok(recovery.includes('return true;'));
+ for(const destructive of ['clearCache','clearData','deleteDatabase','removeAllCookies','deleteAllData','loadUrl'])assert.ok(!recovery.includes(destructive));
+});

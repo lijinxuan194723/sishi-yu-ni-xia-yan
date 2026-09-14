@@ -1,0 +1,6 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.luke.motion.observer" android:versionCode="1" android:versionName="1">
+ <uses-sdk android:minSdkVersion="26" android:targetSdkVersion="35"/>
+ <uses-permission android:name="android.permission.INTERNET"/>
+ <application android:label="Motion test observer" android:debuggable="true" android:allowBackup="false"/>
+ <instrumentation android:name=".Observer" android:targetPackage="com.luke.motion.observer" android:functionalTest="true"/>
+</manifest>

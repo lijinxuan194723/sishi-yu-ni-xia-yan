@@ -24,10 +24,11 @@ def verify_seasonal_android(adb,tap,dump,wait_home,wait_text,launch,record,out,p
             time.sleep(.3)
             try:
                 launch();time.sleep(3);wait_home()
-                text=adb('logcat','-d','-v','brief','LukeSeason:I','AndroidRuntime:E','*:S')
+                text=adb('logcat','-d','-v','brief','LukeSeason:I','LukeRenderer:E','AndroidRuntime:E','chromium:F','libc:F','*:S')
                 (out/(name+'.log')).write_text(text)
-                record('native cold launch restores '+season+' '+mode,'launch season='+season+' mode='+mode in text and 'FATAL EXCEPTION' not in text,text)
+                record('native cold launch restores '+season+' '+mode,'launch season='+season+' mode='+mode in text and all(marker not in text for marker in ['FATAL EXCEPTION','terminated crashed=','Fatal signal']),text)
             finally:
+                (out/(name+'-system.log')).write_text(adb('logcat','-d','-v','threadtime'))
                 subprocess.run(['adb','shell','pkill','-2','screenrecord'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
                 try:recorder.wait(timeout=6)
                 except subprocess.TimeoutExpired:recorder.terminate();recorder.wait(timeout=6)

@@ -19,6 +19,8 @@ import java.util.concurrent.*;
 public class MainActivity extends Activity {
  private static final String ORIGIN="https://appassets.androidplatform.net";
  private WebView web;
+ private volatile boolean rendererGone;
+ private boolean canUseWeb(){return web!=null&&!rendererGone&&!isDestroyed();}
  private SoftStartup startup;
  private String launchSeason="spring",launchMode="day",launchStyle="",shownSplashStyle="";
  private android.view.ContextThemeWrapper launchContext;
@@ -58,7 +60,7 @@ public class MainActivity extends Activity {
  private void touchFeedback(String kind){
   if(!Arrays.asList("press","selection","confirm").contains(kind))return;
   runOnUiThread(()->{
-   if(isDestroyed()||!contentReady||!feedbackAllowed||!web.isShown()||!web.hasWindowFocus())return;
+   if(!canUseWeb()||!contentReady||!feedbackAllowed||!web.isShown()||!web.hasWindowFocus())return;
    long now=android.os.SystemClock.elapsedRealtime();if(now-lastFeedback<90L)return;lastFeedback=now;
    int effect=android.view.HapticFeedbackConstants.VIRTUAL_KEY;
    if("selection".equals(kind))effect=android.view.HapticFeedbackConstants.CLOCK_TICK;
@@ -85,7 +87,7 @@ public class MainActivity extends Activity {
   configureLaunch();
   super.onCreate(state);
   viewport=new android.widget.FrameLayout(this);web=new WebView(this);web.setVisibility(android.view.View.INVISIBLE);viewport.addView(web,new android.widget.FrameLayout.LayoutParams(-1,-1));setContentView(viewport);startup=new SoftStartup();startup.install();showSystemBars();
-  if(android.os.Build.VERSION.SDK_INT>=30){getWindow().setDecorFitsSystemWindows(false);viewport.setOnApplyWindowInsetsListener((v,insets)->{setKeyboardVisible(insets.isVisible(android.view.WindowInsets.Type.ime()));android.graphics.Insets bars=insets.getInsets(android.view.WindowInsets.Type.systemBars()|android.view.WindowInsets.Type.displayCutout()|android.view.WindowInsets.Type.ime());android.widget.FrameLayout.LayoutParams lp=(android.widget.FrameLayout.LayoutParams)web.getLayoutParams();if(lp.leftMargin!=bars.left||lp.topMargin!=bars.top||lp.rightMargin!=bars.right||lp.bottomMargin!=bars.bottom){lp.setMargins(bars.left,bars.top,bars.right,bars.bottom);web.setLayoutParams(lp);}return android.view.WindowInsets.CONSUMED;});viewport.requestApplyInsets();}
+  if(android.os.Build.VERSION.SDK_INT>=30){getWindow().setDecorFitsSystemWindows(false);viewport.setOnApplyWindowInsetsListener((v,insets)->{if(!canUseWeb()){android.graphics.Insets safe=insets.getInsets(android.view.WindowInsets.Type.systemBars()|android.view.WindowInsets.Type.displayCutout());viewport.setPadding(safe.left,safe.top,safe.right,safe.bottom);return android.view.WindowInsets.CONSUMED;}setKeyboardVisible(insets.isVisible(android.view.WindowInsets.Type.ime()));android.graphics.Insets bars=insets.getInsets(android.view.WindowInsets.Type.systemBars()|android.view.WindowInsets.Type.displayCutout()|android.view.WindowInsets.Type.ime());android.widget.FrameLayout.LayoutParams lp=(android.widget.FrameLayout.LayoutParams)web.getLayoutParams();if(lp.leftMargin!=bars.left||lp.topMargin!=bars.top||lp.rightMargin!=bars.right||lp.bottomMargin!=bars.bottom){lp.setMargins(bars.left,bars.top,bars.right,bars.bottom);web.setLayoutParams(lp);}return android.view.WindowInsets.CONSUMED;});viewport.requestApplyInsets();}
   if(android.os.Build.VERSION.SDK_INT<30)viewport.getViewTreeObserver().addOnGlobalLayoutListener(()->{android.graphics.Rect frame=new android.graphics.Rect();viewport.getWindowVisibleDisplayFrame(frame);int height=viewport.getRootView().getHeight();setKeyboardVisible(height-frame.bottom>height*.2);});
   WebSettings s=web.getSettings();s.setJavaScriptEnabled(true);s.setDomStorageEnabled(true);s.setOffscreenPreRaster(true);s.setAllowFileAccess(false);s.setAllowContentAccess(true);s.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);s.setGeolocationEnabled(true);s.setSupportMultipleWindows(false);
   web.addJavascriptInterface(new Bridge(),"LukeAndroid");
@@ -98,8 +100,11 @@ public class MainActivity extends Activity {
      return new WebResourceResponse(mime,"UTF-8",getAssets().open("web"+path));
     }catch(IOException e){return denied();}
    }
+   @Override public boolean onRenderProcessGone(WebView view,RenderProcessGoneDetail detail){
+    return rendererTerminated(view,detail.didCrash());
+   }
    @Override public void onReceivedError(WebView view,WebResourceRequest request,WebResourceError error){
-    if(request.isForMainFrame()&&!contentReady)startup.fail();
+    if(canUseWeb()&&request.isForMainFrame()&&!contentReady)startup.fail();
    }
    @Override public boolean shouldOverrideUrlLoading(WebView view,WebResourceRequest r){
     Uri u=r.getUrl();if((ORIGIN+"/").equals(u.toString()))return false;
@@ -120,7 +125,7 @@ public class MainActivity extends Activity {
   });
   web.loadUrl(ORIGIN+"/");
  }
- private void publishKeyboard(){web.evaluateJavascript("document.documentElement.dataset.keyboard='"+keyboardVisible+"'",null);}
+ private void publishKeyboard(){if(!canUseWeb())return;web.evaluateJavascript("document.documentElement.dataset.keyboard='"+keyboardVisible+"'",null);}
  private void setKeyboardVisible(boolean visible){if(keyboardVisible==visible)return;keyboardVisible=visible;publishKeyboard();}
  private void showSystemBars(){
   getWindow().clearFlags(android.view.WindowManager.LayoutParams.FLAG_FULLSCREEN);
@@ -133,15 +138,45 @@ public class MainActivity extends Activity {
  @Override public void onRequestPermissionsResult(int request,String[] permissions,int[] results){super.onRequestPermissionsResult(request,permissions,results);if(request==12&&locationCallback!=null){locationCallback.invoke(locationOrigin,checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION)==PackageManager.PERMISSION_GRANTED,false);locationCallback=null;}}
  @Override protected void onActivityResult(int request,int result,Intent data){super.onActivityResult(request,result,data);
   if(request==10&&fileCallback!=null){fileCallback.onReceiveValue(result==RESULT_OK&&data!=null&&data.getData()!=null?new Uri[]{data.getData()}:null);fileCallback=null;}
-  if(request==11){String text=exportText;exportText=null;if(result==RESULT_OK&&data!=null&&text!=null){Uri uri=data.getData();workers.execute(()->{try{try(OutputStream out=getContentResolver().openOutputStream(uri)){if(out==null)throw new IOException();out.write(text.getBytes(StandardCharsets.UTF_8));}runOnUiThread(()->{if(!isDestroyed())web.evaluateJavascript("localStorage.setItem('luke-backup-confirmed',Date.now().toString());window.dispatchEvent(new Event('luke-backup-saved'))",null);});toast("备份已保存");}catch(Exception e){toast("备份未保存，请重试");}});}}
+  if(request==11){String text=exportText;exportText=null;if(result==RESULT_OK&&data!=null&&text!=null){Uri uri=data.getData();workers.execute(()->{try{try(OutputStream out=getContentResolver().openOutputStream(uri)){if(out==null)throw new IOException();out.write(text.getBytes(StandardCharsets.UTF_8));}runOnUiThread(()->{if(canUseWeb())web.evaluateJavascript("localStorage.setItem('luke-backup-confirmed',Date.now().toString());window.dispatchEvent(new Event('luke-backup-saved'))",null);});toast("备份已保存");}catch(Exception e){toast("备份未保存，请重试");}});}}
  }
  @Override public boolean dispatchKeyEvent(android.view.KeyEvent event){if(event.getKeyCode()==android.view.KeyEvent.KEYCODE_BACK){if(event.getAction()==android.view.KeyEvent.ACTION_UP&&!event.isCanceled())onBackPressed();return true;}return super.dispatchKeyEvent(event);}
- @Override public void onBackPressed(){if(!contentReady){moveTaskToBack(true);return;}if(keyboardVisible){((android.view.inputmethod.InputMethodManager)getSystemService(INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(web.getWindowToken(),0);web.evaluateJavascript("document.activeElement instanceof HTMLElement&&document.activeElement.blur()",null);return;}web.evaluateJavascript("!!(window.__lukeBack&&window.__lukeBack())",handled->{if(!"true".equals(handled))moveTaskToBack(true);});}
+ @Override public void onBackPressed(){if(!canUseWeb()||!contentReady){moveTaskToBack(true);return;}if(keyboardVisible){((android.view.inputmethod.InputMethodManager)getSystemService(INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(web.getWindowToken(),0);web.evaluateJavascript("document.activeElement instanceof HTMLElement&&document.activeElement.blur()",null);return;}web.evaluateJavascript("!!(window.__lukeBack&&window.__lukeBack())",handled->{if(!"true".equals(handled))moveTaskToBack(true);});}
  @Override protected void onStop(){super.onStop();if(startup!=null)startup.finishHidden();}
- @Override protected void onDestroy(){if(startup!=null)startup.dispose();for(HttpURLConnection c:requests.values())c.disconnect();workers.shutdownNow();web.removeJavascriptInterface("LukeAndroid");web.destroy();super.onDestroy();}
- private void deliver(String id,int status,String body){if(!active.remove(id))return;String script="window.__lukeNetwork&&window.__lukeNetwork("+JSONObject.quote(id)+","+status+","+JSONObject.quote(body)+")";runOnUiThread(()->{if(!isDestroyed())web.evaluateJavascript(script,null);});}
- private void streamPart(String id,int status,String type,String text,boolean done){if(!active.contains(id))return;if(done)active.remove(id);String script="window.__lukeStreaming&&window.__lukeStreaming("+JSONObject.quote(id)+","+status+","+JSONObject.quote(type)+","+JSONObject.quote(text)+","+done+")";runOnUiThread(()->{if(!isDestroyed())web.evaluateJavascript(script,null);});}
+ @Override protected void onDestroy(){if(startup!=null)startup.dispose();for(HttpURLConnection c:requests.values())c.disconnect();workers.shutdownNow();if(web!=null){web.removeJavascriptInterface("LukeAndroid");web.destroy();web=null;}super.onDestroy();}
+ private void deliver(String id,int status,String body){if(!active.remove(id))return;String script="window.__lukeNetwork&&window.__lukeNetwork("+JSONObject.quote(id)+","+status+","+JSONObject.quote(body)+")";runOnUiThread(()->{if(canUseWeb())web.evaluateJavascript(script,null);});}
+ private void streamPart(String id,int status,String type,String text,boolean done){if(!active.contains(id))return;if(done)active.remove(id);String script="window.__lukeStreaming&&window.__lukeStreaming("+JSONObject.quote(id)+","+status+","+JSONObject.quote(type)+","+JSONObject.quote(text)+","+done+")";runOnUiThread(()->{if(canUseWeb())web.evaluateJavascript(script,null);});}
  private void applySystemTheme(){String color=systemColor.isEmpty()?"#214f4c":systemColor;boolean dark=darkSystemBars;int value=Color.parseColor(color);viewport.setBackgroundColor(value);getWindow().setStatusBarColor(value);getWindow().setNavigationBarColor(value);if(android.os.Build.VERSION.SDK_INT>=30){android.view.WindowInsetsController c=getWindow().getInsetsController();if(c!=null){int mask=android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS|android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS;c.setSystemBarsAppearance(dark?0:mask,mask);}}else getWindow().getDecorView().setSystemUiVisibility(dark?0:android.view.View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR|android.view.View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);}
+ // A dead WebView cannot be re-used. Recovery is explicit, never a hidden reload loop.
+ private boolean rendererTerminated(WebView view,boolean crashed){
+  android.util.Log.e("LukeRenderer","terminated crashed="+crashed);
+  if(view!=web){android.view.ViewParent parent=view.getParent();if(parent instanceof android.view.ViewGroup)((android.view.ViewGroup)parent).removeView(view);view.destroy();return true;}
+  rendererGone=true;contentReady=false;readyPosted=true;keyboardVisible=false;
+  if(startup!=null)startup.dispose();
+  active.clear();for(HttpURLConnection connection:requests.values())connection.disconnect();requests.clear();
+  fileCallback=null;locationCallback=null;
+  viewport.removeView(view);view.removeJavascriptInterface("LukeAndroid");view.destroy();web=null;
+  viewport.removeAllViews();
+  if(isDestroyed()||isFinishing())return true;
+  int pad=Math.round(24*getResources().getDisplayMetrics().density);
+  android.widget.ScrollView scroll=new android.widget.ScrollView(this);scroll.setFillViewport(true);
+  android.widget.LinearLayout panel=new android.widget.LinearLayout(this);panel.setOrientation(android.widget.LinearLayout.VERTICAL);
+  panel.setGravity(android.view.Gravity.CENTER);panel.setPadding(pad,pad,pad,pad);
+  android.widget.LinearLayout card=new android.widget.LinearLayout(this);card.setOrientation(android.widget.LinearLayout.VERTICAL);card.setPadding(pad,pad,pad,pad);
+  android.graphics.drawable.GradientDrawable surface=new android.graphics.drawable.GradientDrawable();surface.setColor(launchColor("luke_launch_inner"));surface.setCornerRadius(pad);card.setBackground(surface);
+  android.widget.TextView title=new android.widget.TextView(this);title.setText("页面显示已中断");title.setTextSize(20);title.setTextColor(launchColor("luke_launch_key"));
+  android.widget.TextView note=new android.widget.TextView(this);note.setText("已保存的聊天、手记和设置仍保留在本机，未保存的输入可能需要重新填写。点击下方按钮重新打开，不会清空本地记录。");note.setTextSize(15);note.setTextColor(launchColor("luke_launch_key"));note.setPadding(0,pad/2,0,pad);
+  android.widget.Button retry=new android.widget.Button(this);retry.setText("重新载入页面");retry.setAllCaps(false);retry.setMinHeight(pad*2);retry.setTextColor(launchColor("luke_launch_key"));
+  android.graphics.drawable.GradientDrawable button=new android.graphics.drawable.GradientDrawable();button.setColor(launchColor("luke_launch_disc"));button.setCornerRadius(pad);retry.setBackground(button);
+  retry.setOnClickListener(v->{retry.setEnabled(false);recreate();});
+  android.widget.Button leave=new android.widget.Button(this);leave.setText("暂时返回桌面");leave.setAllCaps(false);leave.setMinHeight(pad*2);leave.setOnClickListener(v->moveTaskToBack(true));
+  card.addView(title);card.addView(note);card.addView(retry,new android.widget.LinearLayout.LayoutParams(-1,-2));card.addView(leave,new android.widget.LinearLayout.LayoutParams(-1,-2));
+  panel.addView(card,new android.widget.LinearLayout.LayoutParams(-1,-2));scroll.addView(panel,new android.widget.ScrollView.LayoutParams(-1,-2));
+  viewport.addView(scroll,new android.widget.FrameLayout.LayoutParams(-1,-1));viewport.setBackgroundColor(launchColor("luke_launch_background"));
+  if(android.os.Build.VERSION.SDK_INT>=30)viewport.requestApplyInsets();
+  title.announceForAccessibility("页面显示已中断，可以重新载入，已保存记录不会清除。");
+  return true;
+ }
  // Native startup only: no remote assets, new dependencies, or minimum display delay.
  private final class SoftStartup {
   private static final long EXIT_MS=380L, FAILURE_MS=8000L;
@@ -366,7 +401,7 @@ public class MainActivity extends Activity {
    handler.removeCallbacks(watchdog);handler.postDelayed(watchdog,FAILURE_MS);
   }
   void dispose(){
-   disposed=true;handler.removeCallbacksAndMessages(null);releaseDraw();clearWarmDraw();
+   if(disposed)return;generation++;disposed=true;handler.removeCallbacksAndMessages(null);releaseDraw();clearWarmDraw();
    if(exitFrame!=null){android.view.Choreographer.getInstance().removeFrameCallback(exitFrame);exitFrame=null;}
    finishExit=null;
    if(bars!=null)bars.cancel();
@@ -391,11 +426,11 @@ public class MainActivity extends Activity {
   @JavascriptInterface public String defaultModel(){try(InputStream in=getAssets().open("personal-model.json");ByteArrayOutputStream out=new ByteArrayOutputStream()){byte[] buffer=new byte[1024];int n;while((n=in.read(buffer))!=-1)out.write(buffer,0,n);return out.toString("UTF-8");}catch(Exception ignored){return "{}";}}
   @JavascriptInterface public void haptic(){touchFeedback("press");}
   @JavascriptInterface public void hapticEvent(String kind){touchFeedback(kind);}
-  @JavascriptInterface public void feedbackEnabled(boolean enabled){runOnUiThread(()->{if(isDestroyed())return;feedbackAllowed=enabled;uiPreferences().edit().putBoolean("feedbackEnabled",enabled).apply();});}
+  @JavascriptInterface public void feedbackEnabled(boolean enabled){runOnUiThread(()->{if(!canUseWeb())return;feedbackAllowed=enabled;uiPreferences().edit().putBoolean("feedbackEnabled",enabled).apply();});}
   @JavascriptInterface public void startupAppearance(String season,String period){
    if(!Arrays.asList("auto","spring","summer","autumn","winter").contains(season)||!Arrays.asList("auto","清晨","早上","正午","午后","傍晚","夜晚","深夜").contains(period))return;
    runOnUiThread(()->{
-    if(isDestroyed())return;
+    if(!canUseWeb())return;
     android.content.SharedPreferences prefs=uiPreferences();
     boolean changed=!season.equals(prefs.getString("season","auto"))||!period.equals(prefs.getString("period","auto"));
     if(changed)prefs.edit().putString("season",season).putString("period",period).apply();
@@ -404,18 +439,18 @@ public class MainActivity extends Activity {
    });
   }
   @JavascriptInterface public void pageReady(){
-   runOnUiThread(()->{if(isDestroyed()||readyPosted)return;readyPosted=true;
+   runOnUiThread(()->{if(!canUseWeb()||readyPosted)return;readyPosted=true;
     final int generation=startup.generation;
-    web.postVisualStateCallback(generation,new WebView.VisualStateCallback(){@Override public void onComplete(long id){if(isDestroyed()||generation!=startup.generation||contentReady)return;contentReady=true;publishKeyboard();startup.ready();}});
+    web.postVisualStateCallback(generation,new WebView.VisualStateCallback(){@Override public void onComplete(long id){if(!canUseWeb()||generation!=startup.generation||contentReady)return;contentReady=true;publishKeyboard();startup.ready();}});
    });
   }
   @JavascriptInterface public void systemTheme(String color,boolean dark){
    if(color==null||!color.matches("#[0-9a-fA-F]{6}"))return;
-   runOnUiThread(()->{if(isDestroyed()||(color.equals(systemColor)&&dark==darkSystemBars))return;systemColor=color;darkSystemBars=dark;if(contentReady&&!startup.themeTransition)applySystemTheme();});
+   runOnUiThread(()->{if(!canUseWeb()||(color.equals(systemColor)&&dark==darkSystemBars))return;systemColor=color;darkSystemBars=dark;if(contentReady&&!startup.themeTransition)applySystemTheme();});
   }
 
   @JavascriptInterface public void geocode(String id,double lat,double lon){
-   if(id==null||id.length()>80||Double.isNaN(lat)||Double.isNaN(lon)||Math.abs(lat)>90||Math.abs(lon)>180)return;
+   if(rendererGone||id==null||id.length()>80||Double.isNaN(lat)||Double.isNaN(lon)||Math.abs(lat)>90||Math.abs(lon)>180)return;
    workers.execute(()->{String place="";try{
     android.location.Geocoder g=new android.location.Geocoder(MainActivity.this,Locale.SIMPLIFIED_CHINESE);
     java.util.List<android.location.Address> result=g.getFromLocation(lat,lon,1);
@@ -425,14 +460,14 @@ public class MainActivity extends Activity {
     }
    }catch(Exception ignored){}
    String script="window.__lukeGeocode&&window.__lukeGeocode("+JSONObject.quote(id)+","+JSONObject.quote(place)+")";
-   runOnUiThread(()->{if(!isDestroyed())web.evaluateJavascript(script,null);});
+   runOnUiThread(()->{if(canUseWeb())web.evaluateJavascript(script,null);});
    });
   }
 
   @JavascriptInterface public void request(String id,String address,String method,String headers,String body){perform(id,address,method,headers,body,false);}
   @JavascriptInterface public void requestStream(String id,String address,String method,String headers,String body){perform(id,address,method,headers,body,true);}
   private void perform(String id,String address,String method,String headers,String body,boolean streaming){
-   if(id==null||id.length()>80||active.size()>=6)return;active.add(id);
+   if(rendererGone||id==null||id.length()>80||active.size()>=6)return;active.add(id);
    workers.execute(()->{HttpURLConnection c=null;try{
     URL url=new URL(address);if(!"https".equals(url.getProtocol())||url.getUserInfo()!=null||url.getHost().isEmpty()||(!method.equals("GET")&&!method.equals("POST"))||body.length()>600000||headers.length()>12000)throw new IOException();
     c=(HttpURLConnection)url.openConnection();requests.put(id,c);if(!active.contains(id))return;
@@ -444,6 +479,6 @@ public class MainActivity extends Activity {
    }catch(Exception e){if(streaming)streamPart(id,0,"","",true);else deliver(id,0,"");}finally{requests.remove(id);if(c!=null)c.disconnect();}});
   }
   @JavascriptInterface public void cancel(String id){active.remove(id);HttpURLConnection c=requests.remove(id);if(c!=null)c.disconnect();}
-  @JavascriptInterface public void saveBackup(String name,String text){if(text==null||text.length()>16000000){toast("备份过大，暂时无法导出");return;}runOnUiThread(()->{if(exportText!=null){toast("请先完成当前导出");return;}exportText=text;try{Intent i=new Intent(Intent.ACTION_CREATE_DOCUMENT);i.addCategory(Intent.CATEGORY_OPENABLE);i.setType("application/json");i.putExtra(Intent.EXTRA_TITLE,name.replaceAll("[\\\\/:*?\"<>|]","_"));startActivityForResult(i,11);}catch(Exception e){exportText=null;toast("无法打开保存窗口");}});}
+  @JavascriptInterface public void saveBackup(String name,String text){if(rendererGone||text==null||text.length()>16000000){toast("备份过大，暂时无法导出");return;}runOnUiThread(()->{if(exportText!=null){toast("请先完成当前导出");return;}exportText=text;try{Intent i=new Intent(Intent.ACTION_CREATE_DOCUMENT);i.addCategory(Intent.CATEGORY_OPENABLE);i.setType("application/json");i.putExtra(Intent.EXTRA_TITLE,name.replaceAll("[\\\\/:*?\"<>|]","_"));startActivityForResult(i,11);}catch(Exception e){exportText=null;toast("无法打开保存窗口");}});}
  }
 }
