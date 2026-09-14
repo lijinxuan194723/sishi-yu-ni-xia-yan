@@ -42,7 +42,12 @@ export function useAmbience(paused=false,preview=false){
  return {scene,options,setOptions,appearanceError};
 }
 export const Ambience=memo(function Ambience({scene}:{scene:ReturnType<typeof ambienceAt>|null}){
- const particles=useMemo(()=>{const icons=[Flower2,Sparkles,Leaf,Snowflake];return seasons.map((season,k)=>{const Icon=icons[k];return <div className={'season-particles particles-'+season} key={season}>{Array.from({length:28},(_,i)=><span key={i} style={{'--x':`${(7+i*37)%100}%`,'--delay':`${-i*3.7}s`,'--duration':`${12+(i%6)*4}s`,'--size':`${4+(i%5)*3}px`,'--drift':`${i%2?35:-45}px`} as CSSProperties}><Icon strokeWidth={1.2}/></span>)}</div>});},[]);
+ const activeSeason=scene?.season??'spring';
+ const particles=useMemo(()=>{
+  const icons={spring:Flower2,summer:Sparkles,autumn:Leaf,winter:Snowflake};
+  const Icon=icons[activeSeason];
+  return <div className={'season-particles particles-'+activeSeason} key={activeSeason}>{Array.from({length:28},(_,i)=><span key={i} style={{'--x':`${(7+i*37)%100}%`,'--delay':`${-i*3.7}s`,'--duration':`${12+(i%6)*4}s`,'--size':`${4+(i%5)*3}px`,'--drift':`${i%2?35:-45}px`} as CSSProperties}><Icon strokeWidth={1.2}/></span>)}</div>;
+ },[activeSeason]);
  return <><div className="ambience" data-season={scene?.season} aria-hidden="true">{['morning','day','evening','night'].map((name,i)=><div key={name} className={'light-layer light-'+name} style={{opacity:scene?.lights[i]??(i===1?1:0)}}/>)}{particles}</div><div className="scene-label">{scene&&(scene.night>.5?<Moon size={15}/>:scene.period==='傍晚'?<Sunset size={15}/>:['清晨','早上'].includes(scene.period)?<Sunrise size={15}/>:<Sun size={15}/>)}<span>{scene?`${scene.seasonName} · ${scene.period}`:'夏彦与你'}</span><time>{scene?.time}</time></div></>;
 });
 

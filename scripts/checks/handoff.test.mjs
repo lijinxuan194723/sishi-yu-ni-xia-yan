@@ -17,3 +17,9 @@ test('startup has no hard-coded green placeholder and publishes theme before rea
  const s=read('components/ambience.tsx');
  assert.ok(s.indexOf('window.LukeAndroid?.systemTheme?.')<s.indexOf('flushSync(()=>setScene(next))'));
 });
+test('covered WebView draws normally without offscreen pre-raster memory',()=>{
+ const java=read('mobile/android/MainActivity.java');
+ assert.ok(!java.includes('setOffscreenPreRaster'));
+ assert.ok(java.includes('web.setVisibility(android.view.View.VISIBLE);web.setImportantForAccessibility(android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS)'));
+ assert.equal(java.split('web.setImportantForAccessibility(android.view.View.IMPORTANT_FOR_ACCESSIBILITY_AUTO)').length-1,2);
+});

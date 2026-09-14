@@ -48,10 +48,12 @@ def editor_values():
  fields.sort(key=lambda e:int(re.findall(r'\d+',e.get('bounds'))[1]))
  return [e.get('text','') for e in fields]
 def tap(label):
- end=time.monotonic()+12;last='';previous=None
+ end=time.monotonic()+35;last='';previous=None
  while time.monotonic()<end:
-  last=dump();tree=ET.fromstring(last)
+  began=time.monotonic();last=dump();tree=ET.fromstring(last)
   node=choose_control(tree,label)
+  with (out/'touch-samples.jsonl').open('a') as stream:
+   stream.write(json.dumps({'label':label,'readSeconds':time.monotonic()-began,'rotation':tree.get('rotation'),'bounds':node.get('bounds') if node is not None else None},ensure_ascii=False)+'\n')
   if node is not None:
    # Require two equal post-layout samples. A single stale landscape rectangle
    # must never cause a touch on an unrelated portrait control.

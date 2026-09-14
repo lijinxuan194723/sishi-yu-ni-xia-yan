@@ -87,10 +87,10 @@ public class MainActivity extends Activity {
   feedbackAllowed=uiPreferences().getBoolean("feedbackEnabled",true);
   configureLaunch();
   super.onCreate(state);
-  viewport=new android.widget.FrameLayout(this);web=new WebView(this);web.setVisibility(android.view.View.INVISIBLE);viewport.addView(web,new android.widget.FrameLayout.LayoutParams(-1,-1));setContentView(viewport);startup=new SoftStartup();startup.install();showSystemBars();
+  viewport=new android.widget.FrameLayout(this);web=new WebView(this);web.setVisibility(android.view.View.VISIBLE);web.setImportantForAccessibility(android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS);viewport.addView(web,new android.widget.FrameLayout.LayoutParams(-1,-1));setContentView(viewport);startup=new SoftStartup();startup.install();showSystemBars();
   if(android.os.Build.VERSION.SDK_INT>=30){getWindow().setDecorFitsSystemWindows(false);viewport.setOnApplyWindowInsetsListener((v,insets)->{if(!canUseWeb()){android.graphics.Insets safe=insets.getInsets(android.view.WindowInsets.Type.systemBars()|android.view.WindowInsets.Type.displayCutout());viewport.setPadding(safe.left,safe.top,safe.right,safe.bottom);return android.view.WindowInsets.CONSUMED;}setKeyboardVisible(insets.isVisible(android.view.WindowInsets.Type.ime()));android.graphics.Insets bars=insets.getInsets(android.view.WindowInsets.Type.systemBars()|android.view.WindowInsets.Type.displayCutout()|android.view.WindowInsets.Type.ime());android.widget.FrameLayout.LayoutParams lp=(android.widget.FrameLayout.LayoutParams)web.getLayoutParams();if(lp.leftMargin!=bars.left||lp.topMargin!=bars.top||lp.rightMargin!=bars.right||lp.bottomMargin!=bars.bottom){lp.setMargins(bars.left,bars.top,bars.right,bars.bottom);web.setLayoutParams(lp);}return android.view.WindowInsets.CONSUMED;});viewport.requestApplyInsets();}
   if(android.os.Build.VERSION.SDK_INT<30)viewport.getViewTreeObserver().addOnGlobalLayoutListener(()->{android.graphics.Rect frame=new android.graphics.Rect();viewport.getWindowVisibleDisplayFrame(frame);int height=viewport.getRootView().getHeight();setKeyboardVisible(height-frame.bottom>height*.2);});
-  WebSettings s=web.getSettings();s.setJavaScriptEnabled(true);s.setDomStorageEnabled(true);s.setOffscreenPreRaster(true);s.setAllowFileAccess(false);s.setAllowContentAccess(true);s.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);s.setGeolocationEnabled(true);s.setSupportMultipleWindows(false);
+  WebSettings s=web.getSettings();s.setJavaScriptEnabled(true);s.setDomStorageEnabled(true);s.setAllowFileAccess(false);s.setAllowContentAccess(true);s.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);s.setGeolocationEnabled(true);s.setSupportMultipleWindows(false);
   web.addJavascriptInterface(new Bridge(),"LukeAndroid");
   web.setWebViewClient(new WebViewClient(){
    @Override public WebResourceResponse shouldInterceptRequest(WebView view,WebResourceRequest r){
@@ -290,7 +290,7 @@ public class MainActivity extends Activity {
    seasonalOverlay=null;seasonalOriginal=null;
    if(platformView!=null){platformView.animate().cancel();platformView=null;platformIcon=null;}
    if(removePlatform!=null){Runnable remove=removePlatform;removePlatform=null;remove.run();}
-   if(!disposed&&contentReady){web.getSettings().setOffscreenPreRaster(false);web.evaluateJavascript("delete document.documentElement.dataset.nativeLaunching",null);}
+   if(!disposed&&contentReady){web.setImportantForAccessibility(android.view.View.IMPORTANT_FOR_ACCESSIBILITY_AUTO);web.evaluateJavascript("delete document.documentElement.dataset.nativeLaunching",null);}
   }
   private void animateExit(android.view.View surface,android.view.View icon,long delay,Runnable remove,String name){
    final int token=generation;
@@ -383,7 +383,7 @@ public class MainActivity extends Activity {
   private void removeLayer(){
    stopMark();
    if(layer!=null){layer.setVisibility(android.view.View.GONE);layer.setClickable(false);viewport.removeView(layer);}
-   if(!disposed&&contentReady&&platformView==null){web.getSettings().setOffscreenPreRaster(false);web.evaluateJavascript("delete document.documentElement.dataset.nativeLaunching",null);}
+   if(!disposed&&contentReady&&platformView==null){web.setImportantForAccessibility(android.view.View.IMPORTANT_FOR_ACCESSIBILITY_AUTO);web.evaluateJavascript("delete document.documentElement.dataset.nativeLaunching",null);}
   }
   void fail(){
    if(disposed||contentReady||finishing)return;
