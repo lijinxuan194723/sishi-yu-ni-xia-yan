@@ -5,6 +5,8 @@ import hashlib,json,pathlib,re,subprocess,time,xml.etree.ElementTree as ET
 from seasonal_android import verify_seasonal_android
 from android_observer import AndroidObserver
 from renderer_recovery import verify_renderer_recovery
+from scoped_android_log import after_marker
+import uuid
 from motion_observation import choose_control, wait_rotation
 from motion_device_environment import prepare, check_visible_close
 out=pathlib.Path('work/motion-android');out.mkdir(parents=True,exist_ok=True)
@@ -61,7 +63,18 @@ def tap(label):
 def launch():adb('shell','am','start','-a','android.intent.action.MAIN','-c','android.intent.category.LAUNCHER','-f','0x10200000','-n',component)
 def scales(value):
  for key in ['window_animation_scale','transition_animation_scale','animator_duration_scale']:adb('shell','settings','put','global',key,str(value))
-def logs():return adb('logcat','-d','-v','threadtime','LukeMotion:I','LukeRenderer:E','AndroidRuntime:E','chromium:F','LukeReturn:I','libc:F','*:S')
+def logs():return adb('logcat','-d','-v','threadtime','LukeMotion:I','LukeRenderer:E','AndroidRuntime:E','chromium:F','LukeReturn:I','LukeCase:I','libc:F','*:S')
+def mark_case(name):
+ token='case-'+name+'-'+uuid.uuid4().hex
+ adb('shell','log','-p','i','-t','LukeCase',token)
+ deadline=time.monotonic()+4
+ while time.monotonic()<deadline:
+  if token in logs():break
+  time.sleep(.1)
+ else:raise AssertionError('Test log marker was not recorded')
+ with (out/'case-markers.jsonl').open('a') as f:f.write(json.dumps({'case':name,'token':token})+'\n')
+ return token
+def case_log(token):return after_marker(logs(),token)
 def cold(name,night=False,reduced=False):
  adb('shell','am','force-stop',pkg);scales(0 if reduced else 1);adb('shell','cmd','uimode','night','yes' if night else 'no')
  time.sleep(1);adb('logcat','-c');remote='/sdcard/motion-'+name+'.mp4'
@@ -93,13 +106,27 @@ def warm_checks():
  recorder=subprocess.Popen(['adb','shell','screenrecord','--size','720x1280','--bit-rate','2500000','--time-limit','40','/sdcard/motion-warm.mp4'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
  try:
   for n in range(3):
-   adb('logcat','-c');adb('shell','input','keyevent','3');time.sleep(.5);launch();time.sleep(1)
-   wait_home();text=logs();(out/('warm-'+str(n)+'.log')).write_text(text)
+   token=mark_case('warm-'+str(n))
+   adb('shell','input','keyevent','3');time.sleep(.5);launch();wait_home()
+   end=time.monotonic()+10
+   while time.monotonic()<end:
+    text=case_log(token)
+    if 'LukeReturn' in text and 'finished' in text:break
+    time.sleep(.2)
+   (out/('warm-'+str(n)+'.log')).write_text(text)
+   (out/('warm-'+str(n)+'-unfiltered.log')).write_text(logs())
    record('warm '+str(n)+' does not replay cold startup','exit-start' not in text)
    record('warm '+str(n)+' has a completed return transition','LukeReturn' in text and 'show ' in text and 'finished' in text,text)
+   counts=re.findall(r'LukeReturn: complete frames=(\d+) ms=(\d+)',text)
+   record('warm '+str(n)+' rendered multiple return frames',bool(counts) and all(int(count)>=6 for count,_ in counts),counts)
    record('warm '+str(n)+' has no renderer failure',all(m not in text for m in ['FATAL EXCEPTION','terminated crashed=','Fatal signal']))
-  scales(0);adb('logcat','-c');adb('shell','input','keyevent','3');time.sleep(.5);launch();wait_home()
-  record('warm disabled animations skip the cover','LukeReturn' not in logs());scales(1)
+  scales(0)
+  actual={key:adb('shell','settings','get','global',key).strip() for key in ['window_animation_scale','transition_animation_scale','animator_duration_scale']}
+  record('disabled animation scales are applied',all(float(value)==0 for value in actual.values()),actual)
+  time.sleep(.3);token=mark_case('warm-reduced')
+  adb('shell','input','keyevent','3');time.sleep(.5);launch();wait_home();time.sleep(.8)
+  text=case_log(token);(out/'warm-reduced.log').write_text(text);(out/'warm-reduced-unfiltered.log').write_text(logs())
+  record('warm disabled animations skip the cover','LukeReturn' not in text,text);scales(1)
  finally:
   subprocess.run(['adb','shell','pkill','-2','screenrecord'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
   try:recorder.wait(timeout=6)
