@@ -37,7 +37,7 @@ public class MainActivity extends Activity {
   viewport=new android.widget.FrameLayout(this);web=new WebView(this);web.setVisibility(android.view.View.INVISIBLE);viewport.addView(web,new android.widget.FrameLayout.LayoutParams(-1,-1));setContentView(viewport);startup=new SoftStartup();startup.install();showSystemBars();
   if(android.os.Build.VERSION.SDK_INT>=30){getWindow().setDecorFitsSystemWindows(false);viewport.setOnApplyWindowInsetsListener((v,insets)->{setKeyboardVisible(insets.isVisible(android.view.WindowInsets.Type.ime()));android.graphics.Insets bars=insets.getInsets(android.view.WindowInsets.Type.systemBars()|android.view.WindowInsets.Type.displayCutout()|android.view.WindowInsets.Type.ime());android.widget.FrameLayout.LayoutParams lp=(android.widget.FrameLayout.LayoutParams)web.getLayoutParams();if(lp.leftMargin!=bars.left||lp.topMargin!=bars.top||lp.rightMargin!=bars.right||lp.bottomMargin!=bars.bottom){lp.setMargins(bars.left,bars.top,bars.right,bars.bottom);web.setLayoutParams(lp);}return android.view.WindowInsets.CONSUMED;});viewport.requestApplyInsets();}
   if(android.os.Build.VERSION.SDK_INT<30)viewport.getViewTreeObserver().addOnGlobalLayoutListener(()->{android.graphics.Rect frame=new android.graphics.Rect();viewport.getWindowVisibleDisplayFrame(frame);int height=viewport.getRootView().getHeight();setKeyboardVisible(height-frame.bottom>height*.2);});
-  WebSettings s=web.getSettings();s.setJavaScriptEnabled(true);s.setDomStorageEnabled(true);s.setAllowFileAccess(false);s.setAllowContentAccess(true);s.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);s.setGeolocationEnabled(true);s.setSupportMultipleWindows(false);
+  WebSettings s=web.getSettings();s.setJavaScriptEnabled(true);s.setDomStorageEnabled(true);s.setOffscreenPreRaster(true);s.setAllowFileAccess(false);s.setAllowContentAccess(true);s.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);s.setGeolocationEnabled(true);s.setSupportMultipleWindows(false);
   web.addJavascriptInterface(new Bridge(),"LukeAndroid");
   web.setWebViewClient(new WebViewClient(){
    @Override public WebResourceResponse shouldInterceptRequest(WebView view,WebResourceRequest r){
@@ -87,6 +87,7 @@ public class MainActivity extends Activity {
  }
  @Override public boolean dispatchKeyEvent(android.view.KeyEvent event){if(event.getKeyCode()==android.view.KeyEvent.KEYCODE_BACK){if(event.getAction()==android.view.KeyEvent.ACTION_UP&&!event.isCanceled())onBackPressed();return true;}return super.dispatchKeyEvent(event);}
  @Override public void onBackPressed(){if(!contentReady){moveTaskToBack(true);return;}if(keyboardVisible){((android.view.inputmethod.InputMethodManager)getSystemService(INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(web.getWindowToken(),0);web.evaluateJavascript("document.activeElement instanceof HTMLElement&&document.activeElement.blur()",null);return;}web.evaluateJavascript("!!(window.__lukeBack&&window.__lukeBack())",handled->{if(!"true".equals(handled))moveTaskToBack(true);});}
+ @Override protected void onStop(){super.onStop();if(startup!=null)startup.finishHidden();}
  @Override protected void onDestroy(){if(startup!=null)startup.dispose();for(HttpURLConnection c:requests.values())c.disconnect();workers.shutdownNow();web.removeJavascriptInterface("LukeAndroid");web.destroy();super.onDestroy();}
  private void deliver(String id,int status,String body){if(!active.remove(id))return;String script="window.__lukeNetwork&&window.__lukeNetwork("+JSONObject.quote(id)+","+status+","+JSONObject.quote(body)+")";runOnUiThread(()->{if(!isDestroyed())web.evaluateJavascript(script,null);});}
  private void streamPart(String id,int status,String type,String text,boolean done){if(!active.contains(id))return;if(done)active.remove(id);String script="window.__lukeStreaming&&window.__lukeStreaming("+JSONObject.quote(id)+","+status+","+JSONObject.quote(type)+","+JSONObject.quote(text)+","+done+")";runOnUiThread(()->{if(!isDestroyed())web.evaluateJavascript(script,null);});}
@@ -104,6 +105,9 @@ public class MainActivity extends Activity {
   private android.view.ViewTreeObserver.OnPreDrawListener hold;
   private Runnable removePlatform;
   private android.view.View platformView;
+  private android.view.ViewTreeObserver.OnDrawListener warmDraw;
+  private android.view.Choreographer.FrameCallback exitFrame;
+  private Runnable finishExit;
   private long markStarted;
   private boolean themeTransition;
   private boolean released,disposed,finishing;
@@ -164,26 +168,65 @@ public class MainActivity extends Activity {
   private void finishPlatform(){
    if(platformView!=null){platformView.animate().cancel();platformView=null;}
    if(removePlatform!=null){Runnable remove=removePlatform;removePlatform=null;remove.run();}
-   if(!disposed&&contentReady)web.evaluateJavascript("delete document.documentElement.dataset.nativeLaunching",null);
+   if(!disposed&&contentReady){web.getSettings().setOffscreenPreRaster(false);web.evaluateJavascript("delete document.documentElement.dataset.nativeLaunching",null);}
   }
   private void animateExit(android.view.View surface,android.view.View icon,long delay,Runnable remove,String name){
    final int token=generation;
+   final boolean[] started={false};
+   Runnable begin=()->{
+    if(started[0]||disposed||token!=generation)return;started[0]=true;
+    clearWarmDraw();
+    if(!motion()){remove.run();return;}
+    // Rasterise the static cover before starting the clock. WebView's first real draw
+    // can otherwise consume the whole wall-clock animator and expose only its last frame.
+    final int oldLayer=surface.getLayerType();
+    surface.setLayerType(android.view.View.LAYER_TYPE_HARDWARE,null);surface.buildLayer();
+    final float fromAlpha=surface.getAlpha(),fromX=icon==null?1f:icon.getScaleX(),fromY=icon==null?1f:icon.getScaleY();
+    final long began=android.os.SystemClock.uptimeMillis();
+    final long[] previous={0L},maxGap={0L};final float[] elapsed={0f};final int[] frames={0};
+    final boolean[] ended={false};
+    finishExit=()->{
+     if(ended[0])return;ended[0]=true;
+     if(exitFrame!=null){android.view.Choreographer.getInstance().removeFrameCallback(exitFrame);exitFrame=null;}
+     surface.setAlpha(0f);surface.setLayerType(oldLayer,null);finishExit=null;
+     android.util.Log.i("LukeMotion",name+" exit-complete ms="+(android.os.SystemClock.uptimeMillis()-began)+" frames="+frames[0]+" maxGapMs="+maxGap[0]);
+     remove.run();
+    };
+    android.util.Log.i("LukeMotion",name+" exit-start");
+    exitFrame=now->{
+     if(disposed||token!=generation)return;
+     if(!motion()||viewport.getWindowVisibility()!=android.view.View.VISIBLE){if(finishExit!=null)finishExit.run();return;}
+     if(previous[0]!=0){
+      long gap=Math.max(0L,(now-previous[0])/1000000L);maxGap[0]=Math.max(maxGap[0],gap);
+      // Do not spend an entire animation during a blocked first frame. Normal 60/90/120Hz
+      // timing is unchanged; after a late frame continue through the missing visual states.
+      elapsed[0]+=Math.min(32L,gap);
+     }
+     previous[0]=now;frames[0]++;
+     float progress=ease.getInterpolation(Math.min(1f,elapsed[0]/EXIT_MS));
+     surface.setAlpha(fromAlpha*(1f-progress));
+     if(icon!=null){icon.setScaleX(fromX*(1f-.02f*progress));icon.setScaleY(fromY*(1f-.02f*progress));}
+     if(elapsed[0]>=EXIT_MS){if(finishExit!=null)finishExit.run();}
+     else android.view.Choreographer.getInstance().postFrameCallback(exitFrame);
+    };
+    android.view.Choreographer.getInstance().postFrameCallback(exitFrame);
+   };
    handler.postDelayed(()->{
     if(disposed||token!=generation)return;
-    if(!motion()){remove.run();return;}
-    final long began=android.os.SystemClock.uptimeMillis();
-    final int[] frames={0};
-    android.util.Log.i("LukeMotion",name+" exit-start");
-    if(icon!=null)icon.animate().scaleX(.98f).scaleY(.98f).setDuration(EXIT_MS).setInterpolator(ease).start();
-    surface.animate().withLayer().alpha(0f).setDuration(EXIT_MS).setInterpolator(ease)
-     .setUpdateListener(a->frames[0]++)
-     .withEndAction(()->{
-      if(disposed||token!=generation)return;
-      android.util.Log.i("LukeMotion",name+" exit-complete ms="+(android.os.SystemClock.uptimeMillis()-began)+" frames="+frames[0]);
-      remove.run();
-     }).start();
+    final int[] draws={0};
+    warmDraw=()->{
+     if(++draws[0]>=2){viewport.post(()->{clearWarmDraw();viewport.postOnAnimation(begin);});}
+     else viewport.postOnAnimation(viewport::invalidate);
+    };
+    viewport.getViewTreeObserver().addOnDrawListener(warmDraw);viewport.invalidate();
+    // Fallback for a vendor view hierarchy that coalesces invalidations. No minimum delay.
+    handler.postDelayed(begin,900L);
    },delay);
   }
+  private void clearWarmDraw(){
+   if(warmDraw!=null){if(viewport.getViewTreeObserver().isAlive())viewport.getViewTreeObserver().removeOnDrawListener(warmDraw);warmDraw=null;}
+  }
+  void finishHidden(){if(contentReady&&finishExit!=null)finishExit.run();}
   void ready(){
    if(disposed||finishing)return;finishing=true;handler.removeCallbacks(watchdog);
    boolean wasHeld=!released;
@@ -211,7 +254,7 @@ public class MainActivity extends Activity {
   private void removeLayer(){
    stopMark();
    if(layer!=null){layer.setVisibility(android.view.View.GONE);layer.setClickable(false);viewport.removeView(layer);}
-   if(!disposed&&contentReady&&android.os.Build.VERSION.SDK_INT<31)web.evaluateJavascript("delete document.documentElement.dataset.nativeLaunching",null);
+   if(!disposed&&contentReady&&android.os.Build.VERSION.SDK_INT<31){web.getSettings().setOffscreenPreRaster(false);web.evaluateJavascript("delete document.documentElement.dataset.nativeLaunching",null);}
   }
   void fail(){
    if(disposed||contentReady||finishing)return;
@@ -238,7 +281,9 @@ public class MainActivity extends Activity {
    handler.removeCallbacks(watchdog);handler.postDelayed(watchdog,FAILURE_MS);
   }
   void dispose(){
-   disposed=true;handler.removeCallbacksAndMessages(null);releaseDraw();
+   disposed=true;handler.removeCallbacksAndMessages(null);releaseDraw();clearWarmDraw();
+   if(exitFrame!=null){android.view.Choreographer.getInstance().removeFrameCallback(exitFrame);exitFrame=null;}
+   finishExit=null;
    if(bars!=null)bars.cancel();
    if(layer!=null)layer.animate().cancel();
    if(mark!=null){mark.animate().cancel();stopMark();}
@@ -304,5 +349,3 @@ public class MainActivity extends Activity {
   @JavascriptInterface public void saveBackup(String name,String text){if(text==null||text.length()>16000000){toast("备份过大，暂时无法导出");return;}runOnUiThread(()->{if(exportText!=null){toast("请先完成当前导出");return;}exportText=text;try{Intent i=new Intent(Intent.ACTION_CREATE_DOCUMENT);i.addCategory(Intent.CATEGORY_OPENABLE);i.setType("application/json");i.putExtra(Intent.EXTRA_TITLE,name.replaceAll("[\\\\/:*?\"<>|]","_"));startActivityForResult(i,11);}catch(Exception e){exportText=null;toast("无法打开保存窗口");}});}
  }
 }
-
-
