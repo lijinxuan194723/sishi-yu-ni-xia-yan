@@ -16,13 +16,21 @@ def save():
 def dump():
  adb('shell','uiautomator','dump','/sdcard/motion-window.xml',timeout=20)
  return adb('shell','cat','/sdcard/motion-window.xml')
+def wait_text(*terms):
+ end=time.monotonic()+12;last=''
+ while time.monotonic()<end:
+  last=dump()
+  if all(term in last for term in terms):return last
+  time.sleep(.3)
+ (out/'missing-content.xml').write_text(last)
+ raise AssertionError('Content did not become accessible: '+str(terms))
 def wait_home():
  end=time.monotonic()+35;last=''
  while time.monotonic()<end:
   try:
    last=dump()
    if '启动暂未完成' in last:raise AssertionError('Native startup fallback shown instead of app')
-   if '悄悄话' in last and '回到身边' in last:return last
+   if '悄悄话' in last and '回到身边' in last and '打开设置' in last:return last
   except subprocess.SubprocessError:pass
   time.sleep(.5)
  (out/'last-window.xml').write_text(last);raise AssertionError('Home did not become accessible')
@@ -36,10 +44,19 @@ def editor_values():
  fields.sort(key=lambda e:int(re.findall(r'\d+',e.get('bounds'))[1]))
  return [e.get('text','') for e in fields]
 def tap(label):
- tree=ET.fromstring(dump())
- nodes=[e for e in tree.iter('node') if e.get('text')==label or e.get('content-desc')==label]
- if not nodes:raise AssertionError('Cannot find accessible control: '+label)
- tap_node(nodes[-1])
+ # Android publishes WebView accessibility subtrees asynchronously after a transition.
+ # Wait for an actual visible matching node instead of declaring a one-snapshot miss a bug.
+ end=time.monotonic()+12;last=''
+ while time.monotonic()<end:
+  last=dump();tree=ET.fromstring(last)
+  for e in reversed(list(tree.iter('node'))):
+   if e.get('text')!=label and e.get('content-desc')!=label:continue
+   bounds=list(map(int,re.findall(r'\d+',e.get('bounds',''))))
+   if len(bounds)==4 and bounds[2]>bounds[0] and bounds[3]>bounds[1]:
+    tap_node(e);return
+  time.sleep(.3)
+ (out/'missing-control.xml').write_text(last)
+ raise AssertionError('Cannot find visible accessible control: '+label)
 def launch():
  adb('shell','am','start','-a','android.intent.action.MAIN','-c','android.intent.category.LAUNCHER','-f','0x10200000','-n',component)
 def scales(value):
@@ -78,7 +95,7 @@ def cold(name,night=False,reduced=False):
 
 def seed_note():
  tap('时光手记');tap('新建笔记')
- xml=dump();tree=ET.fromstring(xml)
+ xml=wait_text('返回笔记列表','android.widget.EditText');tree=ET.fromstring(xml)
  fields=[e for e in tree.iter('node') if e.get('class')=='android.widget.EditText']
  record('baseline editor exposes title and body fields','返回笔记列表' in xml and len(fields)==2)
  fields.sort(key=lambda e:int(re.findall(r'\d+',e.get('bounds'))[1]))
@@ -98,7 +115,7 @@ def verify_upgrade_note():
   # Fixed isolated 720x1280/density320 fixture: the first note title is at x360/y550.
   # Checked against the baseline screenshot. A missed tap fails the editor-value assert.
   adb('shell','input','tap','360','550');time.sleep(.6)
- values=editor_values()
+ wait_text('返回笔记列表','android.widget.EditText');values=editor_values()
  record('in-place upgrade retains exact saved note title',bool(values) and values[0]=='MotionUpgrade902002',values)
  (out/'upgraded-note.png').write_bytes(adb('exec-out','screencap','-p',binary=True))
  tap('返回笔记列表');tap('回到身边')
@@ -117,10 +134,10 @@ try:
  record('warm resume does not replay startup',len(re.findall('exit-start',logs()))==before)
  if previous:verify_upgrade_note()
  cold('cold-reduced',reduced=True);scales(1)
- tap('打开设置');record('settings opens in Android WebView','日常与数据' in dump());tap('关闭')
- tap('他的此刻');tap('开始情景对话');xml=dump()
+ tap('打开设置');xml=wait_text('日常与数据');record('settings opens in Android WebView','日常与数据' in xml);tap('关闭')
+ tap('他的此刻');tap('开始情景对话');xml=wait_text('查看话题背景','会话记录','android.widget.EditText')
  record('topic dialog is usable in Android WebView','查看话题背景' in xml and '会话记录' in xml and 'android.widget.EditText' in xml);tap('关闭')
- tap('计时');tap('学习科目');xml=dump()
+ tap('计时');tap('学习科目');xml=wait_text('输入其他科目')
  record('animated subject menu is usable','输入其他科目' in xml);tap('学习科目')
  adb('shell','settings','put','system','accelerometer_rotation','0');adb('shell','settings','put','system','user_rotation','1');time.sleep(1)
  record('rotation does not show a failed startup','启动暂未完成' not in dump())
