@@ -1,5 +1,8 @@
 """Geometry checks for reduced motion: centering is layout, not an animation."""
 def verify_reduced_dialogs(page, check):
+    # The preceding test ends on Notes, which deliberately has no settings entry.
+    # Use the real navigation and pointer path, not a hidden button or forced click.
+    page.get_by_role('tab', name='回到身边', exact=True).click()
     for width, height in [(320, 568), (390, 844), (844, 390)]:
         page.set_viewport_size({'width': width, 'height': height})
         page.get_by_role('button', name='打开设置', exact=True).first.click()
