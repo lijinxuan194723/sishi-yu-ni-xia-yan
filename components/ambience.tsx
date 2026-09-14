@@ -29,8 +29,9 @@ export function useAmbience(paused=false,preview=false){
    target.dataset.effects=current.effects===false?'off':'on';
    target.dataset.manual=current.period==='auto'?'false':'true';
    target.dataset.night=next.night>.5?'true':'false';
-   flushSync(()=>setScene(next));
    if(!preview)window.LukeAndroid?.systemTheme?.(next.night>.5?'#202c37':({spring:'#f3fcf7',summer:'#f2fbff',autumn:'#fff5e5',winter:'#f8f9ff'})[next.season],next.night>.5);
+   // Publish native colours before child readiness effects can reveal the page.
+   flushSync(()=>setScene(next));
   };
   void update();
   const timer=setInterval(()=>{if(!document.hidden)void update();},30000);

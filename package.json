@@ -12,7 +12,7 @@
     "lint": "oxlint",
     "format": "oxfmt",
     "test:detail-polish": "node --experimental-strip-types --test scripts/checks/topic-chat-polish.test.mjs scripts/checks/detail-round2.test.mjs",
-    "test:motion": "node --experimental-strip-types --test scripts/checks/motion.test.mjs scripts/checks/seasonal-polish.test.mjs"
+    "test:motion": "node --experimental-strip-types --test scripts/checks/motion.test.mjs scripts/checks/seasonal-polish.test.mjs scripts/checks/handoff.test.mjs"
   },
   "dependencies": {
     "@base-ui/react": "1.7.0",

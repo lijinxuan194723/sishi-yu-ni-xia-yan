@@ -73,6 +73,7 @@ public class MainActivity extends Activity {
  private boolean darkSystemBars=true;
  private boolean keyboardVisible=false;
  private String systemColor="";
+ private int resolvedSystemColor(){return systemColor.isEmpty()?launchColor("luke_launch_background"):Color.parseColor(systemColor);}
  private boolean contentReady=false,readyPosted=false;
  private final ExecutorService workers=Executors.newFixedThreadPool(3);
  private final ConcurrentHashMap<String,HttpURLConnection> requests=new ConcurrentHashMap<>();
@@ -146,7 +147,7 @@ public class MainActivity extends Activity {
  @Override protected void onDestroy(){if(startup!=null)startup.dispose();for(HttpURLConnection c:requests.values())c.disconnect();workers.shutdownNow();if(web!=null){web.removeJavascriptInterface("LukeAndroid");web.destroy();web=null;}super.onDestroy();}
  private void deliver(String id,int status,String body){if(!active.remove(id))return;String script="window.__lukeNetwork&&window.__lukeNetwork("+JSONObject.quote(id)+","+status+","+JSONObject.quote(body)+")";runOnUiThread(()->{if(canUseWeb())web.evaluateJavascript(script,null);});}
  private void streamPart(String id,int status,String type,String text,boolean done){if(!active.contains(id))return;if(done)active.remove(id);String script="window.__lukeStreaming&&window.__lukeStreaming("+JSONObject.quote(id)+","+status+","+JSONObject.quote(type)+","+JSONObject.quote(text)+","+done+")";runOnUiThread(()->{if(canUseWeb())web.evaluateJavascript(script,null);});}
- private void applySystemTheme(){String color=systemColor.isEmpty()?"#214f4c":systemColor;boolean dark=darkSystemBars;int value=Color.parseColor(color);viewport.setBackgroundColor(value);getWindow().setStatusBarColor(value);getWindow().setNavigationBarColor(value);if(android.os.Build.VERSION.SDK_INT>=30){android.view.WindowInsetsController c=getWindow().getInsetsController();if(c!=null){int mask=android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS|android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS;c.setSystemBarsAppearance(dark?0:mask,mask);}}else getWindow().getDecorView().setSystemUiVisibility(dark?0:android.view.View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR|android.view.View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);}
+ private void applySystemTheme(){boolean dark=darkSystemBars;int value=resolvedSystemColor();viewport.setBackgroundColor(value);getWindow().setStatusBarColor(value);getWindow().setNavigationBarColor(value);if(android.os.Build.VERSION.SDK_INT>=30){android.view.WindowInsetsController c=getWindow().getInsetsController();if(c!=null){int mask=android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS|android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS;c.setSystemBarsAppearance(dark?0:mask,mask);}}else getWindow().getDecorView().setSystemUiVisibility(dark?0:android.view.View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR|android.view.View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);}
  // A dead WebView cannot be re-used. Recovery is explicit, never a hidden reload loop.
  private boolean rendererTerminated(WebView view,boolean crashed){
   android.util.Log.e("LukeRenderer","terminated crashed="+crashed);
@@ -187,15 +188,16 @@ public class MainActivity extends Activity {
   private android.widget.ImageView mark;
   private android.widget.LinearLayout failure;
   private android.animation.ValueAnimator bars;
-  private android.view.ViewTreeObserver.OnPreDrawListener hold;
   private Runnable removePlatform;
-  private android.view.View platformView;
+  private android.view.View platformView,platformIcon;
+  private long platformIntroRemaining;
+  private boolean platformExiting,nativeExitStarted;
   private android.view.ViewTreeObserver.OnDrawListener warmDraw;
   private android.view.Choreographer.FrameCallback exitFrame;
   private Runnable finishExit;
   private long markStarted;
   private boolean themeTransition;
-  private boolean released,disposed,finishing;
+  private boolean disposed,finishing;
   private int background,generation;
 
   private int resource(String name,String type){
@@ -220,11 +222,10 @@ public class MainActivity extends Activity {
    layer.addView(mark,new android.widget.FrameLayout.LayoutParams(dp(288),dp(288),android.view.Gravity.CENTER));
    viewport.addView(layer,new android.widget.FrameLayout.LayoutParams(-1,-1));
    if(android.os.Build.VERSION.SDK_INT>=31){
-    // Draw the WebView's prepared frame behind the one system splash, not a second splash.
-    hold=()->released;
-    viewport.getViewTreeObserver().addOnPreDrawListener(hold);
+    // Draw the fallback cover immediately so Android can transfer its splash
+    // without a blocked first-draw handshake. Readiness gates the exit, not drawing.
     PlatformSplash.install(MainActivity.this,this);
-   }else{released=true;mark.postOnAnimation(()->{if(!disposed&&!contentReady)startMark();});}
+   }else{mark.postOnAnimation(()->{if(!disposed&&!contentReady)startMark();});}
    handler.postDelayed(watchdog,FAILURE_MS);
   }
   private void startMark(){
@@ -238,19 +239,21 @@ public class MainActivity extends Activity {
    android.graphics.drawable.Drawable d=mark.getDrawable();
    if(d instanceof android.graphics.drawable.Animatable)((android.graphics.drawable.Animatable)d).stop();
   }
-  private void releaseDraw(){
-   released=true;
-   if(hold!=null){if(viewport.getViewTreeObserver().isAlive())viewport.getViewTreeObserver().removeOnPreDrawListener(hold);hold=null;}
-   viewport.invalidate();
-  }
   void systemExit(android.view.View splash,android.view.View icon,Runnable remove,long introRemaining){
-   if(disposed){remove.run();return;}
+   if(disposed||nativeExitStarted){remove.run();return;}
    removePlatform=remove;platformView=splash;
-   icon=seasonalSystemIcon(splash,icon);
-   if(!motion()){finishPlatform();return;}
-   // Let the ongoing vector settle; never reset it to its final frame at pageReady.
-   long delay=Math.min(180L,Math.max(0L,introRemaining-EXIT_MS));
-   animateExit(splash,icon,delay,this::finishPlatform,"system");
+   platformIcon=seasonalSystemIcon(splash,icon);platformIntroRemaining=introRemaining;
+   android.util.Log.i("LukeMotion","system surface-attached contentReady="+contentReady);
+   // The Android surface stays visible while WebView prepares its actual frame.
+   if(contentReady)startSystemExit();
+   else if(failure!=null&&failure.getVisibility()==android.view.View.VISIBLE)finishPlatform();
+  }
+  private void startSystemExit(){
+   if(disposed||platformExiting||platformView==null||!contentReady)return;
+   platformExiting=true;
+   if(!motion()){removeLayer();finishPlatform();return;}
+   long delay=Math.min(180L,Math.max(0L,platformIntroRemaining-EXIT_MS));
+   animateExit(platformView,platformIcon,delay,this::finishPlatform,"system");
   }
   private android.widget.ImageView seasonalOverlay;
   private android.view.View seasonalOriginal;
@@ -285,7 +288,7 @@ public class MainActivity extends Activity {
   }
   private void finishPlatform(){
    seasonalOverlay=null;seasonalOriginal=null;
-   if(platformView!=null){platformView.animate().cancel();platformView=null;}
+   if(platformView!=null){platformView.animate().cancel();platformView=null;platformIcon=null;}
    if(removePlatform!=null){Runnable remove=removePlatform;removePlatform=null;remove.run();}
    if(!disposed&&contentReady){web.getSettings().setOffscreenPreRaster(false);web.evaluateJavascript("delete document.documentElement.dataset.nativeLaunching",null);}
   }
@@ -295,6 +298,9 @@ public class MainActivity extends Activity {
    Runnable begin=()->{
     if(started[0]||disposed||token!=generation)return;started[0]=true;
     clearWarmDraw();
+    // Only remove the backup cover once the transferred system surface is ready
+    // to fade above it. Never reveal an unfinished WebView between two splashes.
+    if(surface==platformView&&contentReady)removeLayer();
     if(!motion()){remove.run();return;}
     // Rasterise the static cover before starting the clock. WebView's first real draw
     // can otherwise consume the whole wall-clock animator and expose only its last frame.
@@ -349,19 +355,22 @@ public class MainActivity extends Activity {
   void finishHidden(){if(contentReady&&finishExit!=null)finishExit.run();}
   void ready(){
    if(disposed||finishing)return;finishing=true;handler.removeCallbacks(watchdog);
-   boolean wasHeld=!released;
    web.setVisibility(android.view.View.VISIBLE);web.setAlpha(1f);
-   // Keep WebView stationary. Only the native cover fades, after a prepared content frame.
-   if(wasHeld||!motion())removeLayer();
-   else{
-    long elapsed=markStarted==0?180L:android.os.SystemClock.uptimeMillis()-markStarted;
-    animateExit(layer,mark,Math.max(0L,140L-elapsed),this::removeLayer,"legacy");
-   }
+   android.util.Log.i("LukeMotion","content frame-prepared");
    transitionTheme();
-   releaseDraw();
+   // Keep the content stationary and hold one cover until its exit starts.
+   if(platformView!=null)startSystemExit();
+   else{
+    nativeExitStarted=true;
+    if(!motion())removeLayer();
+    else{
+     long elapsed=markStarted==0?180L:android.os.SystemClock.uptimeMillis()-markStarted;
+     animateExit(layer,mark,Math.max(0L,140L-elapsed),this::removeLayer,"legacy");
+    }
+   }
   }
   private void transitionTheme(){
-   int target=Color.parseColor(systemColor.isEmpty()?"#214f4c":systemColor);
+   int target=resolvedSystemColor();
    viewport.setBackgroundColor(target);
    if(!motion()){applySystemTheme();return;}
    // Read the current bar colour first: applying the target before the tween causes a flash.
@@ -374,7 +383,7 @@ public class MainActivity extends Activity {
   private void removeLayer(){
    stopMark();
    if(layer!=null){layer.setVisibility(android.view.View.GONE);layer.setClickable(false);viewport.removeView(layer);}
-   if(!disposed&&contentReady&&android.os.Build.VERSION.SDK_INT<31){web.getSettings().setOffscreenPreRaster(false);web.evaluateJavascript("delete document.documentElement.dataset.nativeLaunching",null);}
+   if(!disposed&&contentReady&&platformView==null){web.getSettings().setOffscreenPreRaster(false);web.evaluateJavascript("delete document.documentElement.dataset.nativeLaunching",null);}
   }
   void fail(){
    if(disposed||contentReady||finishing)return;
@@ -392,7 +401,8 @@ public class MainActivity extends Activity {
     android.widget.FrameLayout.LayoutParams lp=new android.widget.FrameLayout.LayoutParams(-1,-2,android.view.Gravity.CENTER);lp.setMargins(dp(24),dp(24),dp(24),dp(24));layer.addView(failure,lp);
    }
    failure.setVisibility(android.view.View.VISIBLE);layer.setContentDescription(null);
-   layer.announceForAccessibility("启动暂未完成，可以重试，本地记录不会被清除。");releaseDraw();
+   layer.announceForAccessibility("启动暂未完成，可以重试，本地记录不会被清除。");
+   if(platformView!=null)finishPlatform();viewport.invalidate();
   }
   private void retry(){
    if(disposed||contentReady)return;
@@ -401,7 +411,7 @@ public class MainActivity extends Activity {
    handler.removeCallbacks(watchdog);handler.postDelayed(watchdog,FAILURE_MS);
   }
   void dispose(){
-   if(disposed)return;generation++;disposed=true;handler.removeCallbacksAndMessages(null);releaseDraw();clearWarmDraw();
+   if(disposed)return;generation++;disposed=true;handler.removeCallbacksAndMessages(null);clearWarmDraw();
    if(exitFrame!=null){android.view.Choreographer.getInstance().removeFrameCallback(exitFrame);exitFrame=null;}
    finishExit=null;
    if(bars!=null)bars.cancel();

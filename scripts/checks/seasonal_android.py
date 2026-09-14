@@ -1,6 +1,7 @@
 """Actual signed APK: eight seasonal cold starts and real native UI actions."""
 import re,subprocess,time,xml.etree.ElementTree as ET
 from motion_observation import wait_rotation
+from splash_pixels import verify_splash_pixels
 
 def verify_seasonal_android(adb,tap,dump,wait_home,wait_text,launch,record,out,pkg):
     adb('shell','settings','put','system','user_rotation','0');wait_rotation(dump,0)
@@ -34,6 +35,7 @@ def verify_seasonal_android(adb,tap,dump,wait_home,wait_text,launch,record,out,p
                 try:recorder.wait(timeout=6)
                 except subprocess.TimeoutExpired:recorder.terminate();recorder.wait(timeout=6)
                 subprocess.run(['adb','pull',remote,str(out/(name+'.mp4'))],check=False)
+            verify_splash_pixels(out/(name+'.mp4'),record,out)
     tap('打开设置');tap('生日与纪念日');visible('看看生日祝福')
     xml=wait_text('收下这份祝福','关闭')
     record('birthday greeting is reachable on native device','收下这份祝福' in xml and '我们的小小设定' not in xml)
