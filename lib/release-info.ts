@@ -1,7 +1,7 @@
 /** Public build metadata only. Never include a model key or user record here. */
 export const RELEASE_INFO = Object.freeze({
-  version: '2.0.1-preview.5',
-  androidVersionCode: 902005,
+  version: '2.0.1-preview.6',
+  androidVersionCode: 902006,
   channel: '预览版',
   base: 'v2.0.0 + 圆润开屏与独立聊天优化',
   repository: 'https://github.com/lijinxuan194723/sishi-yu-ni-xia-yan',

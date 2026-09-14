@@ -1,5 +1,4 @@
 """Real pointer / DOM continuity checks on the exact built application."""
-
 def verify_companion_theme(page, check, traces, out):
     page.set_viewport_size({'width':390,'height':844})
     page.emulate_media(reduced_motion='no-preference')
@@ -9,13 +8,15 @@ def verify_companion_theme(page, check, traces, out):
     page.get_by_role('tab',name='四季与昼夜',exact=True).click()
     page.get_by_role('button',name='春',exact=True).click();page.get_by_role('button',name='正午',exact=True).click()
     page.wait_for_timeout(600);page.locator('.settings').get_by_role('button',name='关闭',exact=True).click();page.wait_for_timeout(1200)
-    page.get_by_role('button',name='查看第 1 张照片',exact=True).click();page.wait_for_timeout(1100)
+    for _ in range(8):
+        if page.locator('.hero-gallery').get_attribute('data-photo-index')=='0':break
+        page.locator('.hero-gallery').press('ArrowLeft');page.wait_for_timeout(800)
+    check('gallery can return to first image',page.locator('.hero-gallery').get_attribute('data-photo-index')=='0')
     before=page.locator('.luke-note p').inner_text()
     page.get_by_role('button',name='换一张夏彦便笺',exact=True).click()
     check('Luke note changes only on intentional request',page.locator('.luke-note p').inner_text()!=before)
-    page.get_by_role('button',name='下一张照片',exact=True).click()
-    page.wait_for_timeout(1100)
-    check('gallery next accepts real pointer without the image intercepting',page.locator('.photo-dots [aria-current=true]').get_attribute('aria-label')=='查看第 2 张照片')
+    page.locator('.hero-gallery').press('ArrowRight');page.wait_for_timeout(1100)
+    check('gallery supports keyboard navigation without visible arrows',page.locator('.hero-gallery').get_attribute('data-photo-index')=='1')
     for word,season in [('夏','summer'),('秋','autumn'),('冬','winter'),('春','spring')]:
         page.get_by_role('button',name='打开设置',exact=True).first.click()
         page.get_by_role('tab',name='四季与昼夜',exact=True).click()
@@ -23,9 +24,8 @@ def verify_companion_theme(page, check, traces, out):
         page.get_by_role('button',name='正午',exact=True).click()
         page.wait_for_timeout(650)
         page.evaluate('''()=>{const start=performance.now(),home=document.querySelector('.home-grid'),card=document.querySelector('.quote-card'),img=document.querySelector('.hero-slide img');window.__themeFrames=[];
-         function sample(){const c=document.querySelector('.hero-season-cover');const active=document.querySelector('.photo-dots [aria-current=true]');const index=Number(active?.getAttribute('aria-label')?.match(/\\d+/)?.[0]??1)-1;const photo=document.querySelectorAll('.hero-slide img')[index];const style=getComputedStyle(card);window.__themeFrames.push({t:performance.now()-start,season:document.documentElement.dataset.season,modal:!!document.querySelector('.settings'),homeStable:home===document.querySelector('.home-grid'),imageStable:img===document.querySelector('.hero-slide img'),opacity:style.opacity,bg:style.backgroundColor,gradient:style.backgroundImage,cover:c?Number(getComputedStyle(c).opacity):0,covered:c?.complete&&c.naturalWidth>0,decoded:photo?.complete&&photo.naturalWidth>0,pos:getComputedStyle(img).objectPosition,album:document.querySelector('.hero-gallery').dataset.albumSeason,index});if(performance.now()-start<1700)requestAnimationFrame(sample)}sample()}''')
-        page.locator('.settings').get_by_role('button',name='关闭',exact=True).click()
-        page.wait_for_timeout(1800)
+         function sample(){const c=document.querySelector('.hero-season-cover');const index=Number(document.querySelector('.hero-gallery').dataset.photoIndex);const photo=document.querySelectorAll('.hero-slide img')[index];const style=getComputedStyle(card);window.__themeFrames.push({t:performance.now()-start,season:document.documentElement.dataset.season,modal:!!document.querySelector('.settings'),homeStable:home===document.querySelector('.home-grid'),imageStable:img===document.querySelector('.hero-slide img'),opacity:style.opacity,bg:style.backgroundColor,gradient:style.backgroundImage,cover:c?Number(getComputedStyle(c).opacity):0,covered:c?.complete&&c.naturalWidth>0,decoded:photo?.complete&&photo.naturalWidth>0,pos:getComputedStyle(img).objectPosition,album:document.querySelector('.hero-gallery').dataset.albumSeason,index});if(performance.now()-start<1700)requestAnimationFrame(sample)}sample()}''')
+        page.locator('.settings').get_by_role('button',name='关闭',exact=True).click();page.wait_for_timeout(1800)
         frames=page.evaluate('window.__themeFrames');traces['home-palette-'+season]=frames
         check(f'{season}: home and first slide retain DOM identity',all(f['homeStable'] and f['imageStable'] for f in frames))
         check(f'{season}: root theme waits for the settings exit',all(not f['modal'] or f['season']!=season for f in frames))
@@ -33,15 +33,17 @@ def verify_companion_theme(page, check, traces, out):
         check(f'{season}: solid card colour has intermediate states',len({f['bg'] for f in frames})>=5)
         check(f'{season}: no unprepared photograph is exposed',all(f['decoded'] or f['covered'] and f['cover']>=.99 for f in frames))
         check(f'{season}: album settles and retains selected index',frames[-1]['album']==season and frames[-1]['index']==1 and frames[-1]['cover']==0)
-    # A sixth winter image must clamp to the fourth autumn image, not jump to one.
     page.get_by_role('button',name='打开设置',exact=True).first.click();page.get_by_role('tab',name='四季与昼夜',exact=True).click()
     page.get_by_role('button',name='冬',exact=True).click();page.wait_for_timeout(600)
     page.locator('.settings').get_by_role('button',name='关闭',exact=True).click();page.wait_for_timeout(1100)
-    page.get_by_role('button',name='查看第 6 张照片',exact=True).click();page.wait_for_timeout(1100)
+    for _ in range(8):
+        if page.locator('.hero-gallery').get_attribute('data-photo-index')=='5':break
+        page.locator('.hero-gallery').press('ArrowRight');page.wait_for_timeout(800)
+    check('winter sixth image reachable',page.locator('.hero-gallery').get_attribute('data-photo-index')=='5')
     page.get_by_role('button',name='打开设置',exact=True).first.click();page.get_by_role('tab',name='四季与昼夜',exact=True).click()
     page.get_by_role('button',name='秋',exact=True).click();page.wait_for_timeout(600)
     page.locator('.settings').get_by_role('button',name='关闭',exact=True).click();page.wait_for_timeout(1100)
-    check('shorter album clamps to its final image',page.locator('.photo-dots [aria-current=true]').get_attribute('aria-label')=='查看第 4 张照片')
+    check('shorter album clamps to its final image',page.locator('.hero-gallery').get_attribute('data-photo-index')=='3')
     page.get_by_role('button',name='接一份专注委托').click();page.locator('.study-timer').wait_for()
     check('home companion shortcut opens the existing study feature',page.locator('.study-companion-note').count()==1)
     before=page.locator('.luke-stamp-grid [data-recorded=true]').count()

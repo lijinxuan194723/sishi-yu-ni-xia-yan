@@ -18,8 +18,7 @@ def record(name,ok,detail=None):
  if not ok:raise AssertionError(name)
 def save():
  (out/'results.json').write_text(json.dumps({'sdk':sdk,'apkSha256':hashlib.sha256(apk.read_bytes()).hexdigest(),'results':results},ensure_ascii=False,indent=2))
-def dump():
- return observer.dump()
+def dump():return observer.dump()
 def wait_text(*terms):
  end=time.monotonic()+12;last=''
  while time.monotonic()<end:
@@ -43,42 +42,29 @@ def tap_node(node):
  if x2<=x1 or y2<=y1:raise AssertionError('Control has empty bounds')
  adb('shell','input','tap',str((x1+x2)//2),str((y1+y2)//2));time.sleep(.5)
 def editor_values():
- tree=ET.fromstring(dump())
- fields=[e for e in tree.iter('node') if e.get('class')=='android.widget.EditText']
- fields.sort(key=lambda e:int(re.findall(r'\d+',e.get('bounds'))[1]))
- return [e.get('text','') for e in fields]
+ tree=ET.fromstring(dump());fields=[e for e in tree.iter('node') if e.get('class')=='android.widget.EditText']
+ fields.sort(key=lambda e:int(re.findall(r'\d+',e.get('bounds'))[1]));return [e.get('text','') for e in fields]
 def tap(label):
  end=time.monotonic()+35;last='';previous=None
  while time.monotonic()<end:
-  began=time.monotonic();last=dump();tree=ET.fromstring(last)
-  node=choose_control(tree,label)
-  with (out/'touch-samples.jsonl').open('a') as stream:
-   stream.write(json.dumps({'label':label,'readSeconds':time.monotonic()-began,'rotation':tree.get('rotation'),'bounds':node.get('bounds') if node is not None else None},ensure_ascii=False)+'\n')
+  began=time.monotonic();last=dump();tree=ET.fromstring(last);node=choose_control(tree,label)
+  with (out/'touch-samples.jsonl').open('a') as stream:stream.write(json.dumps({'label':label,'readSeconds':time.monotonic()-began,'rotation':tree.get('rotation'),'bounds':node.get('bounds') if node is not None else None},ensure_ascii=False)+'\n')
   if node is not None:
-   # Require two equal post-layout samples. A single stale landscape rectangle
-   # must never cause a touch on an unrelated portrait control.
    state=(tree.get('rotation'),tree.get('width'),tree.get('height'),node.get('bounds'))
    if state==previous:
-    with (out/'touch-actions.jsonl').open('a') as stream:
-     stream.write(json.dumps({'label':label,'state':state,'time':time.monotonic()},ensure_ascii=False)+'\n')
+    with (out/'touch-actions.jsonl').open('a') as stream:stream.write(json.dumps({'label':label,'state':state,'time':time.monotonic()},ensure_ascii=False)+'\n')
     tap_node(node);return
    previous=state
   else:previous=None
   time.sleep(.2)
- (out/'missing-control.xml').write_text(last)
- raise AssertionError('Cannot find stable visible accessible control: '+label)
-def launch():
- adb('shell','am','start','-a','android.intent.action.MAIN','-c','android.intent.category.LAUNCHER','-f','0x10200000','-n',component)
+ (out/'missing-control.xml').write_text(last);raise AssertionError('Cannot find stable visible accessible control: '+label)
+def launch():adb('shell','am','start','-a','android.intent.action.MAIN','-c','android.intent.category.LAUNCHER','-f','0x10200000','-n',component)
 def scales(value):
- for key in ['window_animation_scale','transition_animation_scale','animator_duration_scale']:
-  adb('shell','settings','put','global',key,str(value))
-def logs():return adb('logcat','-d','-v','threadtime','LukeMotion:I','LukeRenderer:E','AndroidRuntime:E','chromium:F','libc:F','*:S')
+ for key in ['window_animation_scale','transition_animation_scale','animator_duration_scale']:adb('shell','settings','put','global',key,str(value))
+def logs():return adb('logcat','-d','-v','threadtime','LukeMotion:I','LukeRenderer:E','AndroidRuntime:E','chromium:F','LukeReturn:I','libc:F','*:S')
 def cold(name,night=False,reduced=False):
- # Isolate emulator configuration changes from application launch.
- adb('shell','am','force-stop',pkg)
- scales(0 if reduced else 1);adb('shell','cmd','uimode','night','yes' if night else 'no')
- time.sleep(1);adb('logcat','-c')
- remote='/sdcard/motion-'+name+'.mp4'
+ adb('shell','am','force-stop',pkg);scales(0 if reduced else 1);adb('shell','cmd','uimode','night','yes' if night else 'no')
+ time.sleep(1);adb('logcat','-c');remote='/sdcard/motion-'+name+'.mp4'
  recorder=subprocess.Popen(['adb','shell','screenrecord','--size','720x1280','--bit-rate','2500000','--time-limit','30',remote],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
  time.sleep(.5)
  try:
@@ -89,8 +75,7 @@ def cold(name,night=False,reduced=False):
    while time.monotonic()<deadline:
     if 'exit-complete' in logs():break
     time.sleep(.2)
-  wait_home();time.sleep(.6)
-  text=logs();(out/(name+'.log')).write_text(text)
+  wait_home();time.sleep(.6);text=logs();(out/(name+'.log')).write_text(text)
   record(name+' reaches home without native crash','FATAL EXCEPTION' not in text and 'terminated crashed=' not in text and 'Fatal signal' not in text)
   matches=re.findall(r'(system|legacy) exit-complete ms=(\d+) frames=(\d+)',text)
   if reduced:record(name+' respects disabled system animations','exit-start' not in text)
@@ -104,10 +89,18 @@ def cold(name,night=False,reduced=False):
   try:recorder.wait(timeout=6)
   except subprocess.TimeoutExpired:recorder.terminate();recorder.wait(timeout=6)
   subprocess.run(['adb','pull',remote,str(out/(name+'.mp4'))],check=False)
-
+def warm_checks():
+ for n in range(3):
+  before=len(re.findall('exit-start',logs()));adb('logcat','-c')
+  adb('shell','input','keyevent','3');time.sleep(.5);launch();time.sleep(1)
+  wait_home();text=logs();(out/('warm-'+str(n)+'.log')).write_text(text)
+  record('warm '+str(n)+' does not replay cold startup','exit-start' not in text)
+  record('warm '+str(n)+' has a completed return transition','LukeReturn' in text and 'show ' in text and 'finished' in text,text)
+  record('warm '+str(n)+' has no renderer failure',all(m not in text for m in ['FATAL EXCEPTION','terminated crashed=','Fatal signal']))
+ scales(0);adb('logcat','-c');adb('shell','input','keyevent','3');time.sleep(.5);launch();wait_home()
+ record('warm disabled animations skip the cover','LukeReturn' not in logs());scales(1)
 def seed_note():
- tap('时光手记');tap('新建笔记')
- xml=wait_text('返回笔记列表','android.widget.EditText');tree=ET.fromstring(xml)
+ tap('时光手记');tap('新建笔记');xml=wait_text('返回笔记列表','android.widget.EditText');tree=ET.fromstring(xml)
  fields=[e for e in tree.iter('node') if e.get('class')=='android.widget.EditText']
  record('baseline editor exposes title and body fields','返回笔记列表' in xml and len(fields)==2)
  fields.sort(key=lambda e:int(re.findall(r'\d+',e.get('bounds'))[1]))
@@ -115,15 +108,12 @@ def seed_note():
  record('baseline note editor contains the exact fixture title',editor_values()[0]=='MotionUpgrade902002')
  (out/'baseline-note.png').write_bytes(adb('exec-out','screencap','-p',binary=True))
  adb('shell','input','keyevent','4');time.sleep(.4);tap('返回笔记列表')
-
 def verify_upgrade_note(label='in-place upgrade retains exact saved note title'):
  tap('时光手记');xml=dump();tree=ET.fromstring(xml)
- rows=[e for e in tree.iter('node') if 'MotionUpgrade902002' in (e.get('text','')+e.get('content-desc',''))]
+ rows=[e for e in tree.iter('node') if 'MotionUpgrade902002' in (e.get('text','')+e.get('content-desc','')) and not e.get('content-desc','').startswith('手记操作：')]
  (out/'upgraded-list.png').write_bytes(adb('exec-out','screencap','-p',binary=True))
  if rows:tap_node(rows[-1])
- else:
-  # Fixed isolated 720x1280/density320 fixture; missed taps fail the value assertion.
-  adb('shell','input','tap','360','550');time.sleep(.6)
+ else:adb('shell','input','tap','360','550');time.sleep(.6)
  wait_text('返回笔记列表','android.widget.EditText');values=editor_values()
  record(label,bool(values) and values[0]=='MotionUpgrade902002',values)
  (out/'upgraded-note.png').write_bytes(adb('exec-out','screencap','-p',binary=True))
@@ -138,13 +128,11 @@ try:
  (out/'webview-provider.txt').write_text(adb('shell','dumpsys','webviewupdate'))
  prepare(adb,dump,out,pkg)
  previous=list(pathlib.Path('work/motion-previous').glob('*.apk'))
- if previous:
-  adb('install','-r',str(previous[0]),timeout=90);scales(1);launch();wait_home();seed_note()
+ if previous:adb('install','-r',str(previous[0]),timeout=90);scales(1);launch();wait_home();seed_note()
  install=adb('install','-r',str(apk),timeout=90);record('signed candidate installs without uninstall','Success' in install,install.strip())
- cold('cold-light');cold('cold-dark',night=True)
- before=len(re.findall('exit-start',logs()));adb('shell','input','keyevent','3');time.sleep(.5);launch();wait_home();time.sleep(.5)
- record('warm resume does not replay startup',len(re.findall('exit-start',logs()))==before)
+ cold('cold-light');warm_checks()
  if previous:verify_upgrade_note()
+ cold('cold-dark',night=True)
  cold('cold-reduced',reduced=True);scales(1)
  tap('打开设置');xml=wait_text('日常与数据');record('settings opens in Android WebView','日常与数据' in xml);check_visible_close(xml,record,'settings');tap('关闭')
  tap('他的此刻');tap('开始情景对话');xml=wait_text('查看话题背景','会话记录','android.widget.EditText')

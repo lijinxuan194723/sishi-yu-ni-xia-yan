@@ -1,0 +1,15 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {canonicalSongLink,writeSongLinks,songIdentity,songWebSearch} from '../../lib/song-listen.ts';
+const read=p=>readFileSync(new URL('../../'+p,import.meta.url),'utf8');
+for(const url of ['http://y.qq.com/song/123','https://evil.test/song/123','https://y.qq.com.evil.test/song/123','javascript:alert(1)','https://user:password@y.qq.com/song/123'])test('reject song link '+url,()=>assert.throws(()=>canonicalSongLink(url,'qq')));
+test('canonical QQ single',()=>assert.equal(canonicalSongLink('https://y.qq.com/n/ryqq/songDetail/0039MnYb0qxYhV','qq'),'https://y.qq.com/n/ryqq/songDetail/0039MnYb0qxYhV'));
+test('canonical NetEase single',()=>assert.equal(canonicalSongLink('https://music.163.com/#/song?id=123456','netease'),'https://music.163.com/song?id=123456'));
+test('playlist is not a single song',()=>assert.throws(()=>canonicalSongLink('https://music.163.com/playlist?id=123','netease')));
+test('invalid song never overwrites storage',()=>{let writes=0;assert.throws(()=>writeSongLinks({getItem:()=>null,setItem:()=>writes++},{title:'A',artist:'B'},{qq:'https://evil.test'}));assert.equal(writes,0);});
+test('identity retains artist',()=>assert.notEqual(songIdentity({title:'A',artist:'B'}),songIdentity({title:'A',artist:'C'})));
+test('search encodes raw query',()=>assert.ok(songWebSearch({title:'a & b',artist:'中文'}).includes('%26')));
+test('native bridge includes advertised actions',()=>{const s=read('mobile/android/MainActivity.java');for(const name of ['openSong','clockAction','feedbackStyle','feedbackStatus'])assert.ok(s.includes('@JavascriptInterface public '+(name==='feedbackStatus'?'String':'void')+' '+name+'('));});
+test('clock requires user confirmation',()=>assert.match(read('mobile/android/MainActivity.java'),/EXTRA_SKIP_UI,false/));
+test('visible photo navigation controls removed',()=>{assert.doesNotMatch(read('components/hero-gallery.tsx'),/className="photo-dots"|aria-label="下一张照片"/);assert.match(read('components/hero-gallery.tsx'),/ArrowRight/);});

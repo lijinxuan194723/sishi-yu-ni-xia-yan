@@ -22,6 +22,61 @@ public class MainActivity extends Activity {
  private volatile boolean rendererGone;
  private boolean canUseWeb(){return web!=null&&!rendererGone&&!isDestroyed();}
  private SoftStartup startup;
+ private final WarmReturn warmReturn=new WarmReturn();
+ private long stoppedAt;
+ private boolean externalReturn;
+ @Override public void startActivityForResult(Intent intent,int request,Bundle options){
+  super.startActivityForResult(intent,request,options);externalReturn=true;
+ }
+ @Override protected void onStart(){
+  super.onStart();
+  if(canUseWeb()){
+   web.onResume();
+   if(contentReady&&stoppedAt>0&&!externalReturn&&android.os.SystemClock.uptimeMillis()-stoppedAt>=200L)warmReturn.show();
+  }
+  stoppedAt=0;externalReturn=false;
+ }
+ private final class WarmReturn {
+  private final android.os.Handler handler=new android.os.Handler(android.os.Looper.getMainLooper());
+  private android.widget.FrameLayout cover;
+  private int generation;
+  private boolean fading;
+  void show(){
+   clear();
+   if(!canUseWeb()||!contentReady||!android.animation.ValueAnimator.areAnimatorsEnabled())return;
+   final int token=++generation;fading=false;
+   cover=new android.widget.FrameLayout(MainActivity.this);
+   cover.setBackgroundColor(resolvedSystemColor());cover.setAlpha(.88f);
+   cover.setImportantForAccessibility(android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS);
+   android.widget.ImageView badge=new android.widget.ImageView(MainActivity.this);
+   badge.setImageDrawable(launchMark(false));
+   int size=Math.round(144*getResources().getDisplayMetrics().density);
+   cover.addView(badge,new android.widget.FrameLayout.LayoutParams(size,size,android.view.Gravity.CENTER));
+   viewport.addView(cover,new android.widget.FrameLayout.LayoutParams(-1,-1));
+   web.evaluateJavascript("document.documentElement.dataset.resuming='true'",null);
+   android.util.Log.i("LukeReturn","show "+token);
+   web.postVisualStateCallback(token,new WebView.VisualStateCallback(){
+    @Override public void onComplete(long id){if(token==generation&&cover!=null)cover.postOnAnimation(()->fade(token));}
+   });
+   // Never wait indefinitely for the renderer, and never block touch or reset content.
+   handler.postDelayed(()->fade(token),120L);
+   handler.postDelayed(()->{if(token==generation)clear();},650L);
+  }
+  private void fade(int token){
+   if(token!=generation||cover==null||fading)return;fading=true;
+   cover.animate().alpha(0f).setDuration(280L).setInterpolator(new android.view.animation.PathInterpolator(.2f,0f,.2f,1f))
+    .withEndAction(()->{if(token==generation)clear();}).start();
+   android.util.Log.i("LukeReturn","fade "+token);
+  }
+  void clear(){
+   generation++;handler.removeCallbacksAndMessages(null);
+   if(cover==null)return;
+   cover.animate().cancel();viewport.removeView(cover);cover=null;
+   if(canUseWeb())web.evaluateJavascript("delete document.documentElement.dataset.resuming;window.dispatchEvent(new Event('luke-resumed'))",null);
+   android.util.Log.i("LukeReturn","finished");
+  }
+ }
+
  private String launchSeason="spring",launchMode="day",launchStyle="",shownSplashStyle="";
  private android.view.ContextThemeWrapper launchContext;
  private boolean feedbackAllowed=true;
@@ -62,7 +117,8 @@ public class MainActivity extends Activity {
   runOnUiThread(()->{
    if(!canUseWeb()||!contentReady||!feedbackAllowed||!web.isShown()||!web.hasWindowFocus())return;
    long now=android.os.SystemClock.elapsedRealtime();if(now-lastFeedback<90L)return;lastFeedback=now;
-   int effect=android.view.HapticFeedbackConstants.VIRTUAL_KEY;
+   boolean clear="clear".equals(uiPreferences().getString("feedbackStyle","gentle"));
+   int effect=clear?android.view.HapticFeedbackConstants.CONTEXT_CLICK:android.view.HapticFeedbackConstants.CLOCK_TICK;
    if("selection".equals(kind))effect=android.view.HapticFeedbackConstants.CLOCK_TICK;
    else if("confirm".equals(kind)&&android.os.Build.VERSION.SDK_INT>=30)effect=android.view.HapticFeedbackConstants.CONFIRM;
    boolean applied=web.performHapticFeedback(effect);
@@ -143,8 +199,8 @@ public class MainActivity extends Activity {
  }
  @Override public boolean dispatchKeyEvent(android.view.KeyEvent event){if(event.getKeyCode()==android.view.KeyEvent.KEYCODE_BACK){if(event.getAction()==android.view.KeyEvent.ACTION_UP&&!event.isCanceled())onBackPressed();return true;}return super.dispatchKeyEvent(event);}
  @Override public void onBackPressed(){if(!canUseWeb()||!contentReady){moveTaskToBack(true);return;}if(keyboardVisible){((android.view.inputmethod.InputMethodManager)getSystemService(INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(web.getWindowToken(),0);web.evaluateJavascript("document.activeElement instanceof HTMLElement&&document.activeElement.blur()",null);return;}web.evaluateJavascript("!!(window.__lukeBack&&window.__lukeBack())",handled->{if(!"true".equals(handled))moveTaskToBack(true);});}
- @Override protected void onStop(){super.onStop();if(startup!=null)startup.finishHidden();}
- @Override protected void onDestroy(){if(startup!=null)startup.dispose();for(HttpURLConnection c:requests.values())c.disconnect();workers.shutdownNow();if(web!=null){web.removeJavascriptInterface("LukeAndroid");web.destroy();web=null;}super.onDestroy();}
+ @Override protected void onStop(){warmReturn.clear();if(canUseWeb()){stoppedAt=android.os.SystemClock.uptimeMillis();web.onPause();}if(startup!=null)startup.finishHidden();super.onStop();}
+ @Override protected void onDestroy(){warmReturn.clear();if(startup!=null)startup.dispose();for(HttpURLConnection c:requests.values())c.disconnect();workers.shutdownNow();if(web!=null){web.removeJavascriptInterface("LukeAndroid");web.destroy();web=null;}super.onDestroy();}
  private void deliver(String id,int status,String body){if(!active.remove(id))return;String script="window.__lukeNetwork&&window.__lukeNetwork("+JSONObject.quote(id)+","+status+","+JSONObject.quote(body)+")";runOnUiThread(()->{if(canUseWeb())web.evaluateJavascript(script,null);});}
  private void streamPart(String id,int status,String type,String text,boolean done){if(!active.contains(id))return;if(done)active.remove(id);String script="window.__lukeStreaming&&window.__lukeStreaming("+JSONObject.quote(id)+","+status+","+JSONObject.quote(type)+","+JSONObject.quote(text)+","+done+")";runOnUiThread(()->{if(canUseWeb())web.evaluateJavascript(script,null);});}
  private void applySystemTheme(){boolean dark=darkSystemBars;int value=resolvedSystemColor();viewport.setBackgroundColor(value);getWindow().setStatusBarColor(value);getWindow().setNavigationBarColor(value);if(android.os.Build.VERSION.SDK_INT>=30){android.view.WindowInsetsController c=getWindow().getInsetsController();if(c!=null){int mask=android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS|android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS;c.setSystemBarsAppearance(dark?0:mask,mask);}}else getWindow().getDecorView().setSystemUiVisibility(dark?0:android.view.View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR|android.view.View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);}
@@ -152,7 +208,7 @@ public class MainActivity extends Activity {
  private boolean rendererTerminated(WebView view,boolean crashed){
   android.util.Log.e("LukeRenderer","terminated crashed="+crashed);
   if(view!=web){android.view.ViewParent parent=view.getParent();if(parent instanceof android.view.ViewGroup)((android.view.ViewGroup)parent).removeView(view);view.destroy();return true;}
-  rendererGone=true;contentReady=false;readyPosted=true;keyboardVisible=false;
+  rendererGone=true;contentReady=false;readyPosted=true;warmReturn.clear();keyboardVisible=false;
   if(startup!=null)startup.dispose();
   active.clear();for(HttpURLConnection connection:requests.values())connection.disconnect();requests.clear();
   fileCallback=null;locationCallback=null;
@@ -179,6 +235,41 @@ public class MainActivity extends Activity {
   return true;
  }
  // Native startup only: no remote assets, new dependencies, or minimum display delay.
+ private void actionResult(String id,boolean ok,String message,String route){
+  if(!canUseWeb())return;
+  try{JSONObject detail=new JSONObject();detail.put("id",id);detail.put("ok",ok);detail.put("message",message);detail.put("route",route);
+   web.evaluateJavascript("window.dispatchEvent(new CustomEvent('luke-action-result',{detail:"+detail.toString()+"}))",null);
+  }catch(Exception ignored){}
+ }
+ private String officialSongLink(String text,boolean qq){
+  if(text==null||text.length()>2000)return "";
+  try{Uri u=Uri.parse(text.trim());String host=u.getHost();
+   if(!"https".equals(u.getScheme())||u.getUserInfo()!=null||u.getPort()!=-1)return "";
+   if(qq?!"y.qq.com".equals(host):!"music.163.com".equals(host))return "";
+   return u.toString();
+  }catch(RuntimeException e){return "";}
+ }
+ private void openMusic(String id,String title,String artist,String qq,String netease){
+  if(!canUseWeb())return;
+  String query=(title+" "+artist).trim();
+  String[] packages={"com.tencent.qqmusic","com.netease.cloudmusic"};
+  String[] names={"QQ 音乐","网易云音乐"};
+  String[] links={officialSongLink(qq,true),officialSongLink(netease,false)};
+  for(int n=0;n<packages.length;n++){
+   try{getPackageManager().getPackageInfo(packages[n],0);}catch(PackageManager.NameNotFoundException ignored){continue;}
+   String search=n==0?"https://y.qq.com/n/ryqq/search?w="+Uri.encode(query):"https://music.163.com/#/search/m/?s="+Uri.encode(query);
+   try{startActivity(new Intent(Intent.ACTION_VIEW,Uri.parse(links[n].isEmpty()?search:links[n])).setPackage(packages[n]));
+    actionResult(id,true,"已请求在"+names[n]+(links[n].isEmpty()?"中查找歌名和歌手，请核对版本。":"打开绑定的单曲，请核对后播放。"),packages[n]);return;
+   }catch(RuntimeException ignored){}
+   try{Intent launch=getPackageManager().getLaunchIntentForPackage(packages[n]);if(launch!=null){
+    ((android.content.ClipboardManager)getSystemService(CLIPBOARD_SERVICE)).setPrimaryClip(android.content.ClipData.newPlainText("歌名和歌手",query));
+    startActivity(launch);actionResult(id,true,"已打开"+names[n]+"，歌名和歌手已复制，请粘贴搜索。该版本不支持直达请求。",packages[n]);return;
+   }}catch(RuntimeException ignored){}
+  }
+  try{String url=!links[0].isEmpty()?links[0]:!links[1].isEmpty()?links[1]:"https://y.qq.com/n/ryqq/search?w="+Uri.encode(query);
+   startActivity(new Intent(Intent.ACTION_VIEW,Uri.parse(url)));actionResult(id,true,"未找到可处理的音乐应用，已请求打开官方网页。","web");
+  }catch(RuntimeException error){actionResult(id,false,"无法打开音乐应用或浏览器，可以复制歌名后手动查找。","none");}
+ }
  private final class SoftStartup {
   private static final long EXIT_MS=380L, FAILURE_MS=8000L;
   private final android.os.Handler handler=new android.os.Handler(android.os.Looper.getMainLooper());
@@ -446,6 +537,36 @@ public class MainActivity extends Activity {
     if(changed)prefs.edit().putString("season",season).putString("period",period).apply();
     String previous=launchStyle;configureLaunch();
     if(startup!=null&&!previous.equals(launchStyle))startup.appearanceUpdated();
+   });
+  }
+  @JavascriptInterface public void feedbackStyle(String style){
+   if(Arrays.asList("gentle","clear","off").contains(style))uiPreferences().edit().putString("feedbackStyle",style).apply();
+  }
+  @JavascriptInterface public String feedbackStatus(){
+   try{
+    android.os.Vibrator v=(android.os.Vibrator)getSystemService(VIBRATOR_SERVICE);
+    if(v==null||!v.hasVibrator())return "unavailable";
+    return android.provider.Settings.System.getInt(getContentResolver(),android.provider.Settings.System.HAPTIC_FEEDBACK_ENABLED,1)==0?"disabled":"enabled";
+   }catch(RuntimeException error){return "unknown";}
+  }
+  @JavascriptInterface public void openSong(String id,String title,String artist,String qq,String netease){
+   if(id==null||id.length()>100||title==null||title.length()>300||artist==null||artist.length()>300)return;
+   runOnUiThread(()->openMusic(id,title,artist,qq,netease));
+  }
+  @JavascriptInterface public void clockAction(String id,String mode,int hour,int minute,int seconds,String label){
+   if(id==null||id.length()>100||label==null||label.length()>80)return;
+   runOnUiThread(()->{
+    try{
+     Intent i;
+     if("timer".equals(mode)&&seconds>=1&&seconds<=86400){
+      i=new Intent(android.provider.AlarmClock.ACTION_SET_TIMER).putExtra(android.provider.AlarmClock.EXTRA_LENGTH,seconds);
+     }else if("alarm".equals(mode)&&hour>=0&&hour<=23&&minute>=0&&minute<=59){
+      i=new Intent(android.provider.AlarmClock.ACTION_SET_ALARM).putExtra(android.provider.AlarmClock.EXTRA_HOUR,hour).putExtra(android.provider.AlarmClock.EXTRA_MINUTES,minute);
+     }else if("manage".equals(mode))i=new Intent(android.provider.AlarmClock.ACTION_SHOW_ALARMS);
+     else{actionResult(id,false,"提醒参数不正确，请重新检查。","clock");return;}
+     i.putExtra(android.provider.AlarmClock.EXTRA_MESSAGE,label).putExtra(android.provider.AlarmClock.EXTRA_SKIP_UI,false);
+     startActivity(i);actionResult(id,true,"已打开系统时钟，请在那里确认时间、铃声和振动；本应用不会代替系统确认。","clock");
+    }catch(RuntimeException error){actionResult(id,false,"没有找到支持此操作的系统时钟，请手动打开手机时钟设置提醒。","clock");}
    });
   }
   @JavascriptInterface public void pageReady(){

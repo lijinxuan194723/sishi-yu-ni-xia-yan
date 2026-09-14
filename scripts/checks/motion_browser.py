@@ -96,9 +96,9 @@ with sync_playwright() as p:
   check('rapid theme selections settle on latest target',page.locator('.settings').get_attribute('data-season')=='summer')
   close_settings(page);page.wait_for_timeout(1100)
   check('gallery theme handoff removes outgoing cover',page.locator('.hero-season-cover').count()==0)
-  f=trace(page,'gallery-next','.hero-track',button('下一张照片'),1300)
+  f=trace(page,'gallery-next','.hero-track',"document.querySelector('.hero-gallery').dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowRight',bubbles:true}))",1300)
   check('gallery scroll contains real intermediate positions',len({round(v['x'],1) for v in f if v['exists']})>=8)
-  check('gallery settles on second image',page.locator('.photo-dots [aria-current=true]').get_attribute('aria-label')=='查看第 2 张照片')
+  check('gallery settles on second image',page.locator('.hero-gallery').get_attribute('data-photo-index')=='1')
   for label in ['他的此刻','一起计划','时光手记','计时','悄悄话','回到身边']:
    f=trace(page,'page-'+label,'.app-tabs main > [data-slot=tabs-content]:not([hidden])',nav(label),700)
    smooth('page '+label,f)
@@ -125,7 +125,6 @@ with sync_playwright() as p:
   f=trace(page,'subject-out','.study-popover',button('学习科目'));smooth('subject menu exit',f,True)
   page.screenshot(path=str(out/'mobile.png'))
   page.evaluate(nav('回到身边'));page.wait_for_timeout(400)
-  # CPU throttling tests the same app, not a standalone imitation animation.
   client=page.context.new_cdp_session(page);client.send('Emulation.setCPUThrottlingRate',{'rate':4})
   f=trace(page,'cpu4-settings','.settings',button('打开设置'),1400);smooth('CPU4 dialog still produces intermediate frames',f)
   close_settings(page);client.send('Emulation.setCPUThrottlingRate',{'rate':1});client.detach()
@@ -143,6 +142,8 @@ with sync_playwright() as p:
   check('reduced motion removes editor without a stranded layer',not any(v['exists'] for v in f))
   check('reduced motion leaves no running UI animation',page.evaluate("document.getAnimations().filter(a=>a.playState==='running').length") == 0)
   verify_reduced_dialogs(page, check)
+  from memo_polish_browser import verify_memo_polish
+  verify_memo_polish(page,check,out)
   page.close();check('no uncaught browser exceptions',not errors,errors)
  except Exception as exc:
   results.append({'name':'uncaught test failure','passed':False,'detail':str(exc)});save()

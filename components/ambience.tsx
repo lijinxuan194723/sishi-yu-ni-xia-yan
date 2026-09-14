@@ -6,10 +6,17 @@ import {syncNativeAppearance} from '@/lib/interaction-feedback';
 import {swapPhoto} from '@/lib/photo-transition';
 import {Flower2,Leaf,Snowflake,Sparkles,Sunrise,Sun,Sunset,Moon} from 'lucide-react';
 import {ambienceAt,seasonPhotos,seasons,autoAppearance,readAppearance,type Appearance} from '@/lib/ambience';
+const decodedPhotos = new Map<string, Promise<void>>();
+function preparePhoto(src:string){
+ let task=decodedPhotos.get(src);
+ if(!task){const image=new Image();image.src=src;task=image.decode().catch(error=>{decodedPhotos.delete(src);throw error;});decodedPhotos.set(src,task);}
+ return task;
+}
 export function useAmbience(paused=false,preview=false){
  const [options,setOptionsState]=useState<Appearance>(autoAppearance),[loaded,setLoaded]=useState(false),[appearanceError,setAppearanceError]=useState('');
  useEffect(()=>{try{setOptionsState(readAppearance(JSON.parse(localStorage.getItem('luke-appearance-v1')||'null')));}catch{}setLoaded(true);},[]);
  function setOptions(next:Appearance){setOptionsState(next);try{localStorage.setItem('luke-appearance-v1',JSON.stringify(next));syncNativeAppearance();setAppearanceError('');}catch{setAppearanceError('外观已切换，但当前设备未能保存设置。');}}
+ const published=useRef('');
  const [scene,setScene]=useState<ReturnType<typeof ambienceAt>|null>(null);
  useEffect(()=>{
   if(!loaded||paused)return;
@@ -25,11 +32,14 @@ export function useAmbience(paused=false,preview=false){
    const id=++request;
    let current=options;
    try{if(!preview)current=readAppearance(JSON.parse(localStorage.getItem('luke-appearance-v1')||'null'));}catch{}
-   const next=ambienceAt(new Date(),current);
+   const clock=new Date();clock.setSeconds(0,0);
+   const next=ambienceAt(clock,current);
+   const signature=JSON.stringify([next,current.effects,current.period]);
    const target=preview?document.querySelector<HTMLElement>('.settings'):document.documentElement;
    if(!target)return;
+   if(signature===published.current)return;
    // Always yield before flushSync, including the no-image-change path.
-   try{await Promise.all([...new Set([seasonPhotos[next.season],...(!preview?[seasonAlbums[next.season][0]]:[])])].map(async src=>{const image=new Image();image.src=src;await image.decode();}));}
+   try{await Promise.all([...new Set([seasonPhotos[next.season],...(!preview?[seasonAlbums[next.season][0]]:[])])].map(preparePhoto));}
    catch{if(alive&&id===request)setAppearanceError('主题图片加载失败，已保留当前画面，请重试。');return;}
    if(!alive||id!==request)return;
    target.dataset.season=next.season;
@@ -38,13 +48,14 @@ export function useAmbience(paused=false,preview=false){
    target.dataset.night=next.night>.5?'true':'false';
    if(!preview)window.LukeAndroid?.systemTheme?.(next.night>.5?'#202c37':({spring:'#f3fcf7',summer:'#f2fbff',autumn:'#fff5e5',winter:'#f8f9ff'})[next.season],next.night>.5);
    // Publish native colours before child readiness effects can reveal the page.
+   published.current=signature;
    flushSync(()=>setScene(next));
   };
   void update();
   const timer=setInterval(()=>{if(!document.hidden)void update();},30000);
   const wake=()=>{document.documentElement.dataset.paused=document.hidden?'true':'false';if(!document.hidden)void update();};
-  document.addEventListener('visibilitychange',wake);window.addEventListener('focus',update);
-  return()=>{alive=false;clearTimeout(deferred);clearInterval(timer);document.removeEventListener('visibilitychange',wake);window.removeEventListener('focus',update);};
+  document.addEventListener('visibilitychange',wake);window.addEventListener('focus',wake);
+  return()=>{alive=false;clearTimeout(deferred);clearInterval(timer);document.removeEventListener('visibilitychange',wake);window.removeEventListener('focus',wake);};
  },[options,loaded,paused,preview]);
  return {scene,options,setOptions,appearanceError};
 }
