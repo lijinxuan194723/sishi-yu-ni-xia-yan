@@ -22,13 +22,13 @@ export function ConversationMemoryPanel({data,ready,busy,status,worker,save,onCh
   {stale>0&&<p role="status" className="memory-disclosure">{stale} 篇章节的原文已变化，暂不用于回复，将从变化处重新整理。</p>}
   <div className="memory-commands"><button type="button" className="soft-button" disabled={!ready||busy||(!working&&!hasManualBatch)} onClick={()=>working?worker.cancel():void worker.run()}><RefreshCw size={16}/>{working?'取消整理':'整理下一章节'}</button><button type="button" className="soft-button" onClick={onChat}>查看完整聊天</button></div>
   {worker.notice&&<p role="status" className="memory-disclosure">{worker.notice}</p>}<small role="status">{status}</small>
-  <label>希望他牢牢记住的事<textarea disabled={!ready||busy} maxLength={5000} rows={4} value={memory.pinned} placeholder="喜欢的称呼、重要约定、聊天边界" onChange={e=>{const pinned=e.target.value;save(current=>({memory:{...(current.memory??emptyMemory),pinned}}));}}/></label>
+  <label>希望他牢牢记住的事<textarea aria-label="希望他牢牢记住的事" disabled={!ready||busy} maxLength={5000} rows={4} value={memory.pinned} placeholder="喜欢的称呼、重要约定、聊天边界" onChange={e=>{const pinned=e.target.value;save(current=>({memory:{...(current.memory??emptyMemory),pinned}}));}}/></label>
   <div className="memory-archive-title"><Archive size={18}/><h4>聊天章节</h4><small>{archive.chapters.length} 篇</small></div>
   <label className="memory-search"><Search size={17}/><input aria-label="搜索聊天记忆章节" value={query} placeholder="找一个话题或约定" onChange={e=>{setQuery(e.target.value);setCount(8);}}/></label>
   <div className="memory-chapters">{found.slice(0,count).map(({chapter:c,index})=><details key={`${c.from}-${c.fingerprint}`} data-stale={index>=valid.chapters.length}><summary><span>第 {index+1} 章<small>第 {c.from+1}—{c.to} 条聊天{index>=valid.chapters.length?' · 待重新整理':''}</small></span></summary><p>{c.summary}</p><div><small>{new Date(c.updatedAt).toLocaleDateString('zh-CN')}</small><button type="button" className="text-button" disabled={c.from>=data.messages.length} onClick={()=>onSource(c.from)}>查看对应原文</button></div></details>)}</div>
   {!found.length&&<p className="memory-empty">{needle?'没有匹配的章节。':'新的聊天会逐段整理在这里。'}</p>}
   {found.length>count&&<button type="button" className="soft-button" onClick={()=>setCount(n=>n+8)}>再看 8 篇</button>}
-  <details className="memory-legacy"><summary>原有摘要{memory.summary?' · 已保留':''}</summary><label>长期记忆摘要<textarea disabled={!ready||busy} maxLength={14000} rows={5} value={memory.summary} onChange={e=>{const summary=e.target.value;save(current=>({memory:{...(current.memory??emptyMemory),summary,through:summary?(current.memory??emptyMemory).through:0}}));}}/></label></details>
+  <details className="memory-legacy"><summary>原有摘要{memory.summary?' · 已保留':''}</summary><label>长期记忆摘要<textarea aria-label="长期记忆摘要" disabled={!ready||busy} maxLength={14000} rows={5} value={memory.summary} onChange={e=>{const summary=e.target.value;save(current=>({memory:{...(current.memory??emptyMemory),summary,through:summary?(current.memory??emptyMemory).through:0}}));}}/></label></details>
   <button type="button" className="soft-button" onClick={onBackup}>导出完整聊天与记忆备份</button>
  </div>;
 }
