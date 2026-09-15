@@ -69,6 +69,8 @@ with sync_playwright() as p:
  def boot(width=390,height=844,reduced='no-preference'):
   page=browser.new_page(viewport={'width':width,'height':height},reduced_motion=reduced)
   page.set_default_timeout(10000);page.on('pageerror',lambda e:errors.append(str(e)))
+  # Real UI tests may use explicit isolated fixtures, but never a live account.
+  page.route('https://**/*',lambda route:route.abort())
   if args.embedded:
    page.set_content('<!doctype html><html lang="zh-CN"><head><meta name="viewport" content="width=device-width,initial-scale=1"></head><body><div id="root"></div></body></html>')
    page.evaluate('''seed=>{for(const prop of ['localStorage','sessionStorage']){const map=new Map(Object.entries(prop==='localStorage'?seed:{}));Object.defineProperty(window,prop,{configurable:true,value:{getItem:k=>map.get(String(k))??null,setItem:(k,v)=>map.set(String(k),String(v)),removeItem:k=>map.delete(String(k)),clear:()=>map.clear(),key:i=>[...map.keys()][i]??null,get length(){return map.size}}});}}''',SEED)

@@ -1,0 +1,14 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import {validModel,defaultModel,resolveModel} from '../../lib/default-model.ts';
+const own={baseUrl:'https://own.example/v1',model:'own',key:'fake-only-own'};
+const secondary={baseUrl:'https://second.example/v1',model:'second',key:'fake-only-second'};
+test('new installation without personal provisioning has no shared API credentials',()=>{assert.equal(defaultModel(),undefined);assert.deepEqual(resolveModel(undefined,undefined),{baseUrl:'',model:'',key:''});});
+test('saved primary credentials remain unchanged',()=>assert.deepEqual(resolveModel(own,undefined),own));
+test('a saved configuration never silently gains the provisioned fallback',()=>assert.deepEqual(resolveModel(own,{...own,fallback:secondary}),own));
+test('explicit fallback remains part of the saved connection',()=>assert.deepEqual(resolveModel({...own,fallback:secondary},undefined),{...own,fallback:secondary}));
+test('native personal provisioning is optional and preserves only connection fields',()=>assert.deepEqual(resolveModel(undefined,{...own,other:'not-a-connection-field'}),own));
+test('invalid fallback cannot override an explicitly saved primary',()=>assert.deepEqual(resolveModel({...own,fallback:{...secondary,key:''}},undefined),own));
+test('invalid config is not considered configured',()=>assert.equal(validModel({...own,key:'  '}),false));
+test('browser regression network is isolated before application boot',()=>assert.match(fs.readFileSync(new URL('./motion_browser.py',import.meta.url),'utf8'),/page.route\('https:\/\/\*\*\/\*'/));

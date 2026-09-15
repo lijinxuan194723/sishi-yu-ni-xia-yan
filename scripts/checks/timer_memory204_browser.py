@@ -61,16 +61,27 @@ def verify_timer_memory204(page, check, out):
         page.get_by_label('模型密钥',exact=True).fill('not-a-real-key')
         requests=[];summary=['长'*2500];hold=[False];deferred=[]
         def model_reply(route):
-            payload=route.request.post_data_json;requests.append(payload)
-            if hold[0] and not payload.get('stream'):
+            cors={'access-control-allow-origin':'*','access-control-allow-headers':'authorization,content-type,accept','access-control-allow-methods':'POST,OPTIONS'}
+            if route.request.method=='OPTIONS':
+                route.fulfill(status=204,headers=cors);return
+            payload=route.request.post_data_json
+            archive=any('你是聊天档案整理器' in m.get('content','') for m in payload.get('messages',[]))
+            # Recommendation requests are unrelated to memory and must not consume
+            # the pending archive fixture or fall through to a real provider.
+            if not archive and not payload.get('stream'):
+                route.fulfill(status=503,headers=cors,content_type='application/json',body='{"error":"unrelated fixture request"}');return
+            requests.append(payload)
+            if hold[0] and archive:
                 deferred.append(route);return
             text='记得：旧书店和茉莉花，这是测试回复。' if payload.get('stream') else summary[0]
-            route.fulfill(status=200,content_type='application/json',body=json.dumps({'choices':[{'message':{'content':text},'finish_reason':'stop'}]},ensure_ascii=False))
+            route.fulfill(status=200,headers=cors,content_type='application/json',body=json.dumps({'choices':[{'message':{'content':text},'finish_reason':'stop'}]},ensure_ascii=False))
         page.route('https://memory-fixture.invalid/**',model_reply)
         page.get_by_role('button',name='保存模型设置',exact=True).click()
+        expect(page.get_by_text('模型设置已保存',exact=True)).to_be_visible()
+        check('memory test uses only the explicitly saved fixture endpoint',page.evaluate("JSON.parse(localStorage.getItem('luke-model-credentials-v1')).baseUrl")=='https://memory-fixture.invalid/v1')
         page.get_by_role('button',name='返回设置目录',exact=True).click();page.get_by_role('tab',name='长期聊天记忆',exact=True).click()
         page.get_by_role('button',name='整理下一章节',exact=True).click()
-        expect(page.get_by_text('记忆整理结果过长或为空，原有章节未覆盖。',exact=True)).to_be_visible()
+        expect(page.get_by_text('记忆整理结果过长或为空，原有章节未覆盖。',exact=True)).to_be_visible(timeout=10000)
         check('invalid model summary stays a recoverable error',page.locator('.memory-chapters details').count()==0)
         summary[0]='用户说喜欢茉莉花，周日想去旧书店。此为测试整理。'
         page.get_by_role('button',name='整理下一章节',exact=True).click()
@@ -100,8 +111,8 @@ def verify_timer_memory204(page, check, out):
         check('memory cancellation covers an actual pending model request',len(deferred)==1)
         page.get_by_role('button',name='取消整理',exact=True).click()
         expect(page.get_by_role('button',name='整理下一章节',exact=True)).to_be_visible()
-        try:deferred.pop().fulfill(status=200,content_type='application/json',body=json.dumps({'choices':[{'message':{'content':'这是取消后到达的结果，不应写入。'},'finish_reason':'stop'}]},ensure_ascii=False))
-        except Error:pass  # Aborted browser requests may no longer accept a response.
+        try:deferred.pop().fulfill(status=200,headers={'access-control-allow-origin':'*'},content_type='application/json',body=json.dumps({'choices':[{'message':{'content':'这是取消后到达的结果，不应写入。'},'finish_reason':'stop'}]},ensure_ascii=False))
+        except Error:pass
         hold[0]=False;page.wait_for_timeout(400)
         check('cancelled memory result cannot append or replace chapters',page.evaluate("JSON.parse(localStorage.getItem('luke-companion-v1')).memoryArchive.chapters")==before_cancel)
         close();nav('悄悄话')
@@ -114,6 +125,12 @@ def verify_timer_memory204(page, check, out):
         page.reload();settings();page.get_by_role('tab',name='长期聊天记忆',exact=True).click()
         check('chapters survive an application reload',page.locator('.memory-chapters details').count()==2)
         close()
+    except Exception:
+        # Capture the actual failure before restoration replaces the visible page.
+        page.screenshot(path=str(out/'memory-timer-failure.png'))
+        (out/'memory-timer-failure.txt').write_text(page.locator('body').inner_text())
+        raise
     finally:
+        page.unroute('https://memory-fixture.invalid/**')
         page.evaluate('''raw=>{localStorage.clear();for(const [key,value] of Object.entries(JSON.parse(raw)))localStorage.setItem(key,value);}''',stored)
         page.reload();page.get_by_role('tab',name='回到身边',exact=True).wait_for()

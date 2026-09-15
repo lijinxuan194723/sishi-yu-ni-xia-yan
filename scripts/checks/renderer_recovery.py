@@ -32,7 +32,8 @@ def verify_renderer_recovery(adb,tap,dump,wait_home,wait_text,record,out,pkg,obs
     time.sleep(1)
     record('renderer recovery does not silently loop or auto-reload','重新载入页面' in dump())
     tap('暂时返回桌面')
-    adb('shell','am','start','-n',pkg+'/com.luke.summer.MainActivity');wait_text('页面显示已中断')
+    # Use the launcher intent, returning to the same task rather than creating a new Activity.
+    adb('shell','am','start','-a','android.intent.action.MAIN','-c','android.intent.category.LAUNCHER','-f','0x10200000','-n',pkg+'/com.luke.summer.MainActivity');wait_text('页面显示已中断')
     record('recovery surface survives background and resume','重新载入页面' in dump())
     tap('重新载入页面');wait_home()
     record('manual renderer recovery returns to home','页面显示已中断' not in dump())
