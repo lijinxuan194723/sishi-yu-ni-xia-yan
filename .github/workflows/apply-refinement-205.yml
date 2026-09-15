@@ -1,0 +1,85 @@
+name: Apply and verify 2.0.5 refinement
+on:
+  push:
+    branches: ['release/v2.0.5']
+    paths: ['.delivery205/ready', '.delivery205/repairs.json']
+permissions:
+  contents: write
+jobs:
+  refinement:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply verified application source and image changes
+        run: |
+          python3 - <<'PY'
+          import pathlib,base64,gzip,hashlib,json
+          root=pathlib.Path('.delivery205')
+          parts={p.name:p.read_text() for p in root.glob('part*.b64')}
+          repairs=root/'repairs.json'
+          if repairs.exists():
+              for name,edits in json.loads(repairs.read_text()).items():
+                  value=parts[name]
+                  for a,b,replacement in reversed(edits): value=value[:a]+replacement+value[b:]
+                  parts[name]=value
+          payload=base64.b64decode(''.join(parts[k] for k in sorted(parts)),validate=True)
+          assert hashlib.sha256(payload).hexdigest()=='79c3b0eddb3eddf848d2582b6dffe0dadae60a0afb057580413a92de49477456','Transfer checksum mismatch; no application files were changed'
+          updates=json.loads(gzip.decompress(payload))
+          allowed={'app','components','hooks','lib','mobile','public','scripts'}
+          checked=[]
+          for name,item in updates.items():
+              p=pathlib.Path(name)
+              assert not p.is_absolute() and '..' not in p.parts
+              assert p.parts[0] in allowed or name in ('package.json','package-lock.json')
+              if 'base64' in item:
+                  assert p.suffix=='.webp' and str(p).startswith('public/images/')
+                  data=base64.b64decode(item['base64'],validate=True)
+              elif 'text' in item:
+                  assert not p.exists(), 'New file already exists: '+name
+                  data=item['text'].encode()
+              else:
+                  old=p.read_bytes()
+                  assert hashlib.sha256(old).hexdigest()==item['sha256'],'Base changed: '+name
+                  value=old.decode()
+                  for a,b,replacement in reversed(item['edits']):value=value[:a]+replacement+value[b:]
+                  data=value.encode()
+              checked.append((p,data))
+          for p,data in checked:p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes(data)
+          pathlib.Path('work/transfer205').mkdir(parents=True,exist_ok=True)
+          pathlib.Path('work/transfer205/applied.json').write_text(json.dumps([str(p) for p,_ in checked],indent=2))
+          print('Applied',len(checked),'verified application files. No signing workflow or signing key is modified.')
+          PY
+      - name: Commit expanded readable source on the release branch
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app components hooks lib mobile public scripts package.json package-lock.json
+          git commit -m 'feat: refine settings, chat skins, automatic durable memory, calendar and interactions for 2.0.5'
+          git push origin HEAD:release/v2.0.5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Logic, types and production mobile build
+        run: |
+          mkdir -p work/motion-browser/release205
+          node --experimental-strip-types --test scripts/checks/*.test.mjs | tee work/motion-browser/release205/unit.tap
+          npx tsc --noEmit
+          npx vite build --config mobile/vite.config.mts
+      - name: Browser dependencies
+        run: |
+          python3 -m pip install playwright==1.57.0 pillow
+          python3 -m playwright install --with-deps chromium
+      - name: Real IndexedDB and browser interaction checks
+        run: python3 scripts/checks/release205_browser.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: release205-verification
+          path: |
+            work/motion-browser/
+            work/transfer205/
+            .delivery205/
+          retention-days: 7
