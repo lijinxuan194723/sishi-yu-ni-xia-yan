@@ -12,5 +12,6 @@ import '../app/companion-polish.css';
 import '../app/detail-six.css';
 import '../app/settings-calendar.css';
 import '../app/refinement205.css';
+import '../app/artwork205.css';
 if(window.LukeAndroid)document.documentElement.dataset.nativeLaunching='true';
 createRoot(document.getElementById('root')!).render(<ErrorBoundary><Page/></ErrorBoundary>);
