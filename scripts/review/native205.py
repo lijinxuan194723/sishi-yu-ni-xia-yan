@@ -1,12 +1,12 @@
-"""Smoke-test only the independent APK in a disposable Android emulator."""
+"""Smoke-test the exact independent APK; record AX gaps without skipping later checks."""
 from pathlib import Path
 import subprocess,time,json,hashlib,xml.etree.ElementTree as ET,re,traceback
 out=Path('work/native205');out.mkdir(parents=True,exist_ok=True)
 pkg='com.luke.summer.review205';apk=Path('outputs/review205/Four-Seasons-Luke-2.0.5-independent.apk');results=[]
 def adb(*args):return subprocess.check_output(['adb',*args],text=True,timeout=45)
-def record(name,ok):
+def record(name,ok,required=True):
     results.append({'name':name,'passed':bool(ok)});(out/'results.json').write_text(json.dumps(results,ensure_ascii=False,indent=2))
-    if not ok:raise AssertionError(name)
+    if required and not ok:raise AssertionError(name)
 def tree():
     adb('shell','uiautomator','dump','/sdcard/review205.xml')
     return ET.fromstring(adb('shell','cat','/sdcard/review205.xml'))
@@ -36,12 +36,17 @@ try:
     adb('logcat','-c');adb('shell','am','start','-W','-n',pkg+'/com.luke.summer.MainActivity');wait('回到身边');screenshot('native-home');record('cold native launch renders bottom navigation',True)
     for label,shot in [('悄悄话','native-chat'),('一起计划','native-calendar'),('计时','native-timer')]:
         click(label);screenshot(shot);record('native tab opens '+label,pkg in adb('shell','dumpsys','activity','activities'))
-    click('回到身边');click('打开设置');wait('搜索设置');screenshot('native-settings');record('native settings opens accessible search',True)
+    click('回到身边');click('打开设置');wait('头像与聊天样式');screenshot('native-settings');record('native settings directory opens',True)
+    # Preserve the original accessibility assertion; failure remains in results
+    # and the job exits nonzero. Continue so Back/restart are not untested.
+    accessible=bool(find('搜索设置'));record('native settings search is exposed to UIAutomator',accessible,required=False)
+    if not accessible:(out/'search-accessibility-gap.xml').write_text(adb('shell','cat','/sdcard/review205.xml'))
+    click('头像与聊天样式');screenshot('native-avatar-settings');wait('返回设置目录');record('native settings subpage opens',True)
     adb('shell','input','keyevent','4');time.sleep(.8);record('Android back keeps the app alive',bool(adb('shell','pidof',pkg).strip()))
     adb('shell','am','force-stop',pkg);adb('shell','am','start','-W','-n',pkg+'/com.luke.summer.MainActivity');wait('回到身边');record('native process restart renders again',True)
     crashes=adb('logcat','-b','crash','-d');(out/'crash-log.txt').write_text(crashes);record('no native application crash was logged',pkg not in crashes)
 except Exception:
-    (out/'failure.txt').write_text(traceback.format_exc());results.append({'name':'native smoke suite completed','passed':False});
+    (out/'failure.txt').write_text(traceback.format_exc());results.append({'name':'native smoke suite completed','passed':False})
     try:screenshot('native-failure');(out/'ui-failure.xml').write_text(adb('shell','cat','/sdcard/review205.xml'))
     except Exception:pass
 finally:
