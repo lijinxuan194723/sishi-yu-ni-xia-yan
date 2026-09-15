@@ -8,7 +8,7 @@ export const RELEASE_INFO = Object.freeze({
   branch: 'release/v2.0.5-complete',
 });
 export const RELEASE_SOURCE_URL = `${RELEASE_INFO.repository}/tree/${RELEASE_INFO.branch}`;
-export const RELEASE_BUILDS_URL = `${RELEASE_INFO.repository}/releases/tag/v2.0.5`;
+export const RELEASE_BUILDS_URL = `${RELEASE_INFO.repository}/actions/workflows/review-isolated205.yml`;
 export function releaseSummary(): string {
-  return `四时与你 ${RELEASE_INFO.version}（${RELEASE_INFO.channel}）\nAndroid versionCode：${RELEASE_INFO.androidVersionCode}\n代码分支：${RELEASE_INFO.branch}\n源码位置：${RELEASE_SOURCE_URL}\n构建位置：${RELEASE_BUILDS_URL}\n包名保持不变，支持同签名应用更新。`;
+  return `四时与你 ${RELEASE_INFO.version}（${RELEASE_INFO.channel}）\nAndroid versionCode：${RELEASE_INFO.androidVersionCode}\n代码分支：${RELEASE_INFO.branch}\n源码位置：${RELEASE_SOURCE_URL}\n构建位置：${RELEASE_BUILDS_URL}\n安装前先导出完整备份；不同包名的应用不会自动共享数据。`;
 }

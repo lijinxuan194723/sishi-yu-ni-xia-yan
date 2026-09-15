@@ -32,7 +32,7 @@ def seeded(context,data=BASE,model=False):
  page=context.new_page();errors=[];page.on('pageerror',lambda e:errors.append(str(e)));page.goto('http://127.0.0.1:4173',wait_until='networkidle');page.get_by_role('tab',name='悄悄话',exact=True).wait_for();page.wait_for_timeout(400);return page,errors
 def harness(page):page.evaluate("async()=>{window.H=await import('/harness205.js')}")
 def settings(page,section=None):
- page.get_by_role('tab',name='回到身边',exact=True).click();page.get_by_role('button',name='打开设置',exact=True).click();page.get_by_role('heading',name='设置',exact=True).wait_for()
+ page.get_by_role('tab',name='回到身边',exact=True).click();page.locator('main > header.page-bar').get_by_role('button',name='打开设置',exact=True).click();page.get_by_role('heading',name='设置',exact=True).wait_for()
  if section:page.get_by_role('tab',name=section,exact=True).click()
 def close(page):page.locator('.settings [data-slot=dialog-close]').click();page.locator('.settings').wait_for(state='detached')
 def bounds_clear(page):return page.evaluate('''()=>[...document.querySelectorAll('.calendar-grid button,.date-grid button')].every(b=>{const i=b.querySelector('i');if(!i)return true;const main=b.querySelector('.calendar-day-main')||b.querySelector('span:last-child'),a=i.getBoundingClientRect(),c=main.getBoundingClientRect();return a.bottom<=c.top+.6||a.right<=c.left+.6||a.left>=c.right-.6})''')
