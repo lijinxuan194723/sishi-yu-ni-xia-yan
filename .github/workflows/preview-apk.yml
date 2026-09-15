@@ -30,6 +30,9 @@ jobs:
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+          log-accepted-android-sdk-licenses: false
 
       - name: Install Android platform and build tools
         run: yes | sdkmanager 'platforms;android-35' 'build-tools;35.0.0' >/dev/null
