@@ -1,132 +1,109 @@
-name: Preview APK
-
+name: Sign isolated 2.0.5 APK
 on:
   push:
-    branches:
-      - 'feat/**'
-      - 'fix/**'
-      - 'preview/**'
+    branches: ['fix/rounded-native-startup']
+    paths: ['.github/workflows/preview-apk.yml']
   workflow_dispatch:
-
 permissions:
   contents: read
-
+  actions: read
 jobs:
-  build-preview-apk:
+  build:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 15
+    env:
+      SOURCE_SHA: 67ac03e148cf15cd75c02a49731646936ca4e6d3
+      GH_TOKEN: ${{ github.token }}
     steps:
-      - name: Checkout
+      - name: Checkout exact isolated source, never main
         uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
         with:
-          node-version: '22'
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-        with:
-          packages: platform-tools
-          log-accepted-android-sdk-licenses: false
-
-      - name: Install Android platform and build tools
-        run: yes | sdkmanager 'platforms;android-35' 'build-tools;35.0.0' >/dev/null
-
-      - name: Restore preview signing key
-        id: signing-cache
-        uses: actions/cache@v4
+          ref: 67ac03e148cf15cd75c02a49731646936ca4e6d3
+          persist-credentials: false
+      - name: Restore original signing identity in its original branch scope
+        id: signing
+        uses: actions/cache/restore@v4
         with:
           path: ~/.android/luke-preview.p12
           key: luke-preview-signing-v1
-
-      - name: Create preview signing key
-        if: steps.signing-cache.outputs.cache-hit != 'true'
+      - name: Verify existing signer; never generate a replacement key
         run: |
-          mkdir -p ~/.android
-          keytool -genkeypair -noprompt \
-            -alias luke-preview \
-            -keystore ~/.android/luke-preview.p12 \
-            -storetype PKCS12 \
-            -storepass android-preview \
-            -keypass android-preview \
-            -keyalg RSA \
-            -keysize 3072 \
-            -validity 10000 \
-            -dname 'CN=Four Seasons Luke Preview'
-
-      - name: Build mobile web bundle
-        run: npx vite build --config mobile/vite.config.mts
-
-      - name: Build preview APK
+          set -euo pipefail
+          if [ ! -f ~/.android/luke-preview.p12 ]; then
+            gh api 'repos/lijinxuan194723/sishi-yu-ni-xia-yan/actions/caches?per_page=100' --jq '.actions_caches[] | select(.key | contains("signing")) | {key,ref}' || true
+            echo 'Required original signing key is unavailable.'
+            exit 1
+          fi
+          keytool -exportcert -alias luke-preview -keystore ~/.android/luke-preview.p12 -storepass android-preview -file "$RUNNER_TEMP/signer.der" >/dev/null 2>&1
+          echo 'be727012f0f00f93ea7578f1ab37b5c22c06652997a6797c0e19cef4f1b13e69  '"$RUNNER_TEMP/signer.der" | sha256sum --check
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Source regression and bundle
+        run: |
+          set -euo pipefail
+          mkdir -p outputs/review205/checks
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          npx tsc --noEmit 2>&1 | tee outputs/review205/checks/types.txt
+          node --experimental-strip-types --test scripts/checks/*.test.mjs 2>&1 | tee outputs/review205/checks/logic.tap
+          npx vite build --config mobile/vite.config.mts
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+          log-accepted-android-sdk-licenses: false
+      - run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0' >/dev/null
+      - name: Build and validate signed APK
         shell: bash
         run: |
           set -euo pipefail
-          ANDROID_JAR="$ANDROID_HOME/platforms/android-35/android.jar"
-          BUILD_TOOLS="$ANDROID_HOME/build-tools/35.0.0"
-          STAGE="$RUNNER_TEMP/luke-preview-apk"
-          OUTPUT="$GITHUB_WORKSPACE/outputs/android"
-          rm -rf "$STAGE"
-          mkdir -p "$STAGE/assets/web" "$STAGE/classes" "$STAGE/dex" "$STAGE/native" "$OUTPUT"
+          JAR="$ANDROID_HOME/platforms/android-35/android.jar"
+          TOOLS="$ANDROID_HOME/build-tools/35.0.0"
+          STAGE="$RUNNER_TEMP/luke205-apk"
+          mkdir -p "$STAGE/assets/web" "$STAGE/classes" "$STAGE/dex" "$STAGE/native"
           cp -R work/mobile-web/. "$STAGE/assets/web/"
-          cp mobile/android/MainActivity.java "$STAGE/native/MainActivity.java"
+          cp mobile/android/MainActivity.java "$STAGE/native/"
           cp -R mobile/android/res "$STAGE/native/res"
-          cp mobile/android/AndroidManifest.xml "$STAGE/native/AndroidManifest.xml"
-
-          PREVIEW_CODE=$((900000 + GITHUB_RUN_NUMBER))
-          sed -i \
-            -e 's/package="com.luke.summer"/package="com.luke.summer.preview"/' \
-            -e 's/android:name="\.MainActivity"/android:name="com.luke.summer.MainActivity"/' \
-            -e 's/android:label="四时与你"/android:label="四时与你·测试"/' \
-            -e "s/android:versionCode=\"[0-9]*\"/android:versionCode=\"${PREVIEW_CODE}\"/" \
-            -e "s/android:versionName=\"[^\"]*\"/android:versionName=\"preview-${GITHUB_RUN_NUMBER}\"/" \
-            "$STAGE/native/AndroidManifest.xml"
-
-          javac -encoding UTF-8 --release 8 \
-            -classpath "$ANDROID_JAR" \
-            -d "$STAGE/classes" \
-            "$STAGE/native/MainActivity.java"
-
+          sed -e 's/package="com.luke.summer"/package="com.luke.summer.preview"/' -e 's/android:name="\.MainActivity"/android:name="com.luke.summer.MainActivity"/' mobile/android/AndroidManifest.xml > "$STAGE/native/AndroidManifest.xml"
+          javac -encoding UTF-8 --release 8 -classpath "$JAR" -d "$STAGE/classes" "$STAGE/native/MainActivity.java"
           mapfile -d '' CLASSES < <(find "$STAGE/classes" -name '*.class' -print0)
-          "$BUILD_TOOLS/d8" --lib "$ANDROID_JAR" --min-api 26 --output "$STAGE/dex" "${CLASSES[@]}"
-
-          "$BUILD_TOOLS/aapt" package -f \
-            -M "$STAGE/native/AndroidManifest.xml" \
-            -S "$STAGE/native/res" \
-            -A "$STAGE/assets" \
-            -I "$ANDROID_JAR" \
-            -F "$STAGE/unsigned.apk"
-
-          (
-            cd "$STAGE/dex"
-            "$BUILD_TOOLS/aapt" add "$STAGE/unsigned.apk" classes.dex
-          )
-
-          "$BUILD_TOOLS/zipalign" -f -p 4 "$STAGE/unsigned.apk" "$STAGE/aligned.apk"
-          APK="$OUTPUT/Four-Seasons-Luke-Memo-Preview.apk"
-          "$BUILD_TOOLS/apksigner" sign \
-            --ks ~/.android/luke-preview.p12 \
-            --ks-key-alias luke-preview \
-            --ks-pass pass:android-preview \
-            --key-pass pass:android-preview \
-            --out "$APK" \
-            "$STAGE/aligned.apk"
-
-          "$BUILD_TOOLS/apksigner" verify --verbose "$APK"
-          "$BUILD_TOOLS/zipalign" -c -v 4 "$APK"
-          "$BUILD_TOOLS/aapt" dump badging "$APK" | grep -E 'package:|sdkVersion|targetSdkVersion|application-label:|launchable-activity'
-          sha256sum "$APK" | tee "$OUTPUT/Four-Seasons-Luke-Memo-Preview.sha256"
-
-      - name: Upload preview APK
-        uses: actions/upload-artifact@v4
+          "$TOOLS/d8" --lib "$JAR" --min-api 26 --output "$STAGE/dex" "${CLASSES[@]}"
+          "$TOOLS/aapt" package -f -M "$STAGE/native/AndroidManifest.xml" -S "$STAGE/native/res" -A "$STAGE/assets" -I "$JAR" -F "$STAGE/unsigned.apk"
+          (cd "$STAGE/dex" && "$TOOLS/aapt" add "$STAGE/unsigned.apk" classes.dex)
+          "$TOOLS/zipalign" -f -p 4 "$STAGE/unsigned.apk" "$STAGE/aligned.apk"
+          APK=outputs/review205/Four-Seasons-Luke-2.0.5.apk
+          "$TOOLS/apksigner" sign --ks ~/.android/luke-preview.p12 --ks-key-alias luke-preview --ks-pass pass:android-preview --key-pass pass:android-preview --out "$APK" "$STAGE/aligned.apk"
+          "$TOOLS/apksigner" verify --verbose --print-certs "$APK" > outputs/review205/checks/signature.txt
+          "$TOOLS/zipalign" -c 4 "$APK"
+          "$TOOLS/aapt" dump badging "$APK" > outputs/review205/checks/badging.txt
+          python3 - <<'PY'
+          import pathlib,re,hashlib,json,os,zipfile
+          root=pathlib.Path('outputs/review205');apk=root/'Four-Seasons-Luke-2.0.5.apk'
+          badging=(root/'checks/badging.txt').read_text();signature=(root/'checks/signature.txt').read_text()
+          identity=re.search(r"package: name='([^']+)' versionCode='(\d+)' versionName='([^']+)'",badging)
+          assert identity and identity.groups()==('com.luke.summer.preview','902010','2.0.5')
+          assert 'application-debuggable' not in badging and "application-label:'四时与你'" in badging
+          certificate='be727012f0f00f93ea7578f1ab37b5c22c06652997a6797c0e19cef4f1b13e69'
+          assert 'certificate SHA-256 digest: '+certificate in signature
+          with zipfile.ZipFile(apk) as archive:
+            assert archive.testzip() is None
+            assert not any(n.endswith('personal-model.json') for n in archive.namelist())
+            for name in ['companions/dog','companions/cat','companions/toast','chat-skins/tea','chat-skins/sunflower','chat-skins/hearts']:
+              local=pathlib.Path('public/images/'+name+'.webp').read_bytes()
+              shipped=archive.read('assets/web/images/'+name+'.webp')
+              assert shipped==local,name+' asset mismatch'
+              assert shipped[:4]==b'RIFF' and shipped[8:12]==b'WEBP'
+              assert int.from_bytes(shipped[4:8],'little')+8==len(shipped)
+          digest=hashlib.sha256(apk.read_bytes()).hexdigest()
+          (root/'Four-Seasons-Luke-2.0.5.sha256').write_text(digest+'  '+apk.name+'\n')
+          (root/'build205.json').write_text(json.dumps({'sourceCommit':os.environ['SOURCE_SHA'],'sourceBranch':'release/v2.0.5-complete','buildRun':os.environ['GITHUB_RUN_ID'],'package':identity[1],'versionCode':int(identity[2]),'versionName':identity[3],'size':apk.stat().st_size,'sha256':digest,'certificateSha256':certificate,'mainModified':False,'deviceRuntimeTested':False},ensure_ascii=False,indent=2))
+          print((root/'build205.json').read_text())
+          PY
+      - uses: actions/upload-artifact@v4
+        if: success()
         with:
-          name: Four-Seasons-Luke-Memo-Preview
-          path: |
-            outputs/android/Four-Seasons-Luke-Memo-Preview.apk
-            outputs/android/Four-Seasons-Luke-Memo-Preview.sha256
-          if-no-files-found: error
+          name: Four-Seasons-Luke-2.0.5-signed
+          path: outputs/review205/
           retention-days: 14
+          if-no-files-found: error
