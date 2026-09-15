@@ -16,3 +16,7 @@
 :root .study-timer .luke-subject-chips [aria-pressed=true]{background:var(--season-soft);color:var(--season-accent);border-color:var(--season-accent)}
 :root .study-workspace .luke-month-bars span,:root .study-workspace .luke-stamp-grid button[data-recorded=true]{background:var(--season-soft)}
 :root .study-workspace .luke-study-calendar>header svg,:root .study-workspace .luke-day-record svg{color:var(--season-accent)}
+
+/* Keep the focus keepsake transparent inside the dial. */
+.focus-keepsake-pendant img{background:transparent!important}
+
