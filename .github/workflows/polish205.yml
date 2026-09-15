@@ -22,25 +22,23 @@ jobs:
         with:
           node-version: '22'
           cache: npm
-      - name: Inspect baseline and install
+      - name: Install dependencies
+        run: npm ci
+      - name: Package exact source and development dependencies
+        if: hashFiles('.ci205-run') == ''
         run: |
           set -euo pipefail
-          git rev-parse HEAD
-          find lib hooks components mobile scripts -maxdepth 2 -type f | sort
-          npm ci
-      - name: Restore existing signing identity only
-        id: signing
-        uses: actions/cache/restore@v4
+          mkdir -p work/offline205
+          git archive --format=tar HEAD | gzip > work/offline205/source.tar.gz
+          tar czf work/offline205/node_modules.tar.gz node_modules
+          printf '%s\n' "$GITHUB_SHA" > work/offline205/source-commit.txt
+      - uses: actions/upload-artifact@v4
+        if: hashFiles('.ci205-run') == ''
         with:
-          path: ~/.android/luke-preview.p12
-          key: luke-preview-signing-v1
-      - name: Signing availability
-        run: |
-          if test -f ~/.android/luke-preview.p12; then
-            keytool -list -keystore ~/.android/luke-preview.p12 -storepass android-preview | grep -E 'SHA256|SHA-256|Certificate fingerprint'
-          else
-            echo 'EXISTING_SIGNER_NOT_IN_BRANCH_CACHE'
-          fi
+          name: offline205
+          path: work/offline205/
+          compression-level: 0
+          retention-days: 2
       - name: Type check and regression tests
         if: hashFiles('.ci205-run') != ''
         run: |
