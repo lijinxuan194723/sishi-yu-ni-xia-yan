@@ -21,7 +21,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: release/v2.0.5-complete
-      - name: Apply and sync narrow source corrections to this branch only
+      - name: Sync narrow source corrections to this branch only
         id: source
         run: |
           set -euo pipefail
@@ -73,6 +73,8 @@ jobs:
         run: |
           set -o pipefail
           python3 scripts/checks/browser205.py 2>&1 | tee work/check205/browser.txt
+      - name: Live public weather endpoint smoke test
+        run: python3 scripts/review/live-weather205.py
       - uses: android-actions/setup-android@v3
         with:
           packages: platform-tools
@@ -80,7 +82,7 @@ jobs:
       - run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0' >/dev/null
       - name: Sign ONLY a separate disposable review package
         run: bash scripts/review/build205.sh
-      - name: Collect checks and reproducible source without unrelated personal artwork folders
+      - name: Collect actual outcomes and exact source
         if: always()
         env:
           BROWSER_OUTCOME: ${{ steps.browser.outcome }}
@@ -103,5 +105,41 @@ jobs:
         with:
           name: Four-Seasons-Luke-2.0.5-independent-review
           path: outputs/review205/
+          retention-days: 14
+          if-no-files-found: error
+  android-smoke:
+    needs: [prepare, build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.prepare.outputs.source }}
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: Four-Seasons-Luke-2.0.5-independent-review
+          path: outputs/review205/
+      - name: Enable emulator acceleration on disposable runner
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Install, cold launch, tab navigation and restart
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_2
+          cores: 4
+          disable-animations: false
+          emulator-options: -no-window -gpu software -no-metrics -noaudio -no-boot-anim -no-snapshot -camera-back none -camera-front none
+          script: python3 scripts/review/native205.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Android-2.0.5-independent-smoke
+          path: work/native205/
           retention-days: 14
           if-no-files-found: error
