@@ -1,0 +1,107 @@
+name: Independent 2.0.5 installable review
+on:
+  push:
+    branches: ['release/v2.0.5-complete']
+    paths: ['.github/workflows/review-isolated205.yml', 'scripts/review/**']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: isolated-review205
+  cancel-in-progress: false
+jobs:
+  prepare:
+    if: github.repository == 'lijinxuan194723/sishi-yu-ni-xia-yan' && github.ref == 'refs/heads/release/v2.0.5-complete'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      source: ${{ steps.source.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: release/v2.0.5-complete
+      - name: Apply and sync narrow source corrections to this branch only
+        id: source
+        run: |
+          set -euo pipefail
+          python3 scripts/review/prepare205.py
+          git add scripts/checks/browser205.py lib/release-info.ts
+          if ! git diff --cached --quiet; then
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git commit -m 'fix: scope settings runtime locator and clarify independent installation'
+            git push origin HEAD:refs/heads/release/v2.0.5-complete
+          fi
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+  build:
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      SOURCE_SHA: ${{ needs.prepare.outputs.source }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.prepare.outputs.source }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+          cache: npm
+      - run: mkdir -p work/check205 outputs/review205
+      - run: npm ci --no-audit --no-fund
+      - name: Type check
+        run: |
+          set -o pipefail
+          npx tsc --noEmit 2>&1 | tee work/check205/types.txt
+      - name: Full logic regressions
+        run: |
+          set -o pipefail
+          node --experimental-strip-types --test scripts/checks/*.test.mjs 2>&1 | tee work/check205/logic.tap
+      - name: Mobile bundle and runtime harness
+        run: |
+          npx vite build --config mobile/vite.config.mts
+          node scripts/checks/build-harness205.mjs
+      - name: Browser tools
+        run: |
+          python3 -m pip install playwright==1.57.0 pillow==11.3.0
+          python3 -m playwright install --with-deps chromium
+      - name: Full browser regression
+        id: browser
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          python3 scripts/checks/browser205.py 2>&1 | tee work/check205/browser.txt
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+          log-accepted-android-sdk-licenses: false
+      - run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0' >/dev/null
+      - name: Sign ONLY a separate disposable review package
+        run: bash scripts/review/build205.sh
+      - name: Collect checks and reproducible source without unrelated personal artwork folders
+        if: always()
+        env:
+          BROWSER_OUTCOME: ${{ steps.browser.outcome }}
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import os,json,zipfile,subprocess,shutil
+          root=Path('outputs/review205');root.mkdir(parents=True,exist_ok=True)
+          (root/'source-commit.txt').write_text(os.environ['SOURCE_SHA']+'\n')
+          (root/'check-outcomes.json').write_text(json.dumps({'browser':os.environ['BROWSER_OUTCOME']},indent=2))
+          shutil.copytree('work/check205',root/'checks',dirs_exist_ok=True)
+          allowed={'app','components','data','hooks','lib','mobile','public','scripts','.github','docs'}
+          with zipfile.ZipFile(root/'source205.zip','w',zipfile.ZIP_DEFLATED) as z:
+              for name in subprocess.check_output(['git','ls-files','-z']).decode().split('\0'):
+                  p=Path(name)
+                  if name and (len(p.parts)==1 or p.parts[0] in allowed) and p.is_file():z.write(p,name)
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Four-Seasons-Luke-2.0.5-independent-review
+          path: outputs/review205/
+          retention-days: 14
+          if-no-files-found: error
