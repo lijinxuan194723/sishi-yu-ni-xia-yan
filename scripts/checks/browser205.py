@@ -30,10 +30,11 @@ INIT=r'''({data,model,appearance})=>{
 def seeded(context,data=BASE,model=False):
  context.add_init_script('('+INIT+')('+json.dumps({'data':data,'model':model},ensure_ascii=False)+');')
  page=context.new_page();errors=[];page.on('pageerror',lambda e:errors.append(str(e)));page.goto('http://127.0.0.1:4173',wait_until='networkidle');page.get_by_role('tab',name='悄悄话',exact=True).wait_for();page.wait_for_timeout(400);return page,errors
-def wait_expression(page, expression, timeout=30000):
+def wait_expression(page, expression, timeout=30000, arg=None):
  until=time.monotonic()+timeout/1000
+ predicate=expression if arg is not None else "()=> ("+expression+")"
  while time.monotonic()<until:
-  if page.evaluate("()=> ("+expression+")"):return
+  if page.evaluate(predicate,arg):return
   page.wait_for_timeout(100)
  raise TimeoutError("Predicate timed out: "+expression)
 def harness(page):page.evaluate("async()=>{window.H=await import('/harness205.js')}")
