@@ -23,4 +23,4 @@ with zipfile.ZipFile(apk) as z:
 # Compare the last delivered preview. This is a disposable emulator fixture.
 if branch=='fix/rounded-native-startup':
  previous=pathlib.Path('work/motion-previous');previous.mkdir(parents=True,exist_ok=True)
- subprocess.run(['gh','run','download','34810383900','--repo',repo,'--name','Four-Seasons-Luke-Memo-Preview','--dir',str(previous)],check=True)
+ subprocess.run(['gh','run','download','34876394478','--repo',repo,'--name','Four-Seasons-Luke-Memo-Preview','--dir',str(previous)],check=True)

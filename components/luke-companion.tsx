@@ -1,4 +1,5 @@
 'use client';
+import {FocusKeepsake} from './focus-keepsake';
 import { memo, useMemo, useState } from 'react';
 import { Bird, BookHeart, Camera, ChevronLeft, ChevronRight, KeyRound, MessageCircle, RefreshCw, Timer } from 'lucide-react';
 import type { Data } from '@/lib/companion';
@@ -33,7 +34,7 @@ export const StudyCompanion = memo(function StudyCompanion({ running, subject, t
 
 export function StudyDial({ seconds, running, subject }: { seconds: number; running: boolean; subject: string }) {
   return <div className="luke-study-dial" data-running={running}>
-    <KeyRound className="luke-dial-key" size={22} aria-hidden="true" />
+    <FocusKeepsake running={running}/>
     <div className="focus-clock" role="timer" aria-label="本次学习已用时间" aria-live="off">{String(Math.floor(seconds / 3600)).padStart(2, '0')}:{String(Math.floor(seconds % 3600 / 60)).padStart(2, '0')}:{String(seconds % 60).padStart(2, '0')}</div>
     <span className="luke-dial-caption">正计时 · {subject || '待选择科目'}</span>
     <span className="luke-dial-peanut"><Bird size={17} aria-hidden="true" /> 花生也在这里</span>
@@ -60,6 +61,6 @@ export function LukeStudyCalendar({ data, day, today, onDay }: { data: Data; day
     <div className="luke-month-heading"><strong>本月已记录 {formatCompanionMinutes(total)}</strong><button type="button" onClick={() => onDay(today)}>回到今天</button></div>
     <div className="luke-month-bars" role="img" aria-label={`${month.title}，已保存 ${formatCompanionMinutes(total)}，${values.filter(v => v > 0).length} 天有记录`}>
       {month.days.map((date, i) => <div key={date} title={`${date}：${formatCompanionMinutes(values[i])}`}><span style={{ height: `${values[i] / max * 100}%` }} /><small>{i === 0 || (i + 1) % 5 === 0 || i === month.days.length - 1 ? i + 1 : ''}</small></div>)}
-    </div><small className="luke-authored">只为已结束并保存的学习记录盖印；进行中的计时不提前计入。</small>
+    </div>
   </section>;
 }

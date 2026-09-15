@@ -1,0 +1,18 @@
+/* Animate only a 56px keepsake with transform. No body scaling, filters, timers or progress-ring repaints. */
+.focus-keepsake{width:60px;height:62px;display:grid;place-items:center;margin:0 auto 10px;pointer-events:none;flex:none}
+.focus-keepsake-pendant{position:relative;width:48px;height:48px;transform-origin:50% 0;animation:luke-focus-sway 4.8s cubic-bezier(.45,0,.55,1) infinite;animation-play-state:paused}
+.focus-keepsake[data-playing=true] .focus-keepsake-pendant{animation-play-state:running;will-change:transform}
+.focus-keepsake-pendant img{display:block;width:42px;height:42px;object-fit:cover;border:1px solid var(--scene-border);border-radius:16px;background:var(--season-soft)}
+.focus-keepsake-pendant svg{position:absolute;right:0;bottom:0;color:var(--season-accent);stroke-width:2}
+.focus-keepsake-thread{position:absolute;left:21px;top:-10px;width:1px;height:10px;background:var(--season-accent);opacity:.65}
+@keyframes luke-focus-sway{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-2px) rotate(3deg)}}
+:root[data-effects=off] .focus-keepsake-pendant{animation:none;transform:none;will-change:auto}
+@media(prefers-reduced-motion:reduce){.focus-keepsake-pendant{animation:none!important;transform:none!important;will-change:auto!important}}
+:root .study-range>.date-field{min-width:0;flex:1;min-height:44px;justify-content:space-between}
+:root .study-timer .luke-subject-chips button{min-height:44px}.study-timer>h2{color:var(--scene-ink)}
+:root .study-timer .luke-dial-caption,:root .study-timer .luke-dial-peanut{color:var(--scene-muted)}
+:root .study-timer .luke-study-dial{border-color:var(--scene-border);background:var(--scene-paper);color:var(--scene-ink)}
+:root .study-timer .focus-clock{font-variant-numeric:tabular-nums;color:var(--scene-ink)}
+:root .study-timer .luke-subject-chips [aria-pressed=true]{background:var(--season-soft);color:var(--season-accent);border-color:var(--season-accent)}
+:root .study-workspace .luke-month-bars span,:root .study-workspace .luke-stamp-grid button[data-recorded=true]{background:var(--season-soft)}
+:root .study-workspace .luke-study-calendar>header svg,:root .study-workspace .luke-day-record svg{color:var(--season-accent)}

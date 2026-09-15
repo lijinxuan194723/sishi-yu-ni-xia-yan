@@ -17,7 +17,7 @@ export function ReminderPanel() {
   finally { opening.current = false; if (alive.current) setBusy(false); }
  }
  return <section className="card reminder-panel" aria-label="闹钟与锁屏提醒">
-  <h2><Bell size={20}/> 夏彦的提醒便笺</h2><p>需要锁屏后也响铃？把提醒交给手机的系统时钟，不依赖此页面一直运行。</p>
+  <h2><Bell size={20}/> 夏彦的提醒便笺</h2>
   <div className="reminder-tabs" aria-label="提醒类型"><button type="button" aria-pressed={mode === 'timer'} onClick={() => setMode('timer')}><Hourglass size={16}/>倒计时提醒</button><button type="button" aria-pressed={mode === 'alarm'} onClick={() => setMode('alarm')}><AlarmClock size={16}/>定时闹钟</button></div>
   <div className="reminder-fields">{mode === 'timer' ? <label>倒计时（分钟）<input type="number" min={1} max={1439} step={1} value={minutes} onChange={e => setMinutes(Number(e.target.value))}/></label> : <label>闹钟时间<input type="time" value={time} onChange={e => setTime(e.target.value)}/></label>}<label>提醒文字<input maxLength={80} value={label} onChange={e => setLabel(e.target.value)}/></label></div>
   <button type="button" className="primary" disabled={!supported || busy} data-haptic="confirm" onClick={() => void openClock(mode)}>{busy ? '正在打开系统时钟…' : '到系统时钟确认提醒'}</button>

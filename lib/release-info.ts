@@ -1,9 +1,9 @@
 /** Public build metadata only. Never include a model key or user record here. */
 export const RELEASE_INFO = Object.freeze({
-  version: '2.0.3',
-  androidVersionCode: 902008,
+  version: '2.0.4',
+  androidVersionCode: 902009,
   channel: '本地应用',
-  base: 'v2.0.0 + 设置草稿与精细交互',
+  base: 'v2.0.3 + 专注动效与分章记忆',
   repository: 'https://github.com/lijinxuan194723/sishi-yu-ni-xia-yan',
   branch: 'fix/rounded-native-startup',
 });
