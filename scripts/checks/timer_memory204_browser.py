@@ -1,6 +1,7 @@
 """Real bundle interaction, using isolated model responses rather than a live account."""
 import json
-from playwright.sync_api import expect, Error
+from playwright.sync_api import expect
+from memory_bridge_fixture import BRIDGE
 
 def verify_timer_memory204(page, check, out):
     stored=page.evaluate('JSON.stringify({...localStorage})')
@@ -59,23 +60,8 @@ def verify_timer_memory204(page, check, out):
         page.get_by_label('模型接口地址',exact=True).fill('https://memory-fixture.invalid/v1')
         page.get_by_label('模型名称',exact=True).fill('isolated-test-model')
         page.get_by_label('模型密钥',exact=True).fill('not-a-real-key')
-        requests=[];summary=['长'*2500];hold=[False];deferred=[]
-        def model_reply(route):
-            cors={'access-control-allow-origin':'*','access-control-allow-headers':'authorization,content-type,accept','access-control-allow-methods':'POST,OPTIONS'}
-            if route.request.method=='OPTIONS':
-                route.fulfill(status=204,headers=cors);return
-            payload=route.request.post_data_json
-            archive=any('你是聊天档案整理器' in m.get('content','') for m in payload.get('messages',[]))
-            # Recommendation requests are unrelated to memory and must not consume
-            # the pending archive fixture or fall through to a real provider.
-            if not archive and not payload.get('stream'):
-                route.fulfill(status=503,headers=cors,content_type='application/json',body='{"error":"unrelated fixture request"}');return
-            requests.append(payload)
-            if hold[0] and archive:
-                deferred.append(route);return
-            text='记得：旧书店和茉莉花，这是测试回复。' if payload.get('stream') else summary[0]
-            route.fulfill(status=200,headers=cors,content_type='application/json',body=json.dumps({'choices':[{'message':{'content':text},'finish_reason':'stop'}]},ensure_ascii=False))
-        page.route('https://memory-fixture.invalid/**',model_reply)
+        page.evaluate(BRIDGE)
+        check('packaged CSP remains locked while model transport is mocked',page.locator('meta[http-equiv="Content-Security-Policy"]').get_attribute('content').find("connect-src 'none'")>=0)
         page.get_by_role('button',name='保存模型设置',exact=True).click()
         expect(page.get_by_text('模型设置已保存',exact=True)).to_be_visible()
         check('memory test uses only the explicitly saved fixture endpoint',page.evaluate("JSON.parse(localStorage.getItem('luke-model-credentials-v1')).baseUrl")=='https://memory-fixture.invalid/v1')
@@ -83,7 +69,7 @@ def verify_timer_memory204(page, check, out):
         page.get_by_role('button',name='整理下一章节',exact=True).click()
         expect(page.get_by_text('记忆整理结果过长或为空，原有章节未覆盖。',exact=True)).to_be_visible(timeout=10000)
         check('invalid model summary stays a recoverable error',page.locator('.memory-chapters details').count()==0)
-        summary[0]='用户说喜欢茉莉花，周日想去旧书店。此为测试整理。'
+        page.evaluate("window.__memoryFixture.summary='用户说喜欢茉莉花，周日想去旧书店。此为测试整理。'")
         page.get_by_role('button',name='整理下一章节',exact=True).click()
         expect(page.locator('.memory-chapters details')).to_have_count(1,timeout=10000)
         d=page.evaluate("JSON.parse(localStorage.getItem('luke-companion-v1'))")
@@ -101,25 +87,23 @@ def verify_timer_memory204(page, check, out):
         switch.uncheck();page.screenshot(path=str(out/'conversation-memory.png'))
         d=page.evaluate("JSON.parse(localStorage.getItem('luke-companion-v1'))")
         check('chapter source coverage advances without replacing first chapter',d['memoryArchive']['chapters'][0]['from']==0 and d['memoryArchive']['chapters'][1]['from']==d['memoryArchive']['chapters'][0]['to'])
-        hold[0]=True
+        page.evaluate('window.__memoryFixture.hold=true')
         before_cancel=page.evaluate("JSON.parse(localStorage.getItem('luke-companion-v1')).memoryArchive.chapters")
         page.get_by_role('button',name='整理下一章节',exact=True).click()
         expect(page.get_by_role('button',name='取消整理',exact=True)).to_be_visible()
-        for _ in range(100):
-            if deferred:break
-            page.wait_for_timeout(50)
-        check('memory cancellation covers an actual pending model request',len(deferred)==1)
+        page.wait_for_function('window.__memoryFixture.pending.length===1')
+        check('memory cancellation covers an actual pending bridge request',page.evaluate('window.__memoryFixture.pending.length')==1)
         page.get_by_role('button',name='取消整理',exact=True).click()
         expect(page.get_by_role('button',name='整理下一章节',exact=True)).to_be_visible()
-        try:deferred.pop().fulfill(status=200,headers={'access-control-allow-origin':'*'},content_type='application/json',body=json.dumps({'choices':[{'message':{'content':'这是取消后到达的结果，不应写入。'},'finish_reason':'stop'}]},ensure_ascii=False))
-        except Error:pass
-        hold[0]=False;page.wait_for_timeout(400)
+        check('cancellation reaches the native transport contract',page.evaluate('window.__memoryFixture.cancelled.includes(window.__memoryFixture.pending[0])'))
+        page.evaluate("()=>{const f=window.__memoryFixture;f.reply(f.pending.pop(),'这是取消后到达的结果，不应写入。');f.hold=false;}")
+        page.wait_for_timeout(400)
         check('cancelled memory result cannot append or replace chapters',page.evaluate("JSON.parse(localStorage.getItem('luke-companion-v1')).memoryArchive.chapters")==before_cancel)
         close();nav('悄悄话')
         page.get_by_role('textbox',name='发送给夏彦的消息',exact=True).fill('茉莉花和旧书店的约定呢？')
         page.get_by_role('button',name='发送消息',exact=True).click()
         expect(page.get_by_text('记得：旧书店和茉莉花，这是测试回复。',exact=True)).to_be_visible(timeout=10000)
-        outgoing=next(r for r in reversed(requests) if r.get('stream'))
+        outgoing=page.evaluate('window.__memoryFixture.requests.filter(r=>r.stream).at(-1)')
         payload='\n'.join(m['content'] for m in outgoing['messages'])
         check('normal reply receives relevant older original and chapter context',all(term in payload for term in ['relevantOriginalMessages','memoryChapters','我喜欢茉莉花，约好周日去旧书店。','固定约定保留']))
         page.reload();settings();page.get_by_role('tab',name='长期聊天记忆',exact=True).click()
@@ -131,6 +115,6 @@ def verify_timer_memory204(page, check, out):
         (out/'memory-timer-failure.txt').write_text(page.locator('body').inner_text())
         raise
     finally:
-        page.unroute('https://memory-fixture.invalid/**')
+        page.evaluate('window.__memoryFixture?.restore()')
         page.evaluate('''raw=>{localStorage.clear();for(const [key,value] of Object.entries(JSON.parse(raw)))localStorage.setItem(key,value);}''',stored)
         page.reload();page.get_by_role('tab',name='回到身边',exact=True).wait_for()
