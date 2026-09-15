@@ -1,0 +1,141 @@
+name: Publish official v2.0.4
+
+on:
+  push:
+    branches: ['release/v2.0.4']
+    paths: ['.github/workflows/publish-v2.0.4.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-official-v2.0.4
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: github.repository == 'lijinxuan194723/sishi-yu-ni-xia-yan' && github.ref == 'refs/heads/release/v2.0.4'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      actions: read
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: lijinxuan194723/sishi-yu-ni-xia-yan
+    steps:
+      - name: Verify exact signed build, upgrade identity, source and archived tests; then publish
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib, json, os, pathlib, re, subprocess, zipfile
+          repo=os.environ['GH_REPO']
+          source='e01ccaa87b4344a793b8b892e01648dc8646df3f'
+          build_run=34933486828
+          build_artifact=10382880394
+          build_zip_hash='29fb0d98d26f865afa16dadef62648930354c460c3336b78106f5095ee535b9d'
+          apk_hash='b5c12d9240fc0dd5ac579cd7b00c448a59538c3865b16164437d2eb300c61dd4'
+          certificate='be727012f0f00f93ea7578f1ab37b5c22c06652997a6797c0e19cef4f1b13e69'
+          root=pathlib.Path('official-release'); root.mkdir()
+          assets=root/'assets'; assets.mkdir()
+          def run(*args, binary=False):
+              if binary:
+                  return subprocess.check_output([str(a) for a in args],timeout=180)
+              return subprocess.check_output([str(a) for a in args],text=True,timeout=180)
+          def api(path): return json.loads(run('gh','api','repos/'+repo+'/'+path))
+          def sha(path): return hashlib.sha256(path.read_bytes()).hexdigest()
+          def artifact(artifact_id,run_id,head,expected_zip,name):
+              meta=api('actions/artifacts/'+str(artifact_id))
+              assert not meta['expired']
+              assert meta['workflow_run']['id']==run_id and meta['workflow_run']['head_sha']==head
+              assert meta['digest']=='sha256:'+expected_zip
+              p=root/name
+              p.write_bytes(run('gh','api','repos/'+repo+'/actions/artifacts/'+str(artifact_id)+'/zip',binary=True))
+              assert sha(p)==expected_zip
+              with zipfile.ZipFile(p) as z: assert z.testzip() is None
+              return p
+          build_meta=api('actions/runs/'+str(build_run))
+          assert build_meta['head_sha']==source and build_meta['conclusion']=='success'
+          build_zip=artifact(build_artifact,build_run,source,build_zip_hash,'build.zip')
+          with zipfile.ZipFile(build_zip) as z:
+              names=[n for n in z.namelist() if n.endswith('.apk')]
+              assert len(names)==1
+              candidate=root/'candidate.apk'; candidate.write_bytes(z.read(names[0]))
+          assert sha(candidate)==apk_hash
+          prior_dir=root/'prior'; prior_dir.mkdir()
+          subprocess.run(['gh','release','download','v2.0.3','--repo',repo,'--pattern','Four-Seasons-Luke-2.0.3.apk','--dir',prior_dir],check=True,timeout=180)
+          previous=prior_dir/'Four-Seasons-Luke-2.0.3.apk'
+          tools=pathlib.Path(os.environ['ANDROID_HOME'])/'build-tools'
+          choices=[p for p in tools.iterdir() if (p/'apksigner').is_file() and (p/'aapt').is_file() and (p/'zipalign').is_file()]
+          assert choices
+          tool=sorted(choices)[-1]
+          def identity(apk):
+              signed=run(tool/'apksigner','verify','--verbose','--print-certs',apk)
+              certs=[c.lower() for c in re.findall(r'^(?:Signer #\d+|V[0-9.]+ Signer:)\s+certificate SHA-256 digest:\s*([0-9a-fA-F]{64})\s*$',signed,re.M)]
+              assert re.search(r'^Number of signers: 1\s*$',signed,re.M)
+              assert certs and set(certs)=={certificate}
+              badging=run(tool/'aapt','dump','badging',apk)
+              m=re.search(r"package: name='([^']+)' versionCode='(\d+)' versionName='([^']+)'",badging); assert m
+              assert m.group(1)=='com.luke.summer.preview'
+              assert 'application-debuggable' not in badging
+              run(tool/'zipalign','-c','4',apk)
+              return {'package':m.group(1),'versionCode':int(m.group(2)),'version':m.group(3),'signerSha256':certificate,'sha256':sha(apk)}
+          old,new=identity(previous),identity(candidate)
+          assert old['versionCode']==902008 and new['versionCode']==902009 and new['version']=='2.0.4'
+          with zipfile.ZipFile(previous) as a, zipfile.ZipFile(candidate) as b:
+              assert a.read('classes.dex')==b.read('classes.dex'), 'Native storage implementation changed unexpectedly'
+              assert 'assets/personal-model.json' not in b.namelist(), 'Shared model credential asset must not ship'
+          browser_zip=artifact(10383075443,34933486825,source,'548b490d7542da7313f23a759d2d4956837d933a726547a60524f4a8d190395e','browser.zip')
+          android11_zip=artifact(10382986515,34933486825,source,'1b46554941937412f76a81441a8c4a1127e7fc81c3864b3034e6a19fd474488a','android11.zip')
+          android15_zip=artifact(10382682506,34933486825,source,'626294018d5c1db7117cf819b3ebb3ae687339b8ffa8fa5a563f58a92ba5ff69','android15.zip')
+          def result(zpath):
+              with zipfile.ZipFile(zpath) as z:
+                  names=[n for n in z.namelist() if n.endswith('results.json')]
+                  assert len(names)==1
+                  return json.loads(z.read(names[0]))
+          browser=result(browser_zip); android11=result(android11_zip); android15=result(android15_zip)
+          browser_checks=browser['results'] if isinstance(browser,dict) else browser
+          assert len(browser_checks)==310 and all(x['passed'] for x in browser_checks)
+          assert android11['apkSha256']==apk_hash and android15['apkSha256']==apk_hash
+          for data in (android11,android15):
+              for check in ['signed candidate installs without uninstall','in-place upgrade retains exact saved note title']:
+                  assert any(x['name']==check and x['passed'] for x in data['results']), 'Missing upgrade evidence: '+check
+          assert len(android15['results'])==64 and all(x['passed'] for x in android15['results'])
+          failures11=[x for x in android11['results'] if not x['passed']]
+          audit={
+              'release':'v2.0.4','sourceCommit':source,'buildRun':build_run,'publicationRun':os.environ['GITHUB_RUN_ID'],
+              'oldInstaller':old,'releaseInstaller':new,'samePackage':old['package']==new['package'],
+              'sameSigner':old['signerSha256']==new['signerSha256'],'versionCodeIncreased':new['versionCode']>old['versionCode'],
+              'nativeClassesUnchanged':True,'browserChecks':len(browser_checks),'android15Checks':len(android15['results']),
+              'android11Failures':failures11,
+              'scope':'Archived synthetic-note upgrade checks verify in-place install and saved-note retention. Export a full backup before updating; uninstalled/cleared-data installs are outside this guarantee.'
+          }
+          apk_name='Four-Seasons-Luke-2.0.4.apk'
+          (assets/apk_name).write_bytes(candidate.read_bytes())
+          (assets/'Four-Seasons-Luke-2.0.4.sha256').write_text(apk_hash+'  '+apk_name+'\n')
+          (assets/'Four-Seasons-Luke-2.0.4-upgrade-audit.json').write_text(json.dumps(audit,ensure_ascii=False,indent=2))
+          evidence=root/'evidence'; evidence.mkdir()
+          for fn,val in [('browser-results.json',browser),('android11-results.json',android11),('android15-results.json',android15)]:
+              (evidence/fn).write_text(json.dumps(val,ensure_ascii=False,indent=2))
+          with zipfile.ZipFile(assets/'Four-Seasons-Luke-2.0.4-release-checks.zip','w',zipfile.ZIP_DEFLATED) as z:
+              for f in evidence.iterdir(): z.write(f,f.name)
+          notes=f'''# 四时与你 2.0.4\n\nAndroid 版本编号 **902009**。本 Release 使用构建 #182 生成的原始签名 APK，不重新签名、不更换包名。Tag 指向 APK 对应的完整源码提交 `{source}`，GitHub Release 页面同时提供该 tag 的 Source code (zip/tar.gz)。\n\n## 本版更新\n\n- 计时页移除底部重复说明，新增轻量夏彦挂件动效；动效与计时逻辑分离，并遵循后台、页面可见性和减少动态效果设置。\n- 长期聊天记忆增加追加式章节、固定信息、相关旧原文召回和原文范围追溯；自动整理可取消，过期结果不得覆盖新数据。\n- 保留完整聊天、旧摘要和固定信息；不为缩短模型上下文删除本地原文。\n- 移除源码中的共享模型凭据，不再静默追加其他服务商作为备用模型。已有本机保存配置保留。\n- 无新增 Android 权限。\n\n## 覆盖安装与数据\n\n本包继续使用 `com.luke.summer.preview` 和与 v2.0.3 相同的签名证书。版本编号从 902008 升至 902009。归档 Android 11/15 测试均验证了**不卸载覆盖安装成功**，并验证升级后测试手记标题仍保留。\n\n安装前仍建议在“设置 → 日常与数据”导出完整备份。直接覆盖安装；**不要先卸载，不要清除应用数据**。若系统提示签名冲突，请停止安装，不要通过卸载解决。\n\n## 验证范围\n\n- 310 项浏览器交互检查全部通过。\n- Android 15：64 项运行检查全部通过。\n- Android 11：保留 1 项运行失败（触感测试按钮的稳定可见定位），且历史上曾出现间歇 WebView 渲染中断，因此不能宣称所有 Android 11 设备已完全稳定。\n- 模型相关测试使用隔离响应，验证编排、取消和存储，不代表真实模型摘要质量。\n\n## 源码与构建\n\n完整源码：tag `v2.0.4` / commit `{source}`。\n开发分支：`fix/rounded-native-startup`。\nAPK 构建：[Build #182](https://github.com/lijinxuan194723/sishi-yu-ni-xia-yan/actions/runs/{build_run})。\n验证：[Motion Verification #45](https://github.com/lijinxuan194723/sishi-yu-ni-xia-yan/actions/runs/34933486825)。\n\nAPK SHA-256：`{apk_hash}`。\n签名证书 SHA-256：`{certificate}`。\n'''
+          note_file=assets/'Four-Seasons-Luke-2.0.4-RELEASE.md'; note_file.write_text(notes)
+          existing=subprocess.run(['gh','release','view','v2.0.4','--repo',repo],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+          assert existing.returncode!=0, 'v2.0.4 already exists; refuse automatic overwrite'
+          run('gh','release','create','v2.0.4','--repo',repo,'--target',source,'--title','四时与你 2.0.4','--notes-file',note_file,'--draft')
+          run('gh','release','upload','v2.0.4','--repo',repo,*sorted(assets.iterdir()))
+          downloaded=root/'download-check'; downloaded.mkdir()
+          run('gh','release','download','v2.0.4','--repo',repo,'--pattern',apk_name,'--dir',downloaded)
+          assert sha(downloaded/apk_name)==apk_hash
+          run('gh','release','edit','v2.0.4','--repo',repo,'--draft=false','--prerelease=false','--latest')
+          release=api('releases/tags/v2.0.4')
+          assert release['draft'] is False and release['prerelease'] is False and release['target_commitish']==source
+          tag=api('git/ref/tags/v2.0.4'); assert tag['object']['sha']==source
+          asset=next(a for a in release['assets'] if a['name']==apk_name)
+          assert asset['digest']=='sha256:'+apk_hash and asset['size']==6488312
+          print('Published:',release['html_url'])
+          print('APK:',asset['browser_download_url'])
+          PY
