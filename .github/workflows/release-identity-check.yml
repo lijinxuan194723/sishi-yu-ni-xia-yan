@@ -1,0 +1,27 @@
+name: Diagnose release identity
+on:
+  push:
+    branches: ['release/v2.0.3']
+    paths: ['.github/workflows/release-identity-check.yml']
+permissions:
+  actions: read
+  contents: read
+jobs:
+  identity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: lijinxuan194723/sishi-yu-ni-xia-yan
+    steps:
+      - name: Print public certificate identities without publishing
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api repos/$GH_REPO/actions/artifacts/10357925446/zip > old.zip
+          gh api repos/$GH_REPO/actions/artifacts/10361311436/zip > new.zip
+          unzip -q old.zip -d old
+          unzip -q new.zip -d new
+          SIGNER=$(find "$ANDROID_HOME/build-tools" -mindepth 2 -maxdepth 2 -name apksigner | sort | tail -n 1)
+          echo "Tool: $SIGNER"
+          find old new -name '*.apk' -print -exec sha256sum {} \; -exec "$SIGNER" verify --verbose --print-certs {} \;
