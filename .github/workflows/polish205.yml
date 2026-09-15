@@ -1,0 +1,58 @@
+name: Verify and build 2.0.5
+on:
+  push:
+    branches: ['release/v2.0.5-polish']
+    paths: ['.ci205-run', '.github/workflows/polish205.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: polish205
+  cancel-in-progress: true
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Inspect baseline and install
+        run: |
+          set -euo pipefail
+          git rev-parse HEAD
+          find lib hooks components mobile scripts -maxdepth 2 -type f | sort
+          npm ci
+      - name: Restore existing signing identity only
+        id: signing
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/.android/luke-preview.p12
+          key: luke-preview-signing-v1
+      - name: Signing availability
+        run: |
+          if test -f ~/.android/luke-preview.p12; then
+            keytool -list -keystore ~/.android/luke-preview.p12 -storepass android-preview | grep -E 'SHA256|SHA-256|Certificate fingerprint'
+          else
+            echo 'EXISTING_SIGNER_NOT_IN_BRANCH_CACHE'
+          fi
+      - name: Type check and regression tests
+        if: hashFiles('.ci205-run') != ''
+        run: |
+          mkdir -p work/check205
+          npx tsc --noEmit > work/check205/types.txt 2>&1
+          node --experimental-strip-types --test scripts/checks/polish205.test.mjs | tee work/check205/logic.tap
+      - name: Mobile bundle
+        if: hashFiles('.ci205-run') != ''
+        run: npx vite build --config mobile/vite.config.mts
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: check205
+          path: work/check205/
+          if-no-files-found: ignore
