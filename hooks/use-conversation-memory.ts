@@ -1,5 +1,5 @@
 'use client';
-import {useEffect,useRef,useState} from 'react';
+import {useEffect,useRef,useState,useMemo} from 'react';
 import type {Data} from '@/lib/companion';
 import {complete,type ModelConfig} from '@/lib/model';
 import {archivePrompt,commitChapter,nextArchiveBatch,MAX_CHAPTER_CHARS} from '@/lib/memory-archive';
@@ -25,13 +25,17 @@ export function useConversationMemory(options:Options){
    if(controller.signal.aborted||id!==sequence.current||!alive.current)return;
    if(!summary.trim()||summary.trim().length>MAX_CHAPTER_CHARS)throw new Error('记忆整理结果过长或为空，原有章节未覆盖。');
    const at=new Date().toISOString();
+   const latest=live.current.data;
+   if(latest.memoryArchive!==initialArchive||!commitChapter(latest.messages,latest.memoryArchive,batch,summary,at,!manual)){
+    setNotice('聊天记录已变化，本次整理未写入。');setPhase('idle');return;
+   }
    // The updater rechecks both sources and archive identity; stale work cannot overwrite a restore/edit.
    save(current=>{
     if(id!==sequence.current||current.memoryArchive!==initialArchive)return {};
     const next=commitChapter(current.messages,current.memoryArchive,batch,summary,at,!manual);
     return next?{memoryArchive:next}:{};
    });
-   setNotice('本段已整理，保存状态见下方。');setPhase('idle');
+   setNotice('整理结果已返回，章节与保存状态见下方。');setPhase('idle');
   }catch(error){
    if(id!==sequence.current||!alive.current)return;
    setPhase('error');setNotice(controller.signal.aborted?'整理已超时，原有聊天和记忆未覆盖。':error instanceof Error?error.message:'整理失败，原有记录未覆盖。');
@@ -42,13 +46,14 @@ export function useConversationMemory(options:Options){
   return()=>{alive.current=false;sequence.current++;task.current?.abort();task.current=null;document.removeEventListener('visibilitychange',hidden);};
  },[]);
  const {data,config,ready,busy}=options;
+ const hasAutomaticBatch=useMemo(()=>!!data.memoryArchive?.enabled&&!!nextArchiveBatch(data.messages,data.memoryArchive),[data.messages,data.memoryArchive]);
  useEffect(()=>{cancel();},[busy,ready,config.baseUrl,config.model,config.key,config.fallback?.baseUrl,config.fallback?.model,config.fallback?.key]);
  useEffect(()=>{if(!data.memoryArchive?.enabled)cancel();},[data.memoryArchive?.enabled]);
  useEffect(()=>{
-  if(!ready||busy||!data.memoryArchive?.enabled||data.draft?.trim()||!nextArchiveBatch(data.messages,data.memoryArchive))return;
+  if(!ready||busy||!data.memoryArchive?.enabled||data.draft?.trim()||!hasAutomaticBatch)return;
   const id=setTimeout(()=>{if(!document.hidden&&!live.current.data.draft?.trim())void run();},Math.max(12000,cooldown.current-Date.now()));
   return()=>clearTimeout(id);
- },[data.messages,data.memoryArchive,data.draft,ready,busy,wake,config.baseUrl,config.model,config.key]);
+ },[data.messages,data.memoryArchive,data.draft,ready,busy,wake,config.baseUrl,config.model,config.key,hasAutomaticBatch]);
  return {phase,notice,cancel,run:()=>run(true)};
 }
 export type MemoryWorker=ReturnType<typeof useConversationMemory>;

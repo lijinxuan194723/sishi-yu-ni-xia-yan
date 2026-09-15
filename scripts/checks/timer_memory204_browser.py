@@ -1,6 +1,6 @@
 """Real bundle interaction, using isolated model responses rather than a live account."""
 import json
-from playwright.sync_api import expect
+from playwright.sync_api import expect, Error
 
 def verify_timer_memory204(page, check, out):
     stored=page.evaluate('JSON.stringify({...localStorage})')
@@ -23,9 +23,10 @@ def verify_timer_memory204(page, check, out):
         check('timer has no repeated footer guidance',page.get_by_text('只为已结束并保存的学习记录盖印；进行中的计时不提前计入。',exact=True).count()==0)
         check('timer pendant starts paused',pendant.evaluate('(e)=>getComputedStyle(e).animationPlayState')=='paused')
         page.get_by_role('button',name='开始计时',exact=True).click()
-        pendant.scroll_into_view_if_needed();page.wait_for_timeout(400)
+        page.locator('.focus-keepsake').scroll_into_view_if_needed();page.wait_for_timeout(400)
         frames=page.evaluate('''()=>new Promise(resolve=>{const a=[],start=performance.now(),node=document.querySelector('.focus-keepsake-pendant');function step(){a.push({t:performance.now()-start,transform:getComputedStyle(node).transform});if(performance.now()-start<750)requestAnimationFrame(step);else resolve(a);}requestAnimationFrame(step);})''')
         (out/'timer-keepsake-frames.json').write_text(json.dumps(frames))
+        check('timer keepsake image is decoded',pendant.locator('img').evaluate('(e)=>e.complete && e.naturalWidth>0'))
         check('running timer has actual intermediate pendant frames',len(set(f['transform'] for f in frames))>=5,frames[:5])
         before=page.locator('[role=timer]').inner_text();page.wait_for_timeout(1300)
         check('display clock advances independently',page.locator('[role=timer]').inner_text()!=before)
@@ -47,7 +48,7 @@ def verify_timer_memory204(page, check, out):
             colors=page.locator('.luke-study-dial').evaluate('(e)=>({fg:getComputedStyle(e).color,bg:getComputedStyle(e).backgroundColor,key:getComputedStyle(e.querySelector(".focus-keepsake svg")).color})')
             palettes.append(colors)
         check('four seasonal timer accents are distinct',len(set(p['key'] for p in palettes))==4,palettes)
-        # New synthetic history is loaded from disk before React mounts, respecting the storage-conflict guard.
+        # Load synthetic history before React mounts, respecting the storage-conflict guard.
         page.evaluate('''()=>{const d=JSON.parse(localStorage.getItem('luke-companion-v1'));d.messages=Array.from({length:60},(_,i)=>({who:i%2?'luke':'me',text:i===0?'我喜欢茉莉花，约好周日去旧书店。':'章节测试记录 '+i,at:new Date().toISOString()}));d.draft='';d.memory={summary:'旧摘要保留',through:8,pinned:'固定约定保留',updatedAt:''};delete d.memoryArchive;localStorage.setItem('luke-companion-v1',JSON.stringify(d));}''')
         page.reload();page.get_by_role('tab',name='回到身边',exact=True).wait_for()
         settings();page.get_by_role('tab',name='长期聊天记忆',exact=True).click()
@@ -58,9 +59,11 @@ def verify_timer_memory204(page, check, out):
         page.get_by_label('模型接口地址',exact=True).fill('https://memory-fixture.invalid/v1')
         page.get_by_label('模型名称',exact=True).fill('isolated-test-model')
         page.get_by_label('模型密钥',exact=True).fill('not-a-real-key')
-        requests=[];summary=['长'*2500]
+        requests=[];summary=['长'*2500];hold=[False];deferred=[]
         def model_reply(route):
             payload=route.request.post_data_json;requests.append(payload)
+            if hold[0] and not payload.get('stream'):
+                deferred.append(route);return
             text='记得：旧书店和茉莉花，这是测试回复。' if payload.get('stream') else summary[0]
             route.fulfill(status=200,content_type='application/json',body=json.dumps({'choices':[{'message':{'content':text},'finish_reason':'stop'}]},ensure_ascii=False))
         page.route('https://memory-fixture.invalid/**',model_reply)
@@ -87,6 +90,20 @@ def verify_timer_memory204(page, check, out):
         switch.uncheck();page.screenshot(path=str(out/'conversation-memory.png'))
         d=page.evaluate("JSON.parse(localStorage.getItem('luke-companion-v1'))")
         check('chapter source coverage advances without replacing first chapter',d['memoryArchive']['chapters'][0]['from']==0 and d['memoryArchive']['chapters'][1]['from']==d['memoryArchive']['chapters'][0]['to'])
+        hold[0]=True
+        before_cancel=page.evaluate("JSON.parse(localStorage.getItem('luke-companion-v1')).memoryArchive.chapters")
+        page.get_by_role('button',name='整理下一章节',exact=True).click()
+        expect(page.get_by_role('button',name='取消整理',exact=True)).to_be_visible()
+        for _ in range(100):
+            if deferred:break
+            page.wait_for_timeout(50)
+        check('memory cancellation covers an actual pending model request',len(deferred)==1)
+        page.get_by_role('button',name='取消整理',exact=True).click()
+        expect(page.get_by_role('button',name='整理下一章节',exact=True)).to_be_visible()
+        try:deferred.pop().fulfill(status=200,content_type='application/json',body=json.dumps({'choices':[{'message':{'content':'这是取消后到达的结果，不应写入。'},'finish_reason':'stop'}]},ensure_ascii=False))
+        except Error:pass  # Aborted browser requests may no longer accept a response.
+        hold[0]=False;page.wait_for_timeout(400)
+        check('cancelled memory result cannot append or replace chapters',page.evaluate("JSON.parse(localStorage.getItem('luke-companion-v1')).memoryArchive.chapters")==before_cancel)
         close();nav('悄悄话')
         page.get_by_role('textbox',name='发送给夏彦的消息',exact=True).fill('茉莉花和旧书店的约定呢？')
         page.get_by_role('button',name='发送消息',exact=True).click()

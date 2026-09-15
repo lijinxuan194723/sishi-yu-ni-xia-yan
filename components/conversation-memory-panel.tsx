@@ -14,12 +14,13 @@ export function ConversationMemoryPanel({data,ready,busy,status,worker,save,onCh
  const needle=query.normalize('NFKC').trim().toLowerCase();
  const found=useMemo(()=>archive.chapters.map((chapter,index)=>({chapter,index})).filter(({chapter})=>!needle||chapter.summary.normalize('NFKC').toLowerCase().includes(needle)).reverse(),[data.memoryArchive,needle]);
  const working=worker.phase==='working';
+ const hasManualBatch=useMemo(()=>!!nextArchiveBatch(data.messages,data.memoryArchive,true),[data.messages,data.memoryArchive]);
  return <div className="settings-stack conversation-memory" data-conversation-memory>
   <div className="memory-overview"><BookHeart size={23}/><div><strong>把我们的聊天留成章节</strong><span>原文 {data.messages.length} 条 · 有效章节 {valid.chapters.length} 篇 · 已整理至 {through} 条</span></div></div>
   <label className="memory-auto"><span><strong>自动整理长期记忆</strong><small>聊天空闲时，使用当前模型整理新的章节。</small></span><input type="checkbox" role="switch" aria-label="自动整理长期记忆" checked={archive.enabled} disabled={!ready} onChange={e=>{worker.cancel();const enabled=e.target.checked;save(current=>({memoryArchive:{...(current.memoryArchive??emptyArchive()),enabled}}));}}/></label>
   <p className="memory-disclosure">开启后会向已配置的模型发送待整理聊天，产生额外请求；不接入其他记忆云服务。原文保留在本机，回复按相关性读取旧片段。摘要可能遗漏或记错，可核对原文并固定重要约定。</p>
   {stale>0&&<p role="status" className="memory-disclosure">{stale} 篇章节的原文已变化，暂不用于回复，将从变化处重新整理。</p>}
-  <div className="memory-commands"><button type="button" className="soft-button" disabled={!ready||busy||(!working&&!nextArchiveBatch(data.messages,archive,true))} onClick={()=>working?worker.cancel():void worker.run()}><RefreshCw size={16}/>{working?'取消整理':'整理下一章节'}</button><button type="button" className="soft-button" onClick={onChat}>查看完整聊天</button></div>
+  <div className="memory-commands"><button type="button" className="soft-button" disabled={!ready||busy||(!working&&!hasManualBatch)} onClick={()=>working?worker.cancel():void worker.run()}><RefreshCw size={16}/>{working?'取消整理':'整理下一章节'}</button><button type="button" className="soft-button" onClick={onChat}>查看完整聊天</button></div>
   {worker.notice&&<p role="status" className="memory-disclosure">{worker.notice}</p>}<small role="status">{status}</small>
   <label>希望他牢牢记住的事<textarea disabled={!ready||busy} maxLength={5000} rows={4} value={memory.pinned} placeholder="喜欢的称呼、重要约定、聊天边界" onChange={e=>{const pinned=e.target.value;save(current=>({memory:{...(current.memory??emptyMemory),pinned}}));}}/></label>
   <div className="memory-archive-title"><Archive size={18}/><h4>聊天章节</h4><small>{archive.chapters.length} 篇</small></div>
