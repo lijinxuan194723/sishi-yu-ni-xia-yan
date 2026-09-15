@@ -1,0 +1,57 @@
+name: Weather endpoint verification 205
+on:
+  push:
+    branches: ['release/v2.0.5-polish']
+    paths: ['.github/workflows/api205.yml']
+permissions:
+  contents: read
+jobs:
+  public-api:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Request public forecast and geocoding APIs
+        shell: python
+        run: |
+          import urllib.request, urllib.parse, json, datetime, pathlib, time
+          out=pathlib.Path('api205');out.mkdir(exist_ok=True)
+          results=[]
+          def get(name,url,validate):
+            for attempt in range(3):
+              try:
+                started=time.monotonic()
+                req=urllib.request.Request(url,headers={'User-Agent':'Four-Seasons-Luke-205-Verification'})
+                with urllib.request.urlopen(req,timeout=20) as response:
+                  data=json.load(response);status=response.status
+                detail=validate(data)
+                results.append({'name':name,'status':status,'elapsedMs':round((time.monotonic()-started)*1000),'valid':True,'detail':detail})
+                return
+              except Exception as error:
+                if attempt<2:time.sleep(3*(attempt+1))
+                else:results.append({'name':name,'valid':False,'error':str(error)})
+          def forecast(d):
+            c=d['current'];daily=d['daily'];offset=d['utc_offset_seconds']
+            assert isinstance(c['temperature_2m'],(int,float)) and isinstance(c['weather_code'],(int,float))
+            assert len(daily['time'])==7 and len(daily['temperature_2m_max'])==7
+            days=[datetime.datetime.fromtimestamp(t+offset,datetime.timezone.utc).strftime('%Y-%m-%d') for t in daily['time']]
+            assert len(set(days))==7
+            assert all(datetime.date.fromisoformat(days[i+1])-datetime.date.fromisoformat(days[i])==datetime.timedelta(days=1) for i in range(6))
+            return {'timezone':d['timezone'],'dailyDates':days,'observedAt':c['time'],'temperature':c['temperature_2m'],'weatherCode':c['weather_code'],'hourlyCount':len(d['hourly']['time'])}
+          def geocode(d):
+            results=d['results'];assert len(results)>0
+            assert any(r.get('country_code')=='CN' for r in results)
+            for r in results:assert -90<=r['latitude']<=90 and -180<=r['longitude']<=180
+            return [{k:r.get(k) for k in ['name','country_code','latitude','longitude']} for r in results[:3]]
+          query=urllib.parse.urlencode({'latitude':'39.9042','longitude':'116.4074','current':'temperature_2m,weather_code','daily':'weather_code,temperature_2m_max,temperature_2m_min','hourly':'precipitation_probability','forecast_days':7,'forecast_hours':12,'timezone':'auto','timeformat':'unixtime'})
+          get('forecast','https://api.open-meteo.com/v1/forecast?'+query,forecast)
+          get('geocoding-en','https://geocoding-api.open-meteo.com/v1/search?'+urllib.parse.urlencode({'name':'Beijing','count':8,'language':'zh','format':'json'}),geocode)
+          get('geocoding-zh','https://geocoding-api.open-meteo.com/v1/search?'+urllib.parse.urlencode({'name':'北京','count':8,'language':'zh','format':'json'}),geocode)
+          report={'checkedAt':datetime.datetime.now(datetime.timezone.utc).isoformat(),'results':results}
+          (out/'live-api.json').write_text(json.dumps(report,ensure_ascii=False,indent=2))
+          print(json.dumps(report,ensure_ascii=False,indent=2))
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: api205
+          path: api205/
+          retention-days: 14
