@@ -9,12 +9,12 @@ const messages=Array.from({length:60},(_,i)=>({who:i%2?'luke':'me',text:i===0?'�
 const data={name:'测试',since:'2024-01-01',messages,tasks:[],notes:[],checks:[],memory:{...emptyMemory,pinned:'不要叫我小朋友',summary:'旧摘要仍保留',through:8}};
 function chapter(){const batch=nextArchiveBatch(messages,emptyArchive());return commitChapter(messages,{...emptyArchive(),enabled:true},batch,'用户喜欢茉莉花，周日去旧书店。',at);}
 test('old backup round-trips without migration or archive side effects',()=>assert.deepEqual(parseData(JSON.stringify(data)),data));
-test('new archive begins disabled for explicit model-use consent',()=>assert.equal(emptyArchive().enabled,false));
+test('automatic memory is enabled by default as requested',()=>assert.equal(emptyArchive().enabled,true));
 test('automatic batch leaves recent 12 originals in place',()=>{const b=nextArchiveBatch(messages,emptyArchive());assert.ok(b.to<=messages.length-12);assert.ok(b.to-b.from<=32);assert.equal(messages.length,60);});
-test('small histories do not trigger automatic requests',()=>assert.equal(nextArchiveBatch(messages.slice(0,10),emptyArchive()),null));
-test('manual batch keeps two recent records',()=>assert.equal(nextArchiveBatch(messages.slice(0,10),emptyArchive(),true).to,8));
-test('disabling archive rejects an automatic commit',()=>{const b=nextArchiveBatch(messages,emptyArchive());assert.equal(commitChapter(messages,emptyArchive(),b,'记忆',at),null);});
-test('a manual request can create a chapter without enabling background work',()=>{const b=nextArchiveBatch(messages,emptyArchive(),true);assert.equal(commitChapter(messages,undefined,b,'记忆',at,false).enabled,false);});
+test('completed short chats are automatically processed without manual activation',()=>assert.equal(nextArchiveBatch(messages.slice(0,10),emptyArchive()).to,10));
+test('manual and automatic extraction both preserve originals and cover completed pairs',()=>assert.equal(nextArchiveBatch(messages.slice(0,10),emptyArchive(),true).to,10));
+test('disabling archive rejects an automatic commit',()=>{const b=nextArchiveBatch(messages,emptyArchive());assert.equal(commitChapter(messages,{...emptyArchive(),enabled:false},b,'记忆',at),null);});
+test('a manual request can create a chapter without enabling background work',()=>{const b=nextArchiveBatch(messages,emptyArchive(),true);assert.equal(commitChapter(messages,{...emptyArchive(),enabled:false},b,'记忆',at,false).enabled,false);});
 test('summary append does not alter raw records or pinned notes',()=>{const before=JSON.stringify(data),a=chapter();assert.equal(a.chapters.length,1);assert.equal(JSON.stringify(data),before);});
 test('archive survives main-storage round-trip and full backup representation',()=>{const a=chapter(),result=parseData(JSON.stringify({...data,memoryArchive:a}));assert.deepEqual(result.memoryArchive,a);assert.equal(result.memory.pinned,data.memory.pinned);assert.deepEqual(result.messages,messages);});
 test('duplicate completion cannot append twice',()=>{const a=chapter(),b=nextArchiveBatch(messages,emptyArchive());assert.equal(commitChapter(messages,a,b,'重复',at),null);});
@@ -29,11 +29,11 @@ test('old user messages can be recalled without any model-generated chapter',()=
 test('demo text is excluded from source extraction and old-message recall',()=>{const m=messages.map((v,i)=>i?v:{...v,source:'demo'});assert.ok(!nextArchiveBatch(m,emptyArchive()).records.some(v=>v.source==='demo'));assert.ok(!retrieveArchive([...m,{who:'me',text:'茉莉花'}]).snippets.some(v=>v.index===0));});
 test('long-message matching keeps tail details visible',()=>{const t='前'.repeat(6000)+'茉莉花约定';assert.match(relevantExcerpt(t,memoryTerms('茉莉花')),/茉莉花约定/);});
 test('recent context is bounded while latest long message is intact',()=>{const m=messages.map(v=>({...v,text:'字'.repeat(2000)}));const r=recentWindow(m);assert.ok(r.messages.length<=7);assert.equal(r.messages.at(-1),m.at(-1));});
-test('summarizer input is bounded even for one very long original',()=>{const m=[{who:'me',text:'长'.repeat(20000)},...messages];const b=nextArchiveBatch(m,emptyArchive());assert.equal(b.records[0].text.length,18000);assert.equal(m[0].text.length,20000);});
+test('summarizer input is bounded even for one very long original',()=>{const m=[{who:'me',text:'长'.repeat(20000)},...messages];const b=nextArchiveBatch(m,emptyArchive());assert.equal(b.records[0].text.length,12000);assert.equal(m[0].text.length,20000);});
 test('timer completion is idempotent and independent of display frames',()=>{const start=Date.parse(at),d={...data,study:{subject:'数学',startedAt:start}};const saved=finishStudy(d,start,start+65000);assert.equal(saved.focusLog[0].minutes,65000/60000);assert.deepEqual(finishStudy({...d,...saved},start,start+66000),{});});
 const read=p=>fs.readFileSync(new URL('../../'+p,import.meta.url),'utf8');
 test('timer footer and browser-native date input are removed',()=>{assert.doesNotMatch(read('components/luke-companion.tsx'),/只为已结束并保存/);assert.doesNotMatch(read('components/timer-workspace.tsx'),/type="date"/);});
 test('focus pendant animates only transform with reduced-motion handling',()=>{const css=read('components/timer-polish.css');assert.match(css,/@keyframes luke-focus-sway/);assert.match(css,/prefers-reduced-motion/);assert.doesNotMatch(css,/filter:|animation:.*background/);});
-test('worker cancels model processing and bounds timeout',()=>{const s=read('hooks/use-conversation-memory.ts');assert.match(s,/45000/);assert.match(s,/current.memoryArchive!==initialArchive/);assert.match(s,/controller.signal.aborted/);});
+test('worker cancels model processing and bounds timeout',()=>{const s=read('hooks/use-conversation-memory.ts');assert.match(s,/60000/);assert.match(s,/latest.memoryArchive!==initialArchive/);assert.match(s,/controller.signal.aborted/);});
 test('normal send does not wait for legacy rolling summaries',()=>assert.doesNotMatch(read('app/page.tsx'),/await prepareMemory/));
-test('new version keeps the original upgrade identity',()=>{const s=read('mobile/android/AndroidManifest.xml');assert.match(s,/902009/);assert.match(s,/2\.0\.4/);assert.match(s,/com.luke.summer/);});
+test('new version keeps the original upgrade identity',()=>{const s=read('mobile/android/AndroidManifest.xml');assert.match(s,/902010/);assert.match(s,/2\.0\.5/);assert.match(s,/com.luke.summer/);});

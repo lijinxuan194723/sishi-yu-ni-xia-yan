@@ -1,10 +1,11 @@
 import {parseData,type Data} from './companion';
+import {replaceDurable,restorableSetting,STORE_MARKER,encodeSnapshot} from './durable-store';
 import {MEMO_STORAGE_KEY,parseMemoWorkspace} from './memos';
 
 export const FULL_BACKUP_FORMAT='four-seasons-luke-full-backup';
 export const FULL_BACKUP_VERSION=1 as const;
 const MAIN_STORAGE_KEY='luke-companion-v1';
-const MAX_TOTAL_CHARS=14_000_000;
+const MAX_TOTAL_CHARS=60_000_000;
 const sensitiveKey=/(?:api[-_]?key|token|secret|password|credential|authorization|auth[-_]?key)/i;
 const sensitiveField=/^(?:key|apiKey|api_key|token|secret|password|credential|authorization)$/i;
 
@@ -39,20 +40,22 @@ export function buildFullBackup(mainData?:Data):FullBackup{
  for(let i=0;i<localStorage.length;i++){
   const key=localStorage.key(i);
   if(!key||!key.startsWith('luke-'))continue;
+  if(key!==MAIN_STORAGE_KEY&&!restorableSetting(key)&&!sensitiveKey.test(key))continue;
   if(sensitiveKey.test(key)){excludedSensitiveKeys.push(key);continue;}
   const raw=localStorage.getItem(key);
   if(raw===null)continue;
-  storage[key]=safeStorageValue(raw);
+  if(key!==MAIN_STORAGE_KEY)storage[key]=safeStorageValue(raw);
  }
- if(mainData)storage[MAIN_STORAGE_KEY]=JSON.stringify(mainData);
+ if(mainData)storage[MAIN_STORAGE_KEY]=encodeSnapshot(mainData);
  else{
+  const marker=JSON.parse(localStorage.getItem(STORE_MARKER)??'null');if(marker&&!marker.current)throw Error('请从应用内导出完整备份，不能导出过期副本。');
   const main=localStorage.getItem(MAIN_STORAGE_KEY);
-  if(main!==null)storage[MAIN_STORAGE_KEY]=safeStorageValue(main);
+  if(main!==null)storage[MAIN_STORAGE_KEY]=JSON.stringify(parseData(main));
  }
  return {format:FULL_BACKUP_FORMAT,version:FULL_BACKUP_VERSION,exportedAt:new Date().toISOString(),storage,excludedSensitiveKeys};
 }
 
-export function stringifyFullBackup(mainData?:Data){return JSON.stringify(buildFullBackup(mainData),null,2);}
+export function stringifyFullBackup(mainData?:Data){const text=JSON.stringify(buildFullBackup(mainData),null,2);if(new TextEncoder().encode(text).byteLength>60_000_000)throw Error('完整备份超过 60 MB，请先单独导出大型附件。');return text;}
 
 export function isFullBackup(value:unknown):value is FullBackup{
  if(!value||typeof value!=='object'||Array.isArray(value))return false;
@@ -61,13 +64,13 @@ export function isFullBackup(value:unknown):value is FullBackup{
 }
 
 export function parseFullBackup(text:string):FullBackup{
- if(text.length>MAX_TOTAL_CHARS)throw Error('完整备份文件过大');
+ if(text.length>MAX_TOTAL_CHARS||new TextEncoder().encode(text).byteLength>60_000_000)throw Error('完整备份文件过大');
  const parsed:unknown=JSON.parse(text);
  if(!isFullBackup(parsed))throw Error('不是四时与你完整备份');
  const storage:Record<string,string>={};
  let total=0;
  for(const [key,value] of Object.entries(parsed.storage)){
-  if(!key.startsWith('luke-')||sensitiveKey.test(key)||typeof value!=='string'||value.length>10_000_000)throw Error('完整备份包含无效数据');
+  if(!key.startsWith('luke-')||sensitiveKey.test(key)||typeof value!=='string'||value.length>50_000_000)throw Error('完整备份包含无效数据');
   total+=key.length+value.length;if(total>MAX_TOTAL_CHARS)throw Error('完整备份文件过大');
   storage[key]=value;
  }
@@ -85,13 +88,11 @@ export function fullBackupSummary(backup:FullBackup){
  return {messages:data.messages.length,tasks:data.tasks.length,legacyNotes:data.notes.length,memos:memoCount,folders:folderCount,storageKeys:Object.keys(backup.storage).length};
 }
 
-export function restoreFullBackup(backup:FullBackup){
- const checked=parseFullBackup(JSON.stringify(backup));
- const currentKeys:string[]=[];
- for(let i=0;i<localStorage.length;i++){const key=localStorage.key(i);if(key?.startsWith('luke-')&&!sensitiveKey.test(key))currentKeys.push(key);}
- for(const key of currentKeys)localStorage.removeItem(key);
- for(const [key,value] of Object.entries(checked.storage))localStorage.setItem(key,value);
- localStorage.setItem('luke-backup-confirmed',Date.now().toString());
+export async function restoreFullBackup(backup:FullBackup,restore?:(data:Data,settings:Record<string,string>)=>Promise<void>){
+ const checked=parseFullBackup(JSON.stringify(backup)),data=parseData(checked.storage[MAIN_STORAGE_KEY]);
+ const settings=Object.fromEntries(Object.entries(checked.storage).filter(([key])=>restorableSetting(key)).map(([key,raw])=>[key,safeStorageValue(raw)]));
+ settings['luke-backup-confirmed']=String(Date.now());
+ if(restore)await restore(data,settings);else await replaceDurable(data,settings);
 }
 
 export function parseLegacyMainBackup(text:string):Data{return parseData(text);}

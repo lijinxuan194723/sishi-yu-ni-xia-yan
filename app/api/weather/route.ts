@@ -1,6 +1,9 @@
 import {json,sameOrigin,userId} from '@/lib/server';
-import {coordinates,normalizeCaiyun,normalizeMeteo} from '@/lib/weather';
-export async function POST(request:Request){try{userId(request);if(!sameOrigin(request))return json({error:'来源无效'},403);const text=await request.text();if(text.length>6000)return json({error:'配置过长'},400);let p;let point;try{p=JSON.parse(text);point=coordinates(p.lat,p.lon);if(!['caiyun','open-meteo'].includes(p.provider))throw Error();if(p.provider==='caiyun'&&(typeof p.key!=='string'||!/^[a-zA-Z0-9_-]{6,256}$/.test(p.key)))throw Error();}catch{return json({error:'请填写有效的坐标和彩云 Token。'},400);}
- const url=p.provider==='caiyun'?`https://api.caiyunapp.com/v2.6/${encodeURIComponent(p.key)}/${point.longitude},${point.latitude}/weather?alert=true&hourlysteps=12&dailysteps=1`:`https://api.open-meteo.com/v1/forecast?latitude=${point.latitude}&longitude=${point.longitude}&current=temperature_2m,weather_code&timeformat=unixtime`;
- const response=await fetch(url,{signal:AbortSignal.any([request.signal,AbortSignal.timeout(15000)]),redirect:'manual',headers:{Accept:'application/json'}});if(!response.ok)return json({error:`天气服务暂不可用（${response.status}），请检查 Token、额度和网络。`},502);const body=await response.json();return json(p.provider==='caiyun'?normalizeCaiyun(body):normalizeMeteo(body));
- }catch(e){return json({error:e instanceof Error&&e.message==='UNAUTHORIZED'?'请先登录后获取天气。':'天气获取失败，请检查网络、Token 和套餐权限后重试。'},e instanceof Error&&e.message==='UNAUTHORIZED'?401:502);}}
+import {coordinates,meteoURL,normalizeMeteo} from '@/lib/weather';
+export async function POST(request:Request){try{
+ userId(request);if(!sameOrigin(request))return json({error:'来源无效'},403);
+ const text=await request.text();if(text.length>6000)return json({error:'配置过长'},400);
+ let point;try{const p=JSON.parse(text);point=coordinates(p.lat,p.lon);}catch{return json({error:'请填写有效坐标。'},400);}
+ const response=await fetch(meteoURL(point.latitude,point.longitude),{signal:AbortSignal.any([request.signal,AbortSignal.timeout(15000)]),redirect:'error',headers:{Accept:'application/json'}});
+ if(!response.ok)return json({error:'天气服务暂不可用'},502);return json(normalizeMeteo(await response.json()));
+ }catch(e){return json({error:e instanceof Error&&e.message==='UNAUTHORIZED'?'请先登录后获取天气。':'天气更新失败，请稍后重试。'},e instanceof Error&&e.message==='UNAUTHORIZED'?401:502);}}

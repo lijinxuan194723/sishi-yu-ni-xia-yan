@@ -38,6 +38,4 @@ test('card skin uses solid colour and never fades the home content to hide a fla
  const src=readFileSync('app/luke-companion.css','utf8');assert.ok(src.includes('background-image:none;background-color:var(--scene-paper)'));
  assert.ok(!/home-grid[^}]*opacity\s*:\s*0/.test(src));
 });
-test('root theme waits for settings removal and disposes delayed work',()=>{
- const src=readFileSync('components/ambience.tsx','utf8');assert.ok(src.includes("!preview&&document.querySelector('.settings')"));assert.ok(src.includes('clearTimeout(deferred);clearInterval(timer)'));
-});
+test('settings and main use a single live root palette without waiting for dismissal',()=>{const src=readFileSync('components/ambience.tsx','utf8');assert.ok(src.includes('luke-appearance-change'));assert.ok(!src.includes("!preview&&document.querySelector('.settings')"));assert.ok(!readFileSync('app/theme.css','utf8').includes(':is(:root,.settings)'));});

@@ -1,6 +1,6 @@
 /* Layout remains stable under large fonts, landscape, reduced motion and touch. */
 .feedback-options{border:1px solid var(--scene-border);border-radius:20px;padding:16px;min-width:0}
-.feedback-help{font-size:13px;line-height:1.7;color:var(--scene-muted);margin:12px 0;overflow-wrap:anywhere}
+.feedback-help{font-size:0.8125rem;line-height:1.7;color:var(--scene-muted);margin:12px 0;overflow-wrap:anywhere}
 .appearance-options button{min-height:44px;border-radius:14px}
 .app-shell button.round,[data-slot="dialog-content"] button.round{min-height:44px;min-width:44px}
 .app-shell :is(button,a,input,textarea):focus-visible,[data-slot="dialog-content"] :is(button,a,input,textarea,summary):focus-visible{outline:2px solid var(--season-accent);outline-offset:3px}
@@ -8,17 +8,17 @@
 .birthday-screen.birthday-refined[data-fullscreen]{box-sizing:border-box;display:flex!important;align-items:stretch;justify-content:flex-start;gap:0;padding:0!important;overflow:hidden;overscroll-behavior:contain;background:var(--scene-paper)!important;color:var(--scene-ink)!important;isolation:isolate}
 .birthday-refined>.birthday-scroll{box-sizing:border-box;display:flex;flex:1 1 auto;min-height:0;min-width:0;flex-direction:column;align-items:center;padding:max(64px,env(safe-area-inset-top)) max(18px,env(safe-area-inset-right)) max(24px,env(safe-area-inset-bottom)) max(18px,env(safe-area-inset-left));overflow-y:auto;overscroll-behavior:contain;scroll-padding-block:24px}
 .birthday-screen.birthday-refined .birthday-card{position:relative;flex:0 0 auto;box-sizing:border-box;width:min(100%,440px);margin:auto 0;display:flex;flex-direction:column;align-items:center;gap:18px;padding:30px 22px;border-radius:32px;border:1px solid var(--scene-border);background:var(--scene-paper);box-shadow:0 12px 48px color-mix(in srgb,var(--season-accent) 12%,transparent);overflow-wrap:anywhere}
-.birthday-refined .birthday-eyebrow{font-size:12px;letter-spacing:2px;color:var(--scene-muted);margin:0}
+.birthday-refined .birthday-eyebrow{font-size:0.75rem;letter-spacing:2px;color:var(--scene-muted);margin:0}
 .birthday-refined .birthday-emblem{display:grid;place-items:center;width:104px;height:104px;flex:none;border-radius:50%;background:var(--season-soft);color:var(--season-accent)}
 .birthday-refined .birthday-cake{color:inherit;animation:birthday-soft-arrival 1600ms ease-in-out 1 both;filter:none!important}
 .birthday-refined h2{margin:0;padding:0;line-height:1.55;font-size:clamp(24px,6vw,32px);letter-spacing:1px;font-family:inherit;color:var(--scene-ink)}
-.birthday-refined [data-slot="dialog-description"]{font-size:15px;line-height:1.9;color:var(--scene-muted);margin:0;max-width:100%}
+.birthday-refined [data-slot="dialog-description"]{font-size:0.9375rem;line-height:1.9;color:var(--scene-muted);margin:0;max-width:100%}
 .birthday-refined [data-slot="dialog-description"] span{display:block;margin-top:12px;color:var(--scene-ink)}
 .birthday-refined .birthday-actions{display:flex;flex-direction:column;gap:8px;width:100%}
 .birthday-refined .birthday-actions button{min-height:48px;white-space:normal;border-radius:18px;padding:12px 18px}
 .birthday-refined .primary{background:var(--season-accent)!important;color:var(--on-accent,#fff)!important;display:flex;align-items:center;justify-content:center;gap:8px}
 .birthday-refined .birthday-later{background:transparent;color:var(--scene-muted);border:1px solid var(--scene-border)}
-.birthday-refined .birthday-hint{font-size:12px;color:var(--scene-muted);line-height:1.6}
+.birthday-refined .birthday-hint{font-size:0.75rem;color:var(--scene-muted);line-height:1.6}
 .birthday-screen.birthday-refined [data-slot="dialog-close"]{display:grid;place-items:center;position:absolute!important;top:max(10px,env(safe-area-inset-top))!important;right:max(12px,env(safe-area-inset-right))!important;width:44px;height:44px;z-index:3;border-radius:50%;background:var(--scene-paper);color:var(--scene-ink);border:1px solid var(--scene-border)}
 .birthday-screen.birthday-refined>.birthday-confetti{position:fixed!important;inset:0;overflow:hidden;z-index:0;pointer-events:none;contain:strict}
 .birthday-refined .birthday-confetti i{width:6px;height:10px;border-radius:999px;background:var(--season-accent)!important;opacity:0;animation:birthday-soft-confetti 3600ms cubic-bezier(.15,.45,.45,1) calc(var(--piece)*60ms) 1 both}

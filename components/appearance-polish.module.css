@@ -1,18 +1,18 @@
 .background,.release{min-width:0;border:1px solid var(--scene-border);border-radius:22px;background:var(--scene-paper);color:var(--scene-ink);overflow-wrap:anywhere}
-.background{padding:18px}.background h3{margin:0 0 8px;font-size:16px;line-height:1.5}.help{margin:10px 0;font-size:13px;line-height:1.7;color:var(--scene-muted)}
+.background{padding:18px}.background h3{margin:0 0 8px;font-size:1rem;line-height:1.5}.help{margin:10px 0;font-size:0.8125rem;line-height:1.7;color:var(--scene-muted)}
 .preview{display:block;width:100%;height:144px;object-fit:cover;border-radius:16px;margin:14px 0;border:1px solid var(--scene-border)}
 .actions{display:flex;flex-wrap:wrap;gap:8px;align-items:stretch;margin-top:12px}
-.actions :is(button,a),.actions .upload{position:relative;display:inline-flex;flex-direction:row;align-items:center;justify-content:center;gap:7px;min-height:44px;max-width:100%;padding:10px 14px;margin:0;border:1px solid var(--scene-border);border-radius:14px;background:var(--scene-paper);color:var(--scene-ink);font-size:13px;font-weight:500;line-height:1.45;text-decoration:none;cursor:pointer;transition:background-color 160ms ease,border-color 160ms ease}
+.actions :is(button,a),.actions .upload{position:relative;display:inline-flex;flex-direction:row;align-items:center;justify-content:center;gap:7px;min-height:44px;max-width:100%;padding:10px 14px;margin:0;border:1px solid var(--scene-border);border-radius:14px;background:var(--scene-paper);color:var(--scene-ink);font-size:0.8125rem;font-weight:500;line-height:1.45;text-decoration:none;cursor:pointer;transition:background-color 160ms ease,border-color 160ms ease}
 .actions svg{flex-shrink:0}.actions button:disabled{opacity:.5;cursor:default}.actions .upload{background:var(--season-soft);border-color:var(--season-accent)}
-.upload input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:16px}
+.upload input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:1rem}
 .actions :is(button,a):focus-visible,.upload:focus-within,.release summary:focus-visible,.copyText:focus-visible{outline:2px solid var(--season-accent);outline-offset:3px}
 @media(hover:hover){.actions :is(button,a):not(:disabled):hover,.upload:hover{background:var(--season-soft)}}
-.release>summary{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;min-height:56px;padding:14px 18px;cursor:pointer;list-style:none;font-size:14px;font-weight:600;border-radius:22px}
+.release>summary{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;min-height:56px;padding:14px 18px;cursor:pointer;list-style:none;font-size:0.875rem;font-weight:600;border-radius:22px}
 .release>summary::-webkit-details-marker{display:none}.release>summary>span:first-child::before{content:'›';display:inline-block;margin-right:8px;transform:rotate(0deg);transition:transform 160ms ease}.release[open]>summary>span:first-child::before{transform:rotate(90deg)}
-.version{font-size:11px;font-weight:500;border-radius:999px;background:var(--season-soft);padding:5px 9px;color:var(--scene-ink);max-width:100%}
-.releaseBody{padding:0 18px 18px}.releaseBody dl{margin:0}.releaseBody dl>div{display:grid;grid-template-columns:70px minmax(0,1fr);gap:10px;padding:9px 0;border-top:1px solid var(--scene-border);font-size:13px;line-height:1.6}.releaseBody dt{color:var(--scene-muted)}.releaseBody dd{margin:0}.releaseBody code{font-size:12px;word-break:break-word}
-.copyText{display:block;box-sizing:border-box;width:100%;height:180px;resize:vertical;border:1px solid var(--scene-border);border-radius:14px;padding:12px;background:var(--scene-paper);color:var(--scene-ink);font-size:14px;line-height:1.6}
-.error{padding:10px 12px;border-radius:12px;border:1px solid var(--scene-border);border-left:3px solid var(--season-accent);font-size:13px;line-height:1.7;color:var(--scene-ink)}
+.version{font-size:0.6875rem;font-weight:500;border-radius:999px;background:var(--season-soft);padding:5px 9px;color:var(--scene-ink);max-width:100%}
+.releaseBody{padding:0 18px 18px}.releaseBody dl{margin:0}.releaseBody dl>div{display:grid;grid-template-columns:70px minmax(0,1fr);gap:10px;padding:9px 0;border-top:1px solid var(--scene-border);font-size:0.8125rem;line-height:1.6}.releaseBody dt{color:var(--scene-muted)}.releaseBody dd{margin:0}.releaseBody code{font-size:0.75rem;word-break:break-word}
+.copyText{display:block;box-sizing:border-box;width:100%;height:180px;resize:vertical;border:1px solid var(--scene-border);border-radius:14px;padding:12px;background:var(--scene-paper);color:var(--scene-ink);font-size:0.875rem;line-height:1.6}
+.error{padding:10px 12px;border-radius:12px;border:1px solid var(--scene-border);border-left:3px solid var(--season-accent);font-size:0.8125rem;line-height:1.7;color:var(--scene-ink)}
 @media(max-width:380px){.background{padding:14px}.actions>*{flex:1 1 auto}.release>summary{padding:14px}.releaseBody{padding:0 14px 14px}}
 @media(prefers-reduced-motion:reduce){.actions :is(button,a),.actions .upload,.release>summary>span:first-child::before{transition:none}}
 /* Keep the seasonal text veil, but actually display the user's selected image. */

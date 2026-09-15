@@ -37,10 +37,10 @@ export function useLocalData(initial:Data){
  useEffect(()=>{const warn=(e:BeforeUnloadEvent)=>{if(ready&&saved.current?.data!==live.current){e.preventDefault();e.returnValue='';}};window.addEventListener('beforeunload',warn);return()=>window.removeEventListener('beforeunload',warn);},[ready]);
  const save=(patch:Partial<Data>|((current:Data)=>Partial<Data>))=>{if(ready)setData(current=>{const next=typeof patch==='function'?patch(current):patch;return Object.keys(next).length?{...current,...next}:current;});};
  function reload(){if(window.confirm('重新载入前请先保存正在编辑的内容。继续吗？'))window.location.reload();}
- async function restore(value:Data){
-  if(timer.current){clearTimeout(timer.current);timer.current=null;}restoring.current=true;
-  try{await serial.current;const loaded=await replaceDurable(value);saved.current=loaded;live.current=loaded.data;setData(loaded.data);setReady(true);setError('');setStatus('已保存在本地');channel.current?.postMessage({revision:loaded.revision,source:source.current});}
-  finally{restoring.current=false;}
+ async function restore(value:Data,settings?:Record<string,string>){
+  const wasReady=ready;if(timer.current){clearTimeout(timer.current);timer.current=null;}restoring.current=true;setReady(false);
+  try{await serial.current;const loaded=await replaceDurable(value,settings);saved.current=loaded;live.current=loaded.data;setData(loaded.data);setReady(true);setError('');setStatus('已保存在本地');channel.current?.postMessage({revision:loaded.revision,source:source.current});}
+  finally{restoring.current=false;if(active.current)setReady(wasReady);}
  }
  return {data,setData,restore,ready,error,setError,status,save,reload,retry:()=>{if(ready)setTick(t=>t+1);else window.location.reload();}};
 }

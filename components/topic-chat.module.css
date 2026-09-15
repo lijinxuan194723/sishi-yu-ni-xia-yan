@@ -21,40 +21,40 @@
 .header, .background, .history, .composer, .composerHint, .editStatus, .alert, .latest { flex-shrink: 0; }
 .header { padding-right: 38px; }
 .header h2 { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; line-height: 1.5; overflow-wrap: anywhere; padding-right: 0; }
-.header p { margin: 4px 0 0; line-height: 1.6; font-size: 12px; color: var(--scene-muted); }
-.panel summary { cursor: pointer; min-height: 36px; padding: 7px 0; font-size: 13px; line-height: 1.5; }
-.panel summary span { color: var(--scene-muted); margin-left: 6px; font-size: 12px; font-variant-numeric: tabular-nums; }
+.header p { margin: 4px 0 0; line-height: 1.6; font-size: 0.75rem; color: var(--scene-muted); }
+.panel summary { cursor: pointer; min-height: 36px; padding: 7px 0; font-size: 0.8125rem; line-height: 1.5; }
+.panel summary span { color: var(--scene-muted); margin-left: 6px; font-size: 0.75rem; font-variant-numeric: tabular-nums; }
 .background p { margin: 0 0 8px; max-height: min(90px, 15dvh); padding: 8px 12px; overflow: auto; overscroll-behavior: contain; border-radius: 10px; background: var(--season-soft); line-height: 1.75; }
 .history { padding: 0 12px; border: 1px solid var(--scene-border); border-radius: 14px; }
 .searchBox { display: flex; align-items: center; gap: 6px; border: 1px solid var(--scene-border); border-radius: 10px; padding-left: 10px; color: var(--scene-muted); }
-.searchBox input { flex: 1; min-width: 0; width: 100%; border: 0; background: transparent; color: var(--scene-ink); padding: 10px 4px; font: inherit; font-size: 16px; outline-offset: -2px; }
+.searchBox input { flex: 1; min-width: 0; width: 100%; border: 0; background: transparent; color: var(--scene-ink); padding: 10px 4px; font: inherit; font-size: 1rem; outline-offset: -2px; }
 .searchBox > button { display: grid; place-items: center; width: 40px; height: 40px; flex-shrink: 0; border: 0; background: transparent; color: inherit; border-radius: 10px; }
-.resultCount { font-size: 12px; line-height: 1.6; color: var(--scene-muted); margin: 8px 0; }
+.resultCount { font-size: 0.75rem; line-height: 1.6; color: var(--scene-muted); margin: 8px 0; }
 .results { max-height: min(180px, 23dvh); overflow: auto; overscroll-behavior: contain; padding-bottom: 6px; }
 .result { display: block; width: 100%; text-align: left; border: 0; border-top: 1px solid var(--scene-border); background: transparent; color: var(--scene-ink); padding: 10px 2px; line-height: 1.7; }
-.result small { display: block; font-size: 11px; color: var(--scene-muted); margin-bottom: 4px; }
+.result small { display: block; font-size: 0.6875rem; color: var(--scene-muted); margin-bottom: 4px; }
 .result > span { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; overflow-wrap: anywhere; white-space: pre-wrap; }
 .result mark { background: var(--season-soft); color: var(--scene-ink); box-shadow: 0 1px 0 var(--season-accent); border-radius: 2px; }
 .messages:global(.topic-messages) { flex: 1 1 0; min-height: 40px; padding: 0 3px 8px; overflow-x: hidden; overflow-y: auto; scrollbar-gutter: stable; overscroll-behavior: contain; }
 .message:global(.message) { max-width: 92%; margin: 12px 0; padding: 12px 14px; background: color-mix(in srgb, var(--scene-paper) 90%, var(--season-soft)); border: 1px solid var(--scene-border); border-radius: 16px 16px 16px 5px; }
 .message:global(.mine) { margin-left: auto; background: var(--season-soft); border-radius: 16px 16px 5px 16px; }
-.message p { margin: 6px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.85; font-size: 15px; user-select: text; }
+.message p { margin: 6px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.85; font-size: 0.9375rem; user-select: text; }
 .messageMeta { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.message small { color: var(--scene-muted); font-size: 12px; }
+.message small { color: var(--scene-muted); font-size: 0.75rem; }
 .messageTools { display: flex; align-items: center; gap: 3px; }
-.messageTools button { display: inline-flex; align-items: center; justify-content: center; min-height: 36px; min-width: 36px; padding: 6px; border: 0; background: transparent; color: var(--scene-muted); border-radius: 8px; font-size: 12px; }
+.messageTools button { display: inline-flex; align-items: center; justify-content: center; min-height: 36px; min-width: 36px; padding: 6px; border: 0; background: transparent; color: var(--scene-muted); border-radius: 8px; font-size: 0.75rem; }
 .empty { padding: 26px 12px; text-align: center; color: var(--scene-muted); line-height: 1.8; }
-.empty p { margin: 0 0 6px; }.empty small { font-size: 12px; }
-.latest { align-self: center; display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 7px 14px; border: 1px solid var(--scene-border); border-radius: 999px; background: var(--scene-paper); color: var(--scene-ink); font-size: 12px; }
-.quietButton { border: 1px solid var(--scene-border); border-radius: 10px; padding: 8px 12px; min-height: 38px; background: var(--scene-paper); color: var(--scene-ink); font-size: 12px; flex-shrink: 0; }
-.editStatus { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 5px; padding: 7px 10px; border-radius: 10px; background: var(--season-soft); color: var(--scene-ink); font-size: 12px; line-height: 1.6; }
-.alert { max-height: min(130px, 18dvh); overflow: auto; overscroll-behavior: contain; padding: 9px 12px; border: 1px solid var(--scene-border); border-left: 3px solid var(--season-accent); border-radius: 10px; background: var(--season-soft); color: var(--scene-ink); font-size: 12px; line-height: 1.7; }
+.empty p { margin: 0 0 6px; }.empty small { font-size: 0.75rem; }
+.latest { align-self: center; display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 7px 14px; border: 1px solid var(--scene-border); border-radius: 999px; background: var(--scene-paper); color: var(--scene-ink); font-size: 0.75rem; }
+.quietButton { border: 1px solid var(--scene-border); border-radius: 10px; padding: 8px 12px; min-height: 38px; background: var(--scene-paper); color: var(--scene-ink); font-size: 0.75rem; flex-shrink: 0; }
+.editStatus { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 5px; padding: 7px 10px; border-radius: 10px; background: var(--season-soft); color: var(--scene-ink); font-size: 0.75rem; line-height: 1.6; }
+.alert { max-height: min(130px, 18dvh); overflow: auto; overscroll-behavior: contain; padding: 9px 12px; border: 1px solid var(--scene-border); border-left: 3px solid var(--season-accent); border-radius: 10px; background: var(--season-soft); color: var(--scene-ink); font-size: 0.75rem; line-height: 1.7; }
 .alert p { margin: 0; overflow-wrap: anywhere; }.alert > div { display: flex; flex-wrap: wrap; gap: 8px; }
 .alert button, .editStatus button { min-height: 36px; border: 0; border-radius: 6px; padding: 6px; background: transparent; color: inherit; text-decoration: underline; text-underline-offset: 3px; }
 .panel .composer:global(.topic-composer) { margin: 0; padding: 0; align-items: flex-end; gap: 8px; }
-.panel .composer textarea { height: var(--topic-input-height, 56px) !important; min-height: 56px !important; max-height: min(136px, max(56px, calc(var(--topic-viewport-height, 100dvh) * .24))) !important; box-sizing: border-box; overflow-y: auto; padding: 12px !important; border-radius: 14px; font-size: 16px; line-height: 1.6; scroll-padding-block: 12px; }
+.panel .composer textarea { height: var(--topic-input-height, 56px) !important; min-height: 56px !important; max-height: min(136px, max(56px, calc(var(--topic-viewport-height, 100dvh) * .24))) !important; box-sizing: border-box; overflow-y: auto; padding: 12px !important; border-radius: 14px; font-size: 1rem; line-height: 1.6; scroll-padding-block: 12px; }
 .panel .composer button { width: 56px !important; height: 56px !important; min-width: 56px; min-height: 56px; border-radius: 14px; margin: 0; }
-.composerHint { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 10px; color: var(--scene-muted); font-size: 11px; line-height: 1.5; font-variant-numeric: tabular-nums; }
+.composerHint { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 10px; color: var(--scene-muted); font-size: 0.6875rem; line-height: 1.5; font-variant-numeric: tabular-nums; }
 .panel :is(button, summary, input, textarea, article):focus-visible { outline: 2px solid var(--season-accent); outline-offset: 2px; }
 .panel button { cursor: pointer; touch-action: manipulation; transition: background-color 140ms ease, opacity 140ms ease; }
 .panel button:disabled { opacity: .46; cursor: not-allowed; }

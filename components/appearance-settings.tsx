@@ -5,7 +5,7 @@ import { Ambience, SeasonPhoto, useAmbience } from './ambience';
 import { seasons, periods } from '@/lib/ambience';
 import { CHAT_BACKGROUND_KEY, isStoredBackground, prepareChatBackground, saveChatBackground, applyChatBackground } from '@/lib/chat-background';
 import { FeedbackSettings } from './feedback-settings';
-import { BuildInfo } from './build-info';
+import {FontSettings} from './chat-appearance';
 import styles from './appearance-polish.module.css';
 
 export function AppearanceSettings() {
@@ -55,10 +55,10 @@ export function AppearanceSettings() {
     <fieldset className="appearance-options"><legend>昼夜光照</legend><div>{(['auto', ...periods] as const).map(value => <button type="button" key={value} disabled={!scene} aria-pressed={options.period === value} onClick={() => setOptions({ ...options, period: value })}>{value === 'auto' ? '随时间' : value}</button>)}</div></fieldset>
     <label className="inline-label"><input type="checkbox" role="switch" aria-checked={options.effects !== false} checked={options.effects !== false} onChange={event => setOptions({ ...options, effects: event.target.checked })} /> 季节动画</label>
     <p className="feedback-help">开屏圆章与这里的季节一致；“随日期”会在每次打开时重新判断季节。</p>
-    <FeedbackSettings />
+    <FontSettings/><FeedbackSettings />
     <section className={styles.background} aria-label="悄悄话背景设置" aria-busy={busy}>
       <h3>悄悄话背景</h3><p className={styles.help} id={helpId}>支持 JPG、PNG、WebP，最大 8 MB。自动优化图片尺寸，节省本地空间，不上传图片。</p>
-      {background && <img className={styles.preview} src={background} alt="当前自定义聊天背景预览" onError={() => setBackgroundError('已保存的背景无法显示，原记录已保留。可重新选择或恢复季节背景。')} />}
+      {background && <img className={styles.preview} src={background} alt="当前自定义聊天背景" onError={() => setBackgroundError('已保存的背景无法显示，原记录已保留。可重新选择或恢复季节背景。')} />}
       <div className={styles.actions}>
         <label className={styles.upload}><ImagePlus size={17} aria-hidden="true" /><span>{busy ? '正在优化图片…' : background ? '更换背景图片' : '选择背景图片'}</span>
           <input ref={input} type="file" accept="image/jpeg,image/png,image/webp" aria-label="选择悄悄话背景图片" aria-describedby={helpId} onChange={event => { const file = event.currentTarget.files?.[0]; event.currentTarget.value = ''; if (file) void choose(file); }} />
@@ -69,6 +69,6 @@ export function AppearanceSettings() {
       {backgroundError && <p className={styles.error} role="alert">{backgroundError}</p>}
       {notice && <p className={styles.help} role="status">{notice}</p>}
     </section>
-    {appearanceError && <p role="alert">{appearanceError}</p>}<BuildInfo />
+    {appearanceError && <p role="alert">{appearanceError}</p>}
   </div>;
 }

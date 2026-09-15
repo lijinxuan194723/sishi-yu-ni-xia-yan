@@ -4,10 +4,10 @@
 .app-shell:has(.main-nav button:nth-child(5)[data-active]) header:has(button[aria-label='搜索笔记']){display:flex!important;align-items:center;gap:12px;margin:8px 2px;padding:0}
 .app-shell:has(.main-nav button:nth-child(5)[data-active]) header:has(button[aria-label='搜索笔记'])>div:first-child>span,
 .app-shell:has(.main-nav button:nth-child(5)[data-active]) header:has(button[aria-label='搜索笔记']) h2{display:none}
-.app-shell:has(.main-nav button:nth-child(5)[data-active]) header:has(button[aria-label='搜索笔记']) p{margin:0;font-size:12px;line-height:1.75;color:var(--scene-muted)}
+.app-shell:has(.main-nav button:nth-child(5)[data-active]) header:has(button[aria-label='搜索笔记']) p{margin:0;font-size:0.75rem;line-height:1.75;color:var(--scene-muted)}
 .luke-journal .luke-journal-note{padding:12px 14px;gap:12px;margin-bottom:10px;border-radius:20px;align-items:center}
 .luke-journal .luke-journal-note>img{width:46px;height:34px;object-fit:contain;flex:none}
 .luke-journal .luke-journal-note>div{min-width:0;position:relative;padding-right:0}
-.luke-journal .luke-journal-note span{font-size:12px;gap:5px;line-height:1.65}
-.luke-journal .luke-journal-note p{font-size:12px;line-height:1.7;margin:4px 0 0}
-.luke-journal .luke-journal-note small{font-size:10px;line-height:1.5;margin-top:4px;opacity:.75}
+.luke-journal .luke-journal-note span{font-size:0.75rem;gap:5px;line-height:1.65}
+.luke-journal .luke-journal-note p{font-size:0.75rem;line-height:1.7;margin:4px 0 0}
+.luke-journal .luke-journal-note small{font-size:0.625rem;line-height:1.5;margin-top:4px;opacity:.75}

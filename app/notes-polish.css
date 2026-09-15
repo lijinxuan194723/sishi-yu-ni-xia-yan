@@ -52,7 +52,7 @@
   border-radius:13px;
   background:color-mix(in srgb,var(--season-soft) 38%,var(--scene-paper));
   color:var(--season-accent);
-  font-size:13px;
+  font-size:0.8125rem;
 }
 
 /* Chat composer: text field first, then one compact action cluster on the right. */

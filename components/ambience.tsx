@@ -14,8 +14,8 @@ function preparePhoto(src:string){
 }
 export function useAmbience(paused=false,preview=false){
  const [options,setOptionsState]=useState<Appearance>(autoAppearance),[loaded,setLoaded]=useState(false),[appearanceError,setAppearanceError]=useState('');
- useEffect(()=>{try{setOptionsState(readAppearance(JSON.parse(localStorage.getItem('luke-appearance-v1')||'null')));}catch{}setLoaded(true);},[]);
- function setOptions(next:Appearance){setOptionsState(next);try{localStorage.setItem('luke-appearance-v1',JSON.stringify(next));syncNativeAppearance();setAppearanceError('');}catch{setAppearanceError('外观已切换，但当前设备未能保存设置。');}}
+ useEffect(()=>{try{setOptionsState(readAppearance(JSON.parse(localStorage.getItem('luke-appearance-v1')||'null')));}catch{}setLoaded(true);const sync=()=>{try{setOptionsState(readAppearance(JSON.parse(localStorage.getItem('luke-appearance-v1')||'null')));}catch{}};window.addEventListener('luke-appearance-change',sync);window.addEventListener('storage',sync);return()=>{window.removeEventListener('luke-appearance-change',sync);window.removeEventListener('storage',sync);};},[]);
+ function setOptions(next:Appearance){setOptionsState(next);try{localStorage.setItem('luke-appearance-v1',JSON.stringify(next));syncNativeAppearance();window.dispatchEvent(new Event('luke-appearance-change'));setAppearanceError('');}catch{setAppearanceError('外观已切换，但当前设备未能保存设置。');}}
  const published=useRef('');
  const [scene,setScene]=useState<ReturnType<typeof ambienceAt>|null>(null);
  useEffect(()=>{
@@ -24,29 +24,24 @@ export function useAmbience(paused=false,preview=false){
   let deferred:ReturnType<typeof setTimeout>|undefined;
   const update=async()=>{
    if(!alive)return;
-   // Commit the page palette only after settings has finished its own exit.
-   // Rapid re-opening cancels this effect rather than queuing obsolete themes.
-   if(!preview&&document.querySelector('.settings')){
-    clearTimeout(deferred);deferred=setTimeout(update,50);return;
-   }
    const id=++request;
    let current=options;
    try{if(!preview)current=readAppearance(JSON.parse(localStorage.getItem('luke-appearance-v1')||'null'));}catch{}
    const clock=new Date();clock.setSeconds(0,0);
    const next=ambienceAt(clock,current);
    const signature=JSON.stringify([next,current.effects,current.period]);
-   const target=preview?document.querySelector<HTMLElement>('.settings'):document.documentElement;
+   const target=document.documentElement;
    if(!target)return;
    if(signature===published.current)return;
    // Always yield before flushSync, including the no-image-change path.
    try{await Promise.all([...new Set([seasonPhotos[next.season],...(!preview?[seasonAlbums[next.season][0]]:[])])].map(preparePhoto));}
    catch{if(alive&&id===request)setAppearanceError('主题图片加载失败，已保留当前画面，请重试。');return;}
    if(!alive||id!==request)return;
-   target.dataset.season=next.season;
+   if(!preview){target.dataset.season=next.season;
    target.dataset.effects=current.effects===false?'off':'on';
    target.dataset.manual=current.period==='auto'?'false':'true';
    target.dataset.night=next.night>.5?'true':'false';
-   if(!preview)window.LukeAndroid?.systemTheme?.(next.night>.5?'#202c37':({spring:'#f3fcf7',summer:'#f2fbff',autumn:'#fff5e5',winter:'#f8f9ff'})[next.season],next.night>.5);
+   if(!preview)window.LukeAndroid?.systemTheme?.(next.night>.5?'#202c37':({spring:'#f3fcf7',summer:'#f2fbff',autumn:'#fff5e5',winter:'#f8f9ff'})[next.season],next.night>.5);}
    // Publish native colours before child readiness effects can reveal the page.
    published.current=signature;
    flushSync(()=>setScene(next));

@@ -2,10 +2,11 @@
 import {useState,useLayoutEffect,useEffect,useRef} from 'react';
 import {ChevronLeft,ChevronRight,Search,Palette,MessageCircle,BookHeart,Shield,Database,CloudSun,Gift,UserRound,SlidersHorizontal,X} from 'lucide-react';
 import '@/app/interaction-refinement.css';
+import {DialogTitle,DialogDescription} from '@/components/ui/dialog';
 const sections=[
- {group:'日常与外观',items:[{id:'appearance',title:'四季与昼夜',hint:'季节、背景与按钮触感',Icon:Palette},{id:'celebrations',title:'生日与纪念日',hint:'生日祝福与相伴日期',Icon:Gift}]},
+ {group:'日常与外观',items:[{id:'appearance',title:'外观与字号',hint:'四季、昼夜、背景与字体大小',Icon:Palette},{id:'chat-style',title:'头像与聊天样式',hint:'我的头像、聊天气泡与字号',Icon:MessageCircle},{id:'celebrations',title:'生日与纪念日',hint:'生日祝福与相伴日期',Icon:Gift}]},
  {group:'聊天与记忆',items:[{id:'model',title:'聊天模型',hint:'服务地址、模型与连接',Icon:SlidersHorizontal},{id:'memory',title:'长期聊天记忆',hint:'摘要、重要约定与聊天备份',Icon:BookHeart},{id:'luke-memory',title:'夏彦的记忆',hint:'角色资料与内容范围',Icon:UserRound},{id:'context',title:'聊天近况',hint:'选择向对话分享的近况',Icon:MessageCircle}]},
- {group:'数据与权限',items:[{id:'general',title:'日常与数据',hint:'称呼、备份与恢复',Icon:Database},{id:'weather',title:'天气与位置',hint:'天气服务与定位',Icon:CloudSun},{id:'permissions',title:'权限与隐私',hint:'何时申请、数据去向',Icon:Shield}]}];
+ {group:'数据与权限',items:[{id:'general',title:'日常与数据',hint:'称呼、备份与恢复',Icon:Database},{id:'weather',title:'天气与位置',hint:'天气服务与定位',Icon:CloudSun},{id:'permissions',title:'权限与隐私',hint:'何时申请、数据去向',Icon:Shield},{id:'disclaimer',title:'关于与免责声明',hint:'版本、资料来源与使用说明',Icon:BookHeart}]}];
 export function SettingsNavigation({value,onChange}:{value:string;onChange:(value:string)=>void}) {
  const [query,setQuery]=useState('');
  const directory=useRef<HTMLDivElement>(null), heading=useRef<HTMLHeadingElement>(null);
@@ -45,7 +46,7 @@ export function SettingsNavigation({value,onChange}:{value:string;onChange:(valu
   scroll.current=document.querySelector<HTMLElement>('.settings [data-slot=dialog-scroll-body]')?.scrollTop??0;
   lastItem.current=id;onChange(id);
  }
- if(value!=='index')return <div className="settings-subhead"><button type="button" aria-label="返回设置目录" className="round" onClick={()=>onChange('index')}><ChevronLeft size={22}/></button><div><h3 ref={heading} tabIndex={-1}>{current?.title??'设置'}</h3><p>{current?.hint}</p></div></div>;
+ if(value!=='index')return null;
  return <div ref={directory} className="settings-directory">
   <div className="settings-search"><Search size={18} aria-hidden="true"/><input aria-label="搜索设置" placeholder="搜索设置" value={query} onChange={event=>setQuery(event.target.value)}/>{query&&<button type="button" className="settings-clear" aria-label="清除设置搜索" onClick={()=>{setQuery('');directory.current?.querySelector('input')?.focus();}}><X size={17}/></button>}</div>
   {needle&&<p className="settings-search-count" role="status">{count ? `找到 ${count} 项设置` : '没有匹配的设置'}</p>}
@@ -63,3 +64,9 @@ export function SettingsNavigation({value,onChange}:{value:string;onChange:(valu
  </div>;
 }
 export function PermissionsPanel(){return <div className="settings-stack permission-cards"><section><h3>图片与文件</h3><p>只在选择图片、导入或导出时打开系统文件选择器。不索取整个相册、存储空间或摄像头权限。</p></section><section><h3>天气位置</h3><p>点击定位后才申请位置权限，用于获取天气。可以拒绝并手动填写坐标，不影响聊天、手记与计时。</p></section><section><h3>聊天与自动记忆</h3><p>聊天和记忆整理会把相关聊天内容发送到你配置的模型服务，产生该服务的用量。API 密钥不包含在完整备份中。重要约定可在“长期聊天记忆”中手动固定。</p></section><section><h3>按钮触感与系统提醒</h3><p>触感遵循手机设置。闹钟与倒计时交给系统时钟确认，不在后台自行常驻或索取通知、精确闹钟权限。</p></section></div>;}
+
+export function SettingsHeader({value,onBack}:{value:string;onBack:()=>void}){
+ const title=sections.flatMap(s=>s.items).find(i=>i.id===value)?.title??'设置';
+ const ref=useRef<HTMLHeadingElement>(null);useEffect(()=>{ref.current?.focus({preventScroll:true});},[value]);
+ return <header className="settings-fixed-head">{value!=='index'&&<button type="button" className="round" aria-label="返回设置目录" onClick={onBack}><ChevronLeft size={22}/></button>}<div><DialogTitle ref={ref} tabIndex={-1}>{title}</DialogTitle><DialogDescription className={value==='index'?'':'sr-only'}>{value==='index'?'属于你的日常':'设置子页面'}</DialogDescription></div></header>;
+}

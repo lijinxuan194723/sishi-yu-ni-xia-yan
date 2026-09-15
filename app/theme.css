@@ -1,5 +1,5 @@
 /* The only source of seasonal UI colors. Artwork/light colors remain decorative. */
-:is(:root,.settings){
+:root{
  --season-ground:#e0f1e9;--season-soft:#c9e7d8;--season-accent:#286a57;
  --scene-paper:#f3fcf7;--scene-ink:#244b40;--scene-muted:#506d61;--scene-border:#bddbcd;
  --season-photo:url('/images/seasons/spring.png');--photo-y:40%;
@@ -16,33 +16,33 @@
  --border:var(--scene-border);--input:var(--scene-border);--ring:var(--season-accent);
  color-scheme:light;
 }
-:is(:root,.settings)[data-season=summer]{
+:root[data-season=summer]{
  --season-ground:#dceefa;--season-soft:#bbe1ee;--season-accent:#187592;
  --scene-paper:#f2fbff;--scene-ink:#224858;--scene-muted:#466c80;--scene-border:#b7d9ea;
  --season-photo:url('/images/seasons/summer.png');--photo-y:32%;
 }
-:is(:root,.settings)[data-season=autumn]{
+:root[data-season=autumn]{
  --season-ground:#f3dfbd;--season-soft:#edc893;--season-accent:#975027;
  --scene-paper:#fff5e5;--scene-ink:#624024;--scene-muted:#84603d;--scene-border:#dfbf91;
  --season-photo:url('/images/seasons/autumn.png');--photo-y:32%;
 }
-:is(:root,.settings)[data-season=winter]{
+:root[data-season=winter]{
  --season-ground:#e6e8f5;--season-soft:#d1d7ef;--season-accent:#636999;
  --scene-paper:#f8f9ff;--scene-ink:#3c4263;--scene-muted:#656b85;--scene-border:#cbd0e8;
  --season-photo:url('/images/seasons/winter.png');--photo-y:40%;
 }
-:is(:root,.settings)[data-night=true]{
+:root[data-night=true]{
  color-scheme:dark;--season-ground:#18222d;--season-soft:#303f4e;
  --scene-paper:#222d39;--scene-ink:#e5eaf0;--scene-muted:#b0bdca;--scene-border:#546272;
  --season-accent:#9bc7b8;--on-accent:#18222d;--scene-danger:#ffb0b4;
 }
-:is(:root,.settings)[data-night=true][data-season=summer]{--season-accent:#96cddd}
-:is(:root,.settings)[data-night=true][data-season=autumn]{--season-accent:#dfb58e}
-:is(:root,.settings)[data-night=true][data-season=winter]{--season-accent:#bbc1ed}
+:root[data-night=true][data-season=summer]{--season-accent:#96cddd}
+:root[data-night=true][data-season=autumn]{--season-accent:#dfb58e}
+:root[data-night=true][data-season=winter]{--season-accent:#bbc1ed}
 
 /* Shared controls, including dialogs portalled outside .app-shell. */
 [data-slot=dialog-content]{background-color:var(--scene-paper);color:var(--scene-ink);border-color:var(--scene-border)}
 [data-slot=dialog-description],input::placeholder,textarea::placeholder{color:var(--scene-muted);opacity:1}
 :is(button,a,input,textarea,select,summary):focus-visible{outline-color:var(--season-accent)}
 .app-error{margin:0;max-width:none;min-height:100dvh;display:grid;place-content:center;justify-items:center;gap:16px;padding:28px;text-align:center;background:var(--scene-paper);color:var(--scene-ink)}
-.app-error h1{font-size:26px}.app-error p{color:var(--scene-muted);max-width:30em}
+.app-error h1{font-size:1.625rem}.app-error p{color:var(--scene-muted);max-width:30em}

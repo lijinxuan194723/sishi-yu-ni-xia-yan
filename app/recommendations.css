@@ -1,28 +1,28 @@
 .music-moment,.reading-moment{padding:20px!important;min-width:0;background:var(--scene-paper)!important;color:var(--scene-ink);border:1px solid var(--scene-border)!important;border-radius:20px!important}
 .music-moment .section-label,.reading-moment .section-label{flex-wrap:wrap;gap:10px;line-height:1.6;margin-bottom:16px}
-.music-moment .song-detail strong,.reading-moment h3{font-family:Georgia,'KaiTi',serif;font-size:22px;line-height:1.5;overflow-wrap:anywhere}
+.music-moment .song-detail strong,.reading-moment h3{font-family:Georgia,'KaiTi',serif;font-size:1.375rem;line-height:1.5;overflow-wrap:anywhere}
 .recommendation-comment blockquote{margin:16px 0;padding:16px;border-left:3px solid var(--season-accent);border-radius:4px 14px 14px 4px;background:color-mix(in srgb,var(--season-accent) 8%,var(--scene-paper))}
 .recommendation-comment blockquote small{color:var(--scene-muted)}
-.recommendation-comment blockquote p{margin-top:8px;white-space:pre-wrap;overflow-wrap:anywhere;font-size:15px;line-height:1.85;color:var(--scene-ink)}
+.recommendation-comment blockquote p{margin-top:8px;white-space:pre-wrap;overflow-wrap:anywhere;font-size:0.9375rem;line-height:1.85;color:var(--scene-ink)}
 .recommendation-actions{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0}
 .recommendation-actions .soft-button,.reading-moment .soft-button,.music-moment .soft-button{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:42px;margin:0;padding:10px 13px;border:1px solid var(--scene-border);background:var(--scene-paper);color:var(--scene-ink);border-radius:12px}
 .recommendation-actions [aria-pressed=true]{background:var(--season-soft);border-color:var(--season-accent)}
-.reading-moment .reading-actions{gap:8px}.reading-moment .reading-actions .soft-button{margin:0}.music-moment>p,.reading-moment>p[role=status]{font-size:12px;color:var(--scene-muted);margin:12px 0}
+.reading-moment .reading-actions{gap:8px}.reading-moment .reading-actions .soft-button{margin:0}.music-moment>p,.reading-moment>p[role=status]{font-size:0.75rem;color:var(--scene-muted);margin:12px 0}
 .recommendation-folder{width:min(560px,calc(100vw - 24px))!important;max-height:85dvh!important;overflow-y:auto;background:var(--scene-paper)!important;color:var(--scene-ink)!important;border:1px solid var(--scene-border);border-radius:20px!important;padding:22px!important}
 .recommendation-folder input{width:100%;background:var(--scene-paper);color:var(--scene-ink);border-color:var(--scene-border)}
 .recommendation-list article{padding:16px 0;border-top:1px solid var(--scene-border);overflow-wrap:anywhere}.recommendation-list p{white-space:pre-wrap;margin:12px 0}.recommendation-list small{color:var(--scene-muted)}
 @media(max-width:480px){.music-moment,.reading-moment{padding:16px!important}.recommendation-actions>.soft-button{flex:1}.reading-moment .book-spine{width:40px;flex-shrink:0}.reading-moment .reading-book>div{min-width:0}}
 
 :root .recommendation-actions{display:flex;flex-wrap:wrap;gap:6px}
-:root .recommendation-actions>.soft-button{flex:0 0 auto;min-width:0;min-height:38px;padding:8px 10px;font-size:13px;line-height:1.2;white-space:nowrap;border-radius:999px;background:color-mix(in srgb,var(--scene-paper) 90%,var(--season-soft));box-shadow:none}
+:root .recommendation-actions>.soft-button{flex:0 0 auto;min-width:0;min-height:38px;padding:8px 10px;font-size:0.8125rem;line-height:1.2;white-space:nowrap;border-radius:999px;background:color-mix(in srgb,var(--scene-paper) 90%,var(--season-soft));box-shadow:none}
 :root .recommendation-actions svg{flex-shrink:0}
-:root .music-moment>.soft-button,:root .music-moment>.primary,:root .reading-moment>.primary{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:42px;margin:4px 6px 4px 0;padding:10px 14px;border-radius:14px;font-size:14px;line-height:1.4;white-space:nowrap}
+:root .music-moment>.soft-button,:root .music-moment>.primary,:root .reading-moment>.primary{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:42px;margin:4px 6px 4px 0;padding:10px 14px;border-radius:14px;font-size:0.875rem;line-height:1.4;white-space:nowrap}
 :root .music-moment>.primary,:root .reading-moment>.primary{min-width:140px}
 :root .music-moment>.primary{margin-left:10px}
 :root .memo-selection-actions:empty{display:none}
 :root .memo-selection-actions{display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:10px 12px;border:1px solid var(--scene-border);border-radius:16px;background:var(--scene-paper);color:var(--scene-ink)}
-:root .memo-selection-actions>span{flex:1 0 100%;font-size:12px;color:var(--scene-muted)}
-:root .memo-selection-actions>.soft-button{flex:1;min-height:40px;margin:0;padding:8px 10px;border:1px solid var(--scene-border);border-radius:12px;background:var(--scene-paper);color:var(--scene-ink);font-size:13px;white-space:nowrap}
+:root .memo-selection-actions>span{flex:1 0 100%;font-size:0.75rem;color:var(--scene-muted)}
+:root .memo-selection-actions>.soft-button{flex:1;min-height:40px;margin:0;padding:8px 10px;border:1px solid var(--scene-border);border-radius:12px;background:var(--scene-paper);color:var(--scene-ink);font-size:0.8125rem;white-space:nowrap}
 :root .memo-selection-actions>.soft-button:nth-of-type(2){background:var(--season-soft);color:var(--season-accent)}
 :root .chat-page .messages{background-size:auto var(--chat-backdrop-height,100lvh)!important;background-position:center top!important;background-repeat:no-repeat;background-color:var(--scene-paper)}
 :root .chat-page .messages{position:relative;isolation:isolate;background-color:color-mix(in srgb,var(--scene-paper) 72%,transparent)}
@@ -34,12 +34,12 @@
 :root.chat-open .chat-page .message small{display:inline-flex!important;padding:3px 10px!important;border-radius:999px!important;background:color-mix(in srgb,var(--scene-paper) 92%,transparent)!important;color:var(--scene-muted)!important}
 
 :root .heart-page :is(.scenario-actions,.recommendation-actions,.reading-actions,.section-label) button,
-:root .heart-page :is(.music-moment,.reading-moment)>button{display:inline-flex;align-items:center;justify-content:center;gap:6px;box-sizing:border-box;height:44px;min-height:44px;margin:0;padding:0 14px;font-size:14px;line-height:1.2;border-radius:12px;white-space:nowrap}
+:root .heart-page :is(.music-moment,.reading-moment)>button{display:inline-flex;align-items:center;justify-content:center;gap:6px;box-sizing:border-box;height:44px;min-height:44px;margin:0;padding:0 14px;font-size:0.875rem;line-height:1.2;border-radius:12px;white-space:nowrap}
 :root .heart-page .music-moment>button{vertical-align:top}
 :root .heart-page button.round{width:44px;min-width:44px;padding:0}
 :root .heart-page .scenario-card:after{display:none}
 .topic-chat{display:flex!important;flex-direction:column;width:min(620px,calc(100vw - 24px))!important;height:min(740px,calc(100dvh - 40px));max-height:calc(var(--keyboard-height,100dvh) - 24px)!important;overflow:hidden;padding:20px!important;gap:12px!important;background:var(--scene-paper)!important;color:var(--scene-ink)!important;border:1px solid var(--scene-border)!important;border-radius:20px!important}
-.topic-chat h2{padding-right:32px}.topic-background{font-size:13px;flex-shrink:0}.topic-background p{max-height:90px;overflow:auto;white-space:pre-wrap}.topic-messages{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain}.topic-messages .message{margin:12px 0}.topic-messages .message p{white-space:pre-wrap;overflow-wrap:anywhere}.topic-chat>p[role=alert]{font-size:13px}.topic-composer{display:flex;align-items:end;gap:8px;flex-shrink:0}.topic-composer textarea{flex:1;min-width:0;background:var(--scene-paper);color:var(--scene-ink);border:1px solid var(--scene-border);border-radius:12px;padding:10px;resize:none}.topic-composer button{width:44px;height:44px;flex-shrink:0;display:grid;place-items:center;border-radius:12px}
+.topic-chat h2{padding-right:32px}.topic-background{font-size:0.8125rem;flex-shrink:0}.topic-background p{max-height:90px;overflow:auto;white-space:pre-wrap}.topic-messages{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain}.topic-messages .message{margin:12px 0}.topic-messages .message p{white-space:pre-wrap;overflow-wrap:anywhere}.topic-chat>p[role=alert]{font-size:0.8125rem}.topic-composer{display:flex;align-items:end;gap:8px;flex-shrink:0}.topic-composer textarea{flex:1;min-width:0;background:var(--scene-paper);color:var(--scene-ink);border:1px solid var(--scene-border);border-radius:12px;padding:10px;resize:none}.topic-composer button{width:44px;height:44px;flex-shrink:0;display:grid;place-items:center;border-radius:12px}
 .topic-composer{align-items:flex-end}.topic-composer textarea{height:56px!important;min-height:56px!important;max-height:56px!important}.topic-composer button{width:56px!important;height:56px!important;min-width:56px;min-height:56px}
 
 /* Keep song and book card actions on the same visual rhythm. */

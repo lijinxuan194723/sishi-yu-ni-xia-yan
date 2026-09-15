@@ -3,6 +3,7 @@ import {useEffect,useRef,useState} from 'react';
 import {MapPin,PlugZap,CheckCircle2,PenLine} from 'lucide-react';
 import {complete,type ModelConfig} from '@/lib/model';
 import {locate} from '@/lib/location';
+import {fetchWeather} from '@/lib/weather';
 import {useSettingsDraft} from '@/hooks/use-settings-draft';
 import type {useConnections} from '@/components/connections';
 type Connections=ReturnType<typeof useConnections>;
@@ -65,14 +66,14 @@ export function WeatherSettings({connections}:{connections:Connections}){
  const [locating,setLocating]=useState(false),[notice,setNotice]=useState('');
  const task=useRef<AbortController|null>(null);
  useEffect(()=>()=>{task.current?.abort();task.current=null;},[]);
- function cancel(message='已取消定位'){task.current?.abort();task.current=null;setLocating(false);setNotice(message);}
+ function cancel(message='已取消操作'){task.current?.abort();task.current=null;setLocating(false);setNotice(message);}
  function patch(value:Partial<typeof weather>){cancel('');draft.update(previous=>({...previous,...value}));}
  async function position(){
   if(task.current)return;
   const controller=new AbortController();task.current=controller;setLocating(true);setNotice('正在获取位置');
   try{
-   const result=await locate(controller.signal,true);
-   if(!controller.signal.aborted){draft.update(previous=>({...previous,...result}));setNotice('已填入 '+result.place+'，保存后用于天气。');}
+   const result=await locate(controller.signal,false,undefined,false);
+   if(!controller.signal.aborted){draft.update(previous=>({...previous,...result}));setNotice(result.warning||'已填入 '+result.place+'，保存后用于天气。');}
   }catch(error){if(!controller.signal.aborted)setNotice(error instanceof Error?error.message:'定位失败，可以手动填写位置。');}
   finally{if(task.current===controller){task.current=null;setLocating(false);}}
  }
@@ -82,13 +83,12 @@ export function WeatherSettings({connections}:{connections:Connections}){
   catch(error){setNotice(error instanceof Error?error.message:'位置未保存');}
  }}>
   <DraftStatus dirty={draft.dirty} onDiscard={()=>{cancel('');draft.discard();}}/>
-  <label>天气来源<select value={weather.provider} onChange={event=>patch({provider:event.target.value as typeof weather.provider})}><option value="caiyun">彩云天气</option><option value="open-meteo">Open-Meteo</option></select></label>
-  {weather.provider==='caiyun'&&<label>彩云 Token<input type="password" autoComplete="off" value={weather.key} onChange={event=>patch({key:event.target.value})}/></label>}
   <label>地点名称<input maxLength={50} value={weather.place} onChange={event=>patch({place:event.target.value})}/></label>
   <div className="coordinate-inputs"><label>纬度<input type="number" step="any" min={-90} max={90} required value={weather.lat} onChange={event=>patch({lat:event.target.value})}/></label><label>经度<input type="number" step="any" min={-180} max={180} required value={weather.lon} onChange={event=>patch({lon:event.target.value})}/></label></div>
-  <p className="setting-caption">点击定位后申请位置权限；也可手动填写坐标。坐标会发给所选天气服务，用于当前地区的天气。</p>
-  <div className="settings-form-actions">{locating?<button type="button" className="soft-button" onClick={()=>cancel()}>取消定位</button>:<button type="button" className="soft-button" onClick={()=>void position()}><MapPin size={17}/>使用当前位置</button>}</div>
+  <p className="setting-caption">点击定位后申请位置权限；也可手动填写坐标。坐标会发给 Open-Meteo，用于当前地区的天气。</p>
+  <div className="settings-form-actions">{locating?<button type="button" className="soft-button" onClick={()=>cancel()}>取消操作</button>:<button type="button" className="soft-button" onClick={()=>void position()}><MapPin size={17}/>使用当前位置</button>}</div>
   <label className="settings-toggle"><span>天气小特效</span><input type="checkbox" checked={weather.effects} onChange={event=>patch({effects:event.target.checked})}/></label>
+  <button type="button" className="soft-button" disabled={locating||!connections.loaded} onClick={async()=>{if(task.current)return;const controller=new AbortController();task.current=controller;setLocating(true);setNotice('正在测试天气连接');try{const result=await fetchWeather(weather,AbortSignal.any([controller.signal,AbortSignal.timeout(20000)]));if(!controller.signal.aborted)setNotice(`连接成功 · ${result.label} ${Math.round(result.temperature)}° · ${result.days?.length??0} 天天气`);}catch(e){if(!controller.signal.aborted)setNotice(e instanceof Error?e.message:'天气连接失败');}finally{if(task.current===controller){task.current=null;setLocating(false);}}}}>测试天气连接</button>
   <button type="submit" className="primary" data-haptic="confirm" disabled={locating||!connections.loaded}>保存天气设置</button>
   <p className="settings-request-notice" role="status">{notice}</p>
  </form>;

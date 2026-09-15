@@ -27,11 +27,11 @@ export async function resolveDistrict(lat:string,lon:string,signal?:AbortSignal,
  }
  throw Error('县区查询暂时不可用，请重试定位或填写县区名称。');
 }
-export async function locate(signal?:AbortSignal,fallback=false,endpoint?:string){
+export async function locate(signal?:AbortSignal,fallback=false,endpoint?:string,requireName=true){
  if(!navigator.geolocation)throw Error('当前设备不支持定位，请手动填写位置。');
  const p=await new Promise<GeolocationPosition>((resolve,reject)=>navigator.geolocation.getCurrentPosition(resolve,()=>reject(Error('定位未成功，请允许位置权限或手动填写。')),{enableHighAccuracy:true,timeout:15000,maximumAge:0}));
  if(signal?.aborted)throw new DOMException('Aborted','AbortError');
  const lat=p.coords.latitude.toFixed(5),lon=p.coords.longitude.toFixed(5);
- const place=await resolveDistrict(lat,lon,signal,true,fallback,endpoint);
- return {lat,lon,place,warning:''};
+ try{const place=await resolveDistrict(lat,lon,signal,true,fallback,endpoint);return {lat,lon,place,warning:''};}
+ catch(error){if(signal?.aborted||requireName)throw error;return {lat,lon,place:'我的位置',warning:'坐标已取得，可自行填写地点名称。'};}
 }

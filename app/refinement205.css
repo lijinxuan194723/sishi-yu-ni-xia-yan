@@ -1,0 +1,86 @@
+/* 2.0.5: one fixed settings header, independent type controls and bounded chat rows. */
+:root{--chat-font-size:16px;--page-slide:14px}
+:root[data-page-direction=back]{--page-slide:-14px}
+body{font-size:1rem}
+.app-shell main{touch-action:pan-y}
+.settings.settings-refined{display:flex!important;flex-direction:column;gap:0;height:min(790px,calc(100dvh - 28px));max-height:calc(100dvh - 28px)!important;isolation:isolate}
+.settings-fixed-head{display:flex;align-items:center;gap:10px;flex-shrink:0;min-height:84px;padding:22px 70px 16px 24px;border-bottom:1px solid var(--scene-border);background:var(--scene-paper);z-index:2}
+.settings-fixed-head [data-slot=dialog-title]{padding:0;font-size:1.2rem!important;letter-spacing:.02em;outline:none}
+.settings-fixed-head [data-slot=dialog-description]{margin:5px 0 0!important;font-size:.76rem!important}
+.settings.settings-refined>[data-slot=dialog-scroll-body]{flex:1;min-height:0;max-height:none!important;overflow:auto;padding:20px 22px 28px!important;overscroll-behavior:contain;scrollbar-gutter:stable}
+.settings.settings-refined>[data-slot=dialog-close]{top:20px;right:18px;z-index:4}
+.settings .settings-search{display:grid;grid-template-columns:18px minmax(0,1fr) auto;gap:10px;padding:0 13px!important;min-height:48px;background:var(--season-soft);border:1px solid var(--scene-border);border-radius:16px;box-shadow:none}
+.settings .settings-search input{display:block;width:100%;min-width:0;margin:0!important;padding:12px 0!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;outline:none;font-size:.9rem!important;line-height:1.5;color:var(--scene-ink)}
+.settings .settings-search:focus-within{outline:2px solid var(--season-accent);outline-offset:2px}
+.settings .settings-search button{width:32px;height:36px;min-width:32px;padding:0;display:grid;place-items:center}
+.settings-sections section{margin-top:22px}.settings-sections button{min-height:70px;padding:12px;gap:10px}.settings-sections small{line-height:1.6;font-size:.74rem}.settings-sections h3{margin-bottom:10px}
+.settings-sections strong{font-size:.92rem}.settings-sections button:hover{background:var(--season-soft)!important}
+.settings-stack{min-width:0}.settings-stack>label{max-width:100%;overflow-wrap:anywhere}.settings-stack input:not([type=checkbox]):not([type=range]),.settings-stack textarea{max-width:100%}
+.preference-card{padding:16px;border:1px solid var(--scene-border);border-radius:20px;background:var(--scene-paper);color:var(--scene-ink)}
+.preference-card h3{font-size:.95rem;margin:0 0 16px}.font-controls label{display:block;line-height:1.7;margin:10px 0;color:var(--scene-ink);font-size:.87rem}
+.font-controls output{float:right;font-variant-numeric:tabular-nums;color:var(--season-accent)}
+.settings .font-controls input[type=range]{display:block;width:100%;padding:0;height:36px;margin:6px 0;background:transparent;border:0;accent-color:var(--season-accent)}
+.font-sample{font-size:var(--chat-font-size)!important;line-height:1.8;border-radius:14px;background:var(--season-soft);padding:14px;margin:10px 0 6px}
+.avatar-personal{display:flex;flex-wrap:wrap;align-items:center;gap:12px}.avatar-personal .chat-avatar{width:58px;height:58px;border-radius:18px}
+.avatar-upload{position:relative;display:inline-flex;align-items:center;gap:8px;min-height:44px;border:1px solid var(--scene-border);border-radius:14px;padding:9px 12px;cursor:pointer;font-size:.86rem}
+.avatar-upload input{position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer}.avatar-upload:focus-within{outline:2px solid var(--season-accent)}
+.avatar-choices{display:flex;flex-wrap:wrap;gap:12px;margin-top:14px}.avatar-choices button{display:grid;place-items:center;width:66px;height:66px;border:2px solid transparent;border-radius:20px;background:var(--season-soft)}
+.avatar-choices button[aria-pressed=true]{border-color:var(--season-accent)}.avatar-choices img{object-fit:contain;width:50px;height:50px}
+.bubble-choices{display:grid;grid-template-columns:1fr 1fr;gap:12px}.bubble-choices>button{border:2px solid var(--scene-border);border-radius:18px;padding:10px 8px 8px;background:var(--season-ground);overflow:hidden;min-width:0;color:var(--scene-ink)}
+.bubble-choices>button[aria-pressed=true]{border-color:var(--season-accent);background:var(--season-soft)}.bubble-choices img{display:block;width:100%;height:76px;object-fit:contain}.bubble-choice-label{display:flex;align-items:center;justify-content:center;gap:7px;font-size:.8rem;min-height:30px}
+.bubble-plain-sample{display:grid;place-items:center;min-height:76px;padding:10px;border-radius:15px;background:var(--scene-paper);font-size:.78rem}
+:root .chat-page .messages{padding:20px 14px;scroll-behavior:auto;contain:layout style}
+:root .chat-page .messages:before{display:none}
+:root .chat-page .message{position:relative;display:grid;grid-template-columns:36px minmax(0,1fr);gap:4px 8px;width:min(94%,440px);max-width:100%;margin:0 auto 22px 0;padding:0;align-items:start}
+:root .chat-page .message.mine{grid-template-columns:minmax(0,1fr) 36px;margin-left:auto;margin-right:0;text-align:left}
+.chat-avatar{width:36px;height:36px;object-fit:cover;border-radius:12px;padding:2px;background:var(--scene-paper);border:1px solid var(--scene-border)}
+.message>.chat-avatar{grid-column:1;grid-row:1 / 3;align-self:start}.message.mine>.chat-avatar{grid-column:2}
+:root .chat-page .message>small{grid-column:2;grid-row:1;display:flex;align-items:center;flex-wrap:wrap;gap:4px;justify-content:flex-start;min-height:22px;line-height:1.5;font-size:.68rem;padding:0 4px!important;margin:0;background:none;border-radius:0;color:var(--scene-muted)}
+:root .chat-page .message.mine>small{grid-column:1;justify-content:flex-end}
+.message>.bubble-frame{grid-column:2;grid-row:2}.message.mine>.bubble-frame{grid-column:1}
+:root .chat-page .message-edit{grid-column:1 / -1;justify-self:end;min-height:26px;margin:0 43px 0 0;color:var(--scene-muted);font-size:.7rem}
+.bubble-frame{position:relative;isolation:isolate;min-width:0;max-width:100%;border-radius:20px;padding:44px 38px 34px;--skin:url('/images/chat-skins/tea.webp');--slice:155 130 115 155;--edge:43.4px 36.4px 32.2px 43.4px}
+.bubble-frame[data-skin=sunflower]{--skin:url('/images/chat-skins/sunflower.webp');--slice:120 140 125 150;--edge:33.6px 39.2px 35px 42px;padding-top:36px;padding-bottom:38px}
+.bubble-frame[data-skin=hearts]{--skin:url('/images/chat-skins/hearts.webp');--slice:180 140 105 150;--edge:50.4px 39.2px 29.4px 42px;padding-top:52px;padding-bottom:32px}
+.bubble-frame::before{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;border-style:solid;border-color:transparent;border-width:var(--edge);border-image-source:var(--skin);border-image-slice:var(--slice) fill;border-image-width:var(--edge);border-image-repeat:stretch}
+:root .chat-page .bubble-frame p{display:block;width:100%!important;padding:0!important;margin:0!important;border:0!important;box-shadow:none!important;border-radius:0;background:none!important;color:#51372b!important;font-size:var(--chat-font-size)!important;line-height:1.8;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word}
+.bubble-frame[data-skin=plain]{padding:14px 17px;background:var(--scene-paper);border:1px solid var(--scene-border);border-radius:20px 20px 20px 7px}
+.message.mine .bubble-frame[data-skin=plain]{background:var(--season-soft);border-radius:20px 20px 7px 20px}
+.bubble-frame[data-skin=plain]::before{display:none}:root .chat-page .bubble-frame[data-skin=plain] p{color:var(--scene-ink)!important}
+:root .chat-page .composer textarea{font-size:var(--chat-font-size)!important;line-height:1.6;max-height:140px}
+.history-page{display:block;min-height:44px;border:1px solid var(--scene-border);border-radius:16px;background:var(--scene-paper);color:var(--scene-muted);font-size:.8rem;margin:8px auto 20px;padding:10px 18px}
+:root .bar-today{display:grid;place-items:center;width:44px;height:44px;min-width:44px;min-height:44px;padding:4px!important;border-radius:15px;border:1px solid var(--scene-border);background:var(--season-soft)}
+.bar-today img{display:block;object-fit:contain;width:32px;height:32px}
+:root .luke-plan-calendar .calendar-grid{gap:4px;align-items:stretch}
+:root .luke-plan-calendar .calendar-grid>button{aspect-ratio:1;min-height:0;height:auto;display:grid;grid-template-rows:11px minmax(16px,1fr) 10px;align-items:center;justify-content:stretch;gap:0;padding:3px 2px;border-radius:14px;transition:background-color 180ms ease,border-color 180ms ease}
+.calendar-badge-line{display:flex;justify-content:flex-end;align-items:center;min-height:11px}
+:root .luke-plan-calendar .holiday-mark{position:static;font-size:9px;line-height:10px;padding:0 2px;border-radius:3px;min-width:12px;background:var(--scene-paper);font-weight:600;color:var(--season-accent)}
+.calendar-day-main{display:flex;align-items:center;justify-content:center;min-height:0}
+:root .luke-plan-calendar .calendar-day-number{font-size:1rem;line-height:1.1}
+:root .luke-plan-calendar .luke-today-head{display:block;width:26px;height:24px;object-fit:contain}
+:root .luke-plan-calendar .calendar-grid>button .calendar-day-label{height:10px;line-height:10px;font-size:8px;letter-spacing:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;min-width:0;text-align:center}
+.date-grid button{display:grid;grid-template-rows:11px minmax(24px,1fr);justify-items:stretch;align-items:center;gap:0;aspect-ratio:1;min-height:42px;padding:2px 1px;border-radius:13px}
+.date-grid button>span:last-child{display:flex;justify-content:center;align-items:center;line-height:1.1}.date-badge-line{display:flex;justify-content:flex-end;height:11px;padding:0 1px}
+.date-grid button i{position:static;font-size:9px;line-height:10px;font-style:normal;min-width:12px;text-align:center;border-radius:3px;background:var(--season-soft);color:var(--scene-ink)}
+.date-grid button[aria-pressed=true] i{background:var(--scene-paper);color:var(--scene-ink)}
+.calendar-tools>small{font-size:.68rem;color:var(--scene-muted)}
+.memory-fact{border:1px solid var(--scene-border);border-radius:16px;padding:14px;margin:12px 0;color:var(--scene-ink);background:var(--scene-paper);overflow-wrap:anywhere}.memory-fact>strong{font-size:.83rem}.memory-fact>p{font-size:.88rem;margin-top:6px}.memory-fact>div{display:flex;justify-content:flex-end;gap:12px}
+.permission-cards a{text-decoration:underline;text-underline-offset:3px;overflow-wrap:anywhere}.weather-attribution{display:block;width:max-content;max-width:100%;margin:10px 0 0 auto;font-size:.66rem;color:var(--scene-muted);text-decoration:underline;text-underline-offset:2px}
+.weather-week{overflow-x:auto;max-width:100%;scrollbar-width:thin}.weather-day{flex-shrink:0}
+.focus-keepsake img{object-fit:contain;border-radius:0!important;width:46px;height:46px}.focus-keepsake-pendant{contain:layout style;transform-origin:top center}
+.app-shell .nap-photo{object-fit:contain;object-position:center}
+@media(max-width:380px){.settings-fixed-head{padding-left:16px;padding-right:66px;min-height:76px}.settings.settings-refined>[data-slot=dialog-scroll-body]{padding:16px 14px 24px!important}.settings.settings-refined>[data-slot=dialog-close]{right:12px;top:16px}.settings-sections button{grid-template-columns:34px minmax(0,1fr) 16px;gap:8px;padding:10px}.settings-item-icon{width:34px;height:36px;border-radius:12px}.settings-sections small{font-size:.68rem}.bubble-choices{gap:8px}.preference-card{padding:12px}:root .chat-page .messages{padding:16px 8px}:root .chat-page .message{width:100%;grid-template-columns:32px minmax(0,1fr);gap:4px 6px}:root .chat-page .message.mine{grid-template-columns:minmax(0,1fr) 32px}.message>.chat-avatar{width:32px;height:32px}.bubble-frame{padding-inline:34px}:root .luke-plan-calendar .calendar-grid{gap:3px}:root .luke-plan-calendar .calendar-grid>button{grid-template-rows:10px minmax(14px,1fr) 8px;padding:2px 1px;border-radius:12px}:root .luke-plan-calendar .calendar-grid>button .calendar-day-label{font-size:7px;height:8px;line-height:8px}:root .luke-plan-calendar .luke-today-head{width:23px;height:22px}}
+@media(prefers-reduced-motion:no-preference){.app-tabs main>[data-slot=tabs-content]:not([hidden]){animation:page-slide205 240ms cubic-bezier(.2,.7,.2,1) both}.settings [data-slot=tabs-content]:not([hidden]){animation:settings-slide205 180ms ease-out both}.settings .settings-directory{animation:settings-slide205 180ms ease-out both}}
+@keyframes page-slide205{from{opacity:.65;translate:var(--page-slide) 0}to{opacity:1;translate:0 0}}
+@keyframes settings-slide205{from{opacity:.65;translate:0 4px}to{opacity:1;translate:0 0}}
+:root[data-paused=true] *,:root[data-paused=true] *::before,:root[data-paused=true] *::after{animation-play-state:paused!important}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+:root .settings.settings-refined .settings-search input{background:transparent!important;border:0!important;box-shadow:none!important;min-width:0;width:100%;margin:0;padding:10px 0;color:var(--scene-ink)!important}
+.chat-correction{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 16px;background:var(--season-soft);color:var(--scene-ink);font-size:.8rem}.chat-correction button{min-height:36px;padding:6px 10px;border-radius:12px;background:var(--scene-paper);border:1px solid var(--scene-border)}
+
+:root .luke-plan-calendar .calendar-grid>button{grid-template-rows:8px minmax(0,1fr) 8px;padding:2px}
+.calendar-badge-line{height:8px;min-height:8px}:root .luke-plan-calendar .holiday-mark{font-size:8px;line-height:8px}
+.calendar-day-main{height:100%;overflow:hidden}:root .luke-plan-calendar .calendar-day-number{font-size:clamp(12px,.82rem,17px);line-height:1}
+:root .luke-plan-calendar .luke-today-head{height:100%;max-height:24px}
+:root .luke-plan-calendar .calendar-grid>button .calendar-day-label{height:8px;line-height:8px;font-size:7px}

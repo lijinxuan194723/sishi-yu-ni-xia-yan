@@ -1,7 +1,8 @@
 import {defineConfig} from 'vite';
 import react from '@vitejs/plugin-react';
 // Reuse sharp 0.34.5 already present in the committed build dependency graph.
-import sharp from 'sharp';
+import sharpModule from 'sharp';
+const sharp=sharpModule as unknown as (input:Buffer)=>any;
 import tailwind from '@tailwindcss/postcss';
 import {fileURLToPath} from 'node:url';
 import {readdir,readFile,unlink,writeFile} from 'node:fs/promises';

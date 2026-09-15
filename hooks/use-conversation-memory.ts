@@ -50,20 +50,21 @@ export function useConversationMemory(options:Options){
  }
  useEffect(()=>{
   alive.current=true;retry.current=readRetry();
-  const resume=()=>{if(document.hidden||!navigator.onLine)cancel();else{retry.current.at=0;setWake(n=>n+1);}};
+  const resume=()=>{if(document.hidden||!navigator.onLine)cancel();else{setWake(n=>n+1);}};
   document.addEventListener('visibilitychange',resume);window.addEventListener('online',resume);window.addEventListener('offline',resume);window.addEventListener('focus',resume);
   return()=>{alive.current=false;sequence.current++;task.current?.abort();task.current=null;document.removeEventListener('visibilitychange',resume);window.removeEventListener('online',resume);window.removeEventListener('offline',resume);window.removeEventListener('focus',resume);};
  },[]);
  const {data,config,ready,busy}=options;
  useEffect(()=>{if(ready&&data.memoryArchive?.autoRevision!==1){options.save(value=>({memoryArchive:{...(value.memoryArchive??emptyArchive()),enabled:true,autoRevision:1}}));}},[ready,data.memoryArchive?.autoRevision]);
  useEffect(()=>{if(busy||!ready)cancel();},[busy,ready]);
- useEffect(()=>{cancel();retry.current={fingerprint:'',attempt:0,at:0};},[config.baseUrl,config.model,config.key,config.fallback?.baseUrl,config.fallback?.model,config.fallback?.key]);
+ useEffect(()=>{cancel();},[config.baseUrl,config.model,config.key,config.fallback?.baseUrl,config.fallback?.model,config.fallback?.key]);
+ useEffect(()=>{if(task.current)cancel();},[data.draft]);
  useEffect(()=>{if(data.memoryArchive?.enabled===false)cancel();},[data.memoryArchive?.enabled]);
  const batch=useMemo(()=>nextArchiveBatch(data.messages,data.memoryArchive),[data.messages,data.memoryArchive]);
  useEffect(()=>{
-  if(!ready||busy||!data.memoryArchive?.enabled||data.draft?.trim()||!batch||!config.baseUrl||!config.model||!config.key||document.hidden||!navigator.onLine)return;
+  if(!ready||busy||!data.memoryArchive?.enabled||!batch||!config.baseUrl||!config.model||!config.key||document.hidden||!navigator.onLine)return;
   if(retry.current.fingerprint&&retry.current.fingerprint!==batch.fingerprint)retry.current={fingerprint:'',attempt:0,at:0};
-  const timer=setTimeout(()=>{if(!live.current.data.draft?.trim())void run();},Math.max(2500,retry.current.at-Date.now()));
+  const timer=setTimeout(()=>{void run();},Math.max(5000,retry.current.at-Date.now()));
   return()=>clearTimeout(timer);
  },[data.messages,data.memoryArchive,data.draft,ready,busy,wake,config.baseUrl,config.model,config.key,batch]);
  return {phase,notice,cancel,run:()=>{retry.current.at=0;return run(true);}};

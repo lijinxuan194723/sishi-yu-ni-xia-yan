@@ -74,9 +74,9 @@ export function mergeFacts(archive:MemoryArchive,incoming:MemoryFact[]):MemoryAr
  for(const f of incoming){const key=normalizeMemoryKey(f.key),old=facts.get(key);if(blocked.has(key)||old?.locked||(old&&old.sourceIndex>f.sourceIndex))continue;facts.set(key,{...f,key});}
  return {...archive,facts:[...facts.values()]};
 }
-export function forgetFact(archive:MemoryArchive,key:string):MemoryArchive {
+export function forgetFact(archive:MemoryArchive,key:string,messages:readonly ArchiveMessage[]=[]):MemoryArchive {
  const normalized=normalizeMemoryKey(key),fact=archive.facts?.find(f=>f.key===normalized);
- return {...archive,facts:(archive.facts??[]).filter(f=>f.key!==normalized),blockedKeys:[...new Set([...(archive.blockedKeys??[]),normalized])],mutedSources:[...new Set([...(archive.mutedSources??[]),...(fact?[fact.sourceIndex]:[])])]};
+ return {...archive,facts:(archive.facts??[]).filter(f=>f.key!==normalized),blockedKeys:[...new Set([...(archive.blockedKeys??[]),normalized])],mutedSources:[...new Set([...(archive.mutedSources??[]),...(fact?[fact.sourceIndex,fact.sourceIndex+1]:[]),...messages.flatMap((m,i)=>fact&&((fact.quote.length>=2&&m.text.includes(fact.quote))||(fact.value.length>=2&&m.text.includes(fact.value)))?[i,...(m.who==='me'?[i+1]:[])]:[])])]};
 }
 export function editFact(archive:MemoryArchive,key:string,value:string):MemoryArchive {
  if(!value.trim()||value.length>600)throw Error('记忆内容需为 1—600 字');
@@ -90,7 +90,7 @@ const normalizedMessages=new WeakMap<ArchiveMessage,string>();
 function score(text:string,terms:string[]){const value=normalize(text);return terms.reduce((n,t)=>n+(value.includes(t)?(/[a-z\d]/.test(t)?2:1):0),0);}
 export function retrieveArchive(messages:readonly ArchiveMessage[],archive?:MemoryArchive){
  const recent=recentWindow(messages),clean=reconciledArchive(messages,archive),muted=new Set(clean.mutedSources??[]);
- const query=[...messages].reverse().find(m=>m.who==='me')?.text??'',terms=memoryTerms(query);
+ let query='';for(let i=messages.length-1;i>=0;i--)if(messages[i].who==='me'){query=messages[i].text;break;}const terms=memoryTerms(query);
  const chapters=clean.chapters.map((c,i)=>({c,i,score:score(c.summary,terms)})).filter(x=>![...muted].some(i=>i>=x.c.from&&i<x.c.to)).filter(x=>x.score>0||x.i>=clean.chapters.length-2).sort((a,b)=>b.score-a.score||b.i-a.i).slice(0,3).sort((a,b)=>a.i-b.i).map(({c})=>({from:c.from,to:c.to,fromDate:messages[c.from]?.at,toDate:messages[c.to-1]?.at,summary:c.summary.slice(0,1400)}));
  const matches:{i:number;score:number}[]=[];
  for(let i=0;i<recent.start;i++){const m=messages[i];if(m.who!=='me'||m.source==='demo'||muted.has(i))continue;let text=normalizedMessages.get(m);if(text===undefined){text=normalize(m.text);normalizedMessages.set(m,text);}const value=terms.reduce((n,t)=>n+(text!.includes(t)?1:0),0);if(value)matches.push({i,score:value});}

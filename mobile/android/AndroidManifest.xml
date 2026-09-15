@@ -1,4 +1,4 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.luke.summer" android:versionCode='902009' android:versionName='2.0.4'>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.luke.summer" android:versionCode='902010' android:versionName='2.0.5'>
  <uses-sdk android:minSdkVersion="26" android:targetSdkVersion="35"/>
  <uses-permission android:name="android.permission.INTERNET"/>
  <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>

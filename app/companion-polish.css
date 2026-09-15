@@ -12,30 +12,30 @@
 :root :is(.page-bar h1,.section-label,.luke-desk-heading,.luke-plan-calendar h2,.plan-manager h2,.luke-journal-note){color:var(--scene-ink);transition:color 400ms ease}
 :root :is(.page-bar p,.luke-authored,.luke-calendar-caption,.luke-journal-note small){color:var(--scene-muted);transition:color 400ms ease}
 .luke-plan-calendar{position:relative;isolation:isolate;overflow:hidden}
-.luke-calendar-note{display:flex;align-items:center;gap:8px;margin:0 0 18px;color:var(--season-accent);font-size:13px;line-height:1.7}
+.luke-calendar-note{display:flex;align-items:center;gap:8px;margin:0 0 18px;color:var(--season-accent);font-size:0.8125rem;line-height:1.7}
 .luke-plan-calendar .month-head{margin-bottom:20px}
 .luke-plan-calendar .calendar-grid{gap:5px;align-items:stretch}
 :root .luke-plan-calendar .calendar-grid>button{min-width:0;min-height:70px;position:relative;border:1px solid transparent;border-radius:18px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:6px 1px;background:transparent;color:var(--scene-ink);font-variant-numeric:tabular-nums;transition:background-color 360ms ease,border-color 360ms ease,color 360ms ease,scale 160ms ease}
 :root .luke-plan-calendar .calendar-grid>button.selected{border-color:var(--season-accent);background:var(--season-soft);color:var(--scene-ink)}
 :root .luke-plan-calendar .calendar-grid>button.today{background:color-mix(in srgb,var(--season-soft) 64%,var(--scene-paper));color:var(--scene-ink);gap:0}
-.luke-plan-calendar .calendar-day-number{font-size:18px;line-height:1.2}
-.luke-plan-calendar .calendar-grid>button small{display:block;max-width:100%;height:16px;line-height:16px;font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--scene-muted)}
+.luke-plan-calendar .calendar-day-number{font-size:1.125rem;line-height:1.2}
+.luke-plan-calendar .calendar-grid>button small{display:block;max-width:100%;height:16px;line-height:16px;font-size:0.5625rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--scene-muted)}
 .luke-plan-calendar .luke-today-head{display:block;width:36px;height:28px;object-fit:contain;flex-shrink:0}
-.luke-plan-calendar .today .calendar-day-number{font-size:14px;font-weight:650}
-.luke-calendar-caption{display:flex;gap:7px;align-items:center;font-size:11px;line-height:1.6;margin-top:20px}
+.luke-plan-calendar .today .calendar-day-number{font-size:0.875rem;font-weight:650}
+.luke-calendar-caption{display:flex;gap:7px;align-items:center;font-size:0.6875rem;line-height:1.6;margin-top:20px}
 .luke-calendar-caption img,.luke-plan-caption img{object-fit:contain;flex:none}
-.luke-plan-caption{display:flex;align-items:center;gap:8px;color:var(--season-accent);font-size:12px;margin-bottom:12px}
+.luke-plan-caption{display:flex;align-items:center;gap:8px;color:var(--season-accent);font-size:0.75rem;margin-bottom:12px}
 .luke-journal-note{display:flex;align-items:center;gap:14px;padding:16px 18px;border:1px solid var(--scene-border);border-radius:22px;background:var(--scene-paper);margin-bottom:20px}
-.luke-journal-note>img{object-fit:contain;flex:none}.luke-journal-note>div{min-width:0}.luke-journal-note span{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--season-accent);font-weight:600}.luke-journal-note p{font-size:13px;line-height:1.8;margin-top:6px}.luke-journal-note small{font-size:10px;display:block;margin-top:6px}
+.luke-journal-note>img{object-fit:contain;flex:none}.luke-journal-note>div{min-width:0}.luke-journal-note span{display:flex;align-items:center;gap:7px;font-size:0.8125rem;color:var(--season-accent);font-weight:600}.luke-journal-note p{font-size:0.8125rem;line-height:1.8;margin-top:6px}.luke-journal-note small{font-size:0.625rem;display:block;margin-top:6px}
 /* Transparent art does not sit underneath editable text or obscure note actions. */
 .music-listen{display:grid;gap:10px;margin:16px 0;padding:14px;border:1px solid var(--scene-border);border-radius:18px;background:var(--scene-paper);color:var(--scene-ink)}
-.music-listen .listen-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.music-listen :is(button,a){min-height:44px;gap:8px;margin:0;border-radius:14px}.music-listen .listen-note{color:var(--scene-muted);font-size:12px;line-height:1.7}.music-listen summary{font-size:12px;min-height:44px;display:flex;align-items:center;cursor:pointer;color:var(--season-accent)}
-.music-link-fields{display:grid;gap:10px}.music-link-fields label{display:grid;gap:5px;font-size:12px}.music-link-fields input{width:100%;font-size:14px}.music-link-fields .soft-button{justify-content:center}.music-listen [role=alert]{font-size:12px;color:var(--scene-danger)}
+.music-listen .listen-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.music-listen :is(button,a){min-height:44px;gap:8px;margin:0;border-radius:14px}.music-listen .listen-note{color:var(--scene-muted);font-size:0.75rem;line-height:1.7}.music-listen summary{font-size:0.75rem;min-height:44px;display:flex;align-items:center;cursor:pointer;color:var(--season-accent)}
+.music-link-fields{display:grid;gap:10px}.music-link-fields label{display:grid;gap:5px;font-size:0.75rem}.music-link-fields input{width:100%;font-size:0.875rem}.music-link-fields .soft-button{justify-content:center}.music-listen [role=alert]{font-size:0.75rem;color:var(--scene-danger)}
 .reminder-panel{grid-column:1/-1;display:grid;gap:16px;color:var(--scene-ink)}.reminder-panel h2{display:flex;align-items:center;gap:9px}.reminder-panel h2 svg{color:var(--season-accent)}
 .reminder-panel .reminder-tabs{display:flex;flex-wrap:wrap;gap:8px}.reminder-tabs button{min-height:44px;padding:10px 14px;border-radius:14px;border:1px solid var(--scene-border)}.reminder-tabs button[aria-pressed=true]{background:var(--season-soft);border-color:var(--season-accent)}
-.reminder-fields{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end}.reminder-fields label{display:grid;gap:6px;font-size:13px;min-width:0}.reminder-fields input{max-width:100%;min-height:44px}.reminder-panel p,.reminder-panel small{font-size:12px;line-height:1.8;color:var(--scene-muted)}
+.reminder-fields{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end}.reminder-fields label{display:grid;gap:6px;font-size:0.8125rem;min-width:0}.reminder-fields input{max-width:100%;min-height:44px}.reminder-panel p,.reminder-panel small{font-size:0.75rem;line-height:1.8;color:var(--scene-muted)}
 .reminder-panel .reminder-help{padding:12px;border:1px solid var(--scene-border);border-radius:14px;background:var(--scene-paper)}.reminder-panel button{min-height:44px;border-radius:14px}.reminder-panel .soft-button{margin:0;width:max-content;max-width:100%}
-@media(max-width:380px){.luke-plan-calendar{padding:16px 10px}.luke-plan-calendar .calendar-grid{gap:3px}.luke-plan-calendar .calendar-grid>button{min-height:66px;border-radius:14px}.luke-plan-calendar .month-head h2{font-size:18px}.luke-calendar-note{font-size:12px}.luke-journal-note{padding:14px;gap:10px}.luke-journal-note>img{width:44px;height:38px}}
+@media(max-width:380px){.luke-plan-calendar{padding:16px 10px}.luke-plan-calendar .calendar-grid{gap:3px}.luke-plan-calendar .calendar-grid>button{min-height:66px;border-radius:14px}.luke-plan-calendar .month-head h2{font-size:1.125rem}.luke-calendar-note{font-size:0.75rem}.luke-journal-note{padding:14px;gap:10px}.luke-journal-note>img{width:44px;height:38px}}
 @media(prefers-reduced-motion:reduce){:root .hero.hero-gallery :is(h1,h1 em,.hero-copy>p,.together strong,.together span,.together small,.signature,.eyebrow),:root .luke-plan-calendar .calendar-grid>button,:root :is(.page-bar h1,.page-bar p,.section-label,.luke-desk-heading,.luke-plan-calendar h2,.plan-manager h2,.luke-journal-note,.luke-authored,.luke-calendar-caption,.luke-journal-note small){transition:none}}
 
 .reminder-tabs button{display:inline-flex;align-items:center;gap:7px}
