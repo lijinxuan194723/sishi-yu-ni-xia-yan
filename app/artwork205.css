@@ -4,3 +4,7 @@
 :root .chat-page .bubble-frame[data-skin=hearts]{--slice:90 70 52.5 75}
 /* The former notes stylesheet hid this real action on every page. */
 :root .chat-page .message-edit{display:inline-flex!important;align-items:center;justify-content:center;min-height:36px;padding:4px 9px;border-radius:10px}
+/* The old workday border added 2 px to an 8 px badge track. Keep its outline inside. */
+:root .luke-plan-calendar .holiday-mark{display:block;box-sizing:border-box;height:8px;line-height:8px;margin:0;border:0;flex-shrink:0}
+:root .luke-plan-calendar .holiday-mark[data-kind=work]{box-shadow:inset 0 0 0 1px var(--scene-border)}
+@media(max-width:380px){:root .luke-plan-calendar .calendar-day-number{font-size:12px}}
