@@ -1,0 +1,31 @@
+name: Prepare 2.0.5 workspace
+on:
+  push:
+    branches: ['release/v2.0.5']
+    paths: ['.github/workflows/workspace-205.yml']
+permissions:
+  contents: read
+jobs:
+  workspace:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Archive source and installed build dependencies, without credentials
+        run: |
+          mkdir -p "$RUNNER_TEMP/workspace-export"
+          git rev-parse HEAD > workspace-commit.txt
+          tar --exclude=.git --exclude=outputs --exclude=work -czf "$RUNNER_TEMP/workspace-export/workspace-205.tar.gz" .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: workspace-205
+          path: ${{ runner.temp }}/workspace-export/workspace-205.tar.gz
+          retention-days: 3
+          if-no-files-found: error
