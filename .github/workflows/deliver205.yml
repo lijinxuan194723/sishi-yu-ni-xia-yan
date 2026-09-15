@@ -1,0 +1,141 @@
+name: Review 2.0.5 APK
+
+on:
+  push:
+    branches: ['release/v2.0.5-complete']
+    paths-ignore: ['docs/**', 'CHANGELOG.md']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: review205-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  build:
+    if: github.repository == 'lijinxuan194723/sishi-yu-ni-xia-yan' && github.ref == 'refs/heads/release/v2.0.5-complete'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Archive exact source
+        run: |
+          mkdir -p outputs/review205 work/check205
+          git archive --format=zip HEAD > outputs/review205/source205.zip
+          git rev-parse HEAD > outputs/review205/source-commit.txt
+      - name: Install dependencies
+        run: npm ci
+      - name: Type check
+        id: types
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          npx tsc --noEmit 2>&1 | tee work/check205/types.txt
+      - name: Logic regressions
+        id: logic
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          node --experimental-strip-types --test scripts/checks/*.test.mjs 2>&1 | tee work/check205/logic.tap
+      - name: Build mobile bundle and test harness
+        run: |
+          npx vite build --config mobile/vite.config.mts
+          node scripts/checks/build-harness205.mjs
+      - name: Browser tools
+        run: |
+          python3 -m pip install playwright==1.57.0 pillow==11.3.0
+          python3 -m playwright install --with-deps chromium
+      - name: Runtime regression of the packaged web bundle
+        id: browser
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          python3 scripts/checks/browser205.py 2>&1 | tee work/check205/browser.txt
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+          log-accepted-android-sdk-licenses: false
+      - name: SDK build tools
+        run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0' >/dev/null
+      - name: Restore existing signing identity only
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/.android/luke-preview.p12
+          key: luke-preview-signing-v1
+          fail-on-cache-miss: true
+      - name: Verify signer before building
+        run: |
+          set -euo pipefail
+          keytool -exportcert -alias luke-preview -keystore ~/.android/luke-preview.p12 -storepass android-preview -file "$RUNNER_TEMP/signer.der" >/dev/null 2>&1
+          echo 'be727012f0f00f93ea7578f1ab37b5c22c06652997a6797c0e19cef4f1b13e69  '"$RUNNER_TEMP/signer.der" | sha256sum --check
+      - name: Build signed APK without changing app identity or user data
+        run: |
+          set -euo pipefail
+          JAR="$ANDROID_HOME/platforms/android-35/android.jar"
+          TOOLS="$ANDROID_HOME/build-tools/35.0.0"
+          STAGE="$RUNNER_TEMP/review205-apk"
+          mkdir -p "$STAGE/assets/web" "$STAGE/classes" "$STAGE/dex" "$STAGE/native"
+          cp -R work/mobile-web/. "$STAGE/assets/web/"
+          cp mobile/android/MainActivity.java "$STAGE/native/"
+          cp -R mobile/android/res "$STAGE/native/res"
+          cp mobile/android/AndroidManifest.xml "$STAGE/native/AndroidManifest.xml"
+          sed -i -e 's/package="com.luke.summer"/package="com.luke.summer.preview"/' -e 's/android:name="\.MainActivity"/android:name="com.luke.summer.MainActivity"/' "$STAGE/native/AndroidManifest.xml"
+          javac -encoding UTF-8 --release 8 -classpath "$JAR" -d "$STAGE/classes" "$STAGE/native/MainActivity.java"
+          mapfile -d '' CLASSES < <(find "$STAGE/classes" -name '*.class' -print0)
+          "$TOOLS/d8" --lib "$JAR" --min-api 26 --output "$STAGE/dex" "${CLASSES[@]}"
+          "$TOOLS/aapt" package -f -M "$STAGE/native/AndroidManifest.xml" -S "$STAGE/native/res" -A "$STAGE/assets" -I "$JAR" -F "$STAGE/unsigned.apk"
+          (cd "$STAGE/dex" && "$TOOLS/aapt" add "$STAGE/unsigned.apk" classes.dex)
+          "$TOOLS/zipalign" -f -p 4 "$STAGE/unsigned.apk" "$STAGE/aligned.apk"
+          APK="$GITHUB_WORKSPACE/outputs/review205/Four-Seasons-Luke-2.0.5.apk"
+          "$TOOLS/apksigner" sign --ks ~/.android/luke-preview.p12 --ks-key-alias luke-preview --ks-pass pass:android-preview --key-pass pass:android-preview --out "$APK" "$STAGE/aligned.apk"
+          "$TOOLS/apksigner" verify --verbose --print-certs "$APK" > work/check205/apk-signature.txt
+          "$TOOLS/zipalign" -c 4 "$APK"
+          "$TOOLS/aapt" dump badging "$APK" > work/check205/apk-badging.txt
+          python3 - <<'PY'
+          import pathlib,re,hashlib,json,os,zipfile
+          root=pathlib.Path('outputs/review205'); apk=root/'Four-Seasons-Luke-2.0.5.apk'
+          b=pathlib.Path('work/check205/apk-badging.txt').read_text(); s=pathlib.Path('work/check205/apk-signature.txt').read_text()
+          m=re.search(r"package: name='([^']+)' versionCode='(\d+)' versionName='([^']+)'",b); assert m
+          assert m.groups()==('com.luke.summer.preview','902010','2.0.5'),m.groups()
+          assert 'application-debuggable' not in b and "application-label:'四时与你'" in b
+          cert='be727012f0f00f93ea7578f1ab37b5c22c06652997a6797c0e19cef4f1b13e69'
+          assert 'certificate SHA-256 digest: '+cert in s
+          with zipfile.ZipFile(apk) as z:
+            assert z.testzip() is None
+            assert not any(n.endswith('personal-model.json') for n in z.namelist())
+            for name in ('tea','sunflower','hearts'):
+              assert 'assets/web/images/chat-skins/'+name+'.webp' in z.namelist()
+            for name in ('dog','toast','cat'):
+              assert 'assets/web/images/companions/'+name+'.webp' in z.namelist()
+          h=hashlib.sha256(apk.read_bytes()).hexdigest()
+          (root/'Four-Seasons-Luke-2.0.5.sha256').write_text(h+'  '+apk.name+'\n')
+          (root/'build205.json').write_text(json.dumps({'commit':os.environ['GITHUB_SHA'],'run':os.environ['GITHUB_RUN_ID'],'branch':os.environ['GITHUB_REF_NAME'],'package':m[1],'versionCode':int(m[2]),'versionName':m[3],'sha256':h,'size':apk.stat().st_size,'certificateSha256':cert,'baseline':'2.0.4','mainModified':False},ensure_ascii=False,indent=2))
+          print((root/'build205.json').read_text())
+          PY
+      - name: Record actual check outcomes
+        if: always()
+        env:
+          TYPES: ${{ steps.types.outcome }}
+          LOGIC: ${{ steps.logic.outcome }}
+          BROWSER: ${{ steps.browser.outcome }}
+        run: |
+          python3 - <<'PY'
+          import os,json,pathlib,shutil
+          root=pathlib.Path('outputs/review205');root.mkdir(parents=True,exist_ok=True)
+          (root/'check-outcomes.json').write_text(json.dumps({k:os.environ[k] for k in ['TYPES','LOGIC','BROWSER']},indent=2))
+          shutil.copytree('work/check205',root/'checks',dirs_exist_ok=True)
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Four-Seasons-Luke-2.0.5-review
+          path: outputs/review205/
+          retention-days: 14
+          if-no-files-found: error
