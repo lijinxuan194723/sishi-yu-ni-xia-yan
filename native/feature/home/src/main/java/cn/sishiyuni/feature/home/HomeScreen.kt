@@ -27,6 +27,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import cn.sishiyuni.core.AppGraph
@@ -82,29 +83,33 @@ fun HomeScreen(graph: AppGraph, padding: PaddingValues, active: Boolean, navigat
                     }
                 }
             } else {
-                Column(Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                LayeredContent(padding, header = {
                     NativeTabs(listOf("相伴", "今日", "约定", "回顾"), pager, tag = "home-tabs")
                     ErrorNotice(error, vm::clearError)
-                    HorizontalPager(pager, Modifier.weight(1f), key = { it }) { section ->
-                        LazyColumn(Modifier.fillMaxSize().testTag("home-section-$section"), verticalArrangement = Arrangement.spacedBy(14.dp), contentPadding = PaddingValues(bottom = 20.dp)) {
+                }) { listPadding ->
+                    HorizontalPager(pager, Modifier.fillMaxSize(), key = { it }) { section ->
+                        LazyColumn(Modifier.fillMaxSize().testTag("home-section-$section"), verticalArrangement = Arrangement.spacedBy(14.dp), contentPadding = listPadding) {
                             when (section) {
                                 0 -> {
                                     item {
-                                        Box(Modifier.fillMaxWidth().height(500.dp).clip(RoundedCornerShape(28.dp)).testTag("home-hero")) {
-                                            AssetImage(image, "查看夏彦照片", Modifier.fillMaxSize()
+                                        Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(28.dp)).testTag("home-hero")) {
+                                            AssetImage(image, "查看夏彦照片", Modifier.matchParentSize()
                                                 .sharedElement(rememberSharedContentState("home-photo:$image"), visibility,
                                                     boundsTransform = { _, _ -> if (reduced) snap() else spring(dampingRatio = .9f, stiffness = 300f) })
                                                 .clickable { expandedPath = image }.testTag("open-photo"), ContentScale.Crop)
-                                            Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color.Black.copy(alpha = .12f), Color.Transparent, Color.Black.copy(alpha = .6f)))))
-                                            Row(Modifier.fillMaxWidth().align(Alignment.TopCenter).padding(18.dp), verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.SpaceBetween) {
-                                                Surface(color = colors.paper.copy(alpha = .88f), shape = RoundedCornerShape(24.dp)) {
-                                                    Text(listOf("春日", "盛夏", "秋日", "冬日")[seasonIndex], Modifier.padding(horizontal = 14.dp, vertical = 8.dp), style = MaterialTheme.typography.labelLarge)
+                                            Box(Modifier.matchParentSize().background(Brush.verticalGradient(listOf(Color.Black.copy(alpha = .12f), Color.Transparent, Color.Black.copy(alpha = .6f)))))
+                                            // Intrinsic content determines height. Enlarged text never collides with the top label.
+                                            Column(Modifier.fillMaxWidth().heightIn(min = 520.dp).padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                                                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                                    Surface(color = colors.paper.copy(alpha = .88f), shape = RoundedCornerShape(24.dp)) {
+                                                        Text(listOf("春日", "盛夏", "秋日", "冬日")[seasonIndex], Modifier.padding(horizontal = 12.dp, vertical = 8.dp), style = MaterialTheme.typography.labelLarge)
+                                                    }
+                                                    Text("Luke Pearce", Modifier.weight(1f), fontFamily = FontFamily.Serif, fontStyle = FontStyle.Italic, color = Color.White,
+                                                        style = MaterialTheme.typography.titleLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
                                                 }
-                                                Text("Luke Pearce", fontFamily = FontFamily.Serif, fontStyle = FontStyle.Italic, color = Color.White, style = MaterialTheme.typography.titleLarge)
-                                            }
-                                            Column(Modifier.align(Alignment.BottomStart).padding(22.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                                                Spacer(Modifier.height(152.dp))
                                                 Text("夏彦 & ${p.name}", color = Color.White, style = MaterialTheme.typography.headlineMedium)
-                                                Text("醒来见到你，今天就有了一个好开头。", color = Color.White.copy(alpha = .94f), style = MaterialTheme.typography.bodyMedium)
+                                                Text(if (p.isNight()) "今天辛苦了，剩下的话可以慢慢说。" else "醒来见到你，今天就有了一个好开头。", color = Color.White.copy(alpha = .94f), style = MaterialTheme.typography.bodyMedium)
                                                 Text("${days} 天的陪伴", color = Color.White, style = MaterialTheme.typography.titleMedium)
                                                 Text("Since ${p.since}", color = Color.White.copy(alpha = .85f), style = MaterialTheme.typography.bodySmall)
                                                 Button(onClick = { navigate(1) }) { Text("和夏彦说说话") }
