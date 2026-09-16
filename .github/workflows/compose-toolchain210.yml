@@ -1,0 +1,118 @@
+name: Prepare Compose native toolchain 210
+on:
+  push:
+    branches: ['build/v2.0.10-compose-toolchain']
+    paths: ['.github/workflows/compose-toolchain210.yml']
+permissions:
+  contents: read
+jobs:
+  tools:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.11.1'
+      - name: Resolve and compile public dependencies only
+        shell: bash
+        run: |
+          set -euo pipefail
+          sdkmanager 'platforms;android-35' 'build-tools;35.0.0' >/dev/null
+          mkdir -p /tmp/native-seed/app/src/main/java/dev/seed
+          cd /tmp/native-seed
+          cat > settings.gradle.kts <<'EOF'
+          pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }
+          dependencyResolutionManagement { repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS); repositories { google(); mavenCentral() } }
+          rootProject.name = "NativeToolchainSeed"
+          include(":app")
+          EOF
+          cat > build.gradle.kts <<'EOF'
+          plugins {
+            id("com.android.application") version "8.9.2" apply false
+            id("org.jetbrains.kotlin.android") version "2.1.20" apply false
+            id("org.jetbrains.kotlin.plugin.compose") version "2.1.20" apply false
+            id("org.jetbrains.kotlin.kapt") version "2.1.20" apply false
+          }
+          EOF
+          cat > gradle.properties <<'EOF'
+          android.useAndroidX=true
+          org.gradle.jvmargs=-Xmx3g -Dfile.encoding=UTF-8
+          kotlin.code.style=official
+          EOF
+          cat > app/build.gradle.kts <<'EOF'
+          plugins { id("com.android.application"); id("org.jetbrains.kotlin.android"); id("org.jetbrains.kotlin.plugin.compose"); id("org.jetbrains.kotlin.kapt") }
+          android {
+            namespace = "dev.seed"
+            compileSdk = 35
+            defaultConfig { applicationId = "dev.seed"; minSdk = 26; targetSdk = 35; versionCode = 1; versionName = "seed"; testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner" }
+            compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
+            kotlinOptions { jvmTarget = "17" }
+            buildFeatures { compose = true; buildConfig = true }
+            testOptions { unitTests.isReturnDefaultValues = true }
+          }
+          dependencies {
+            implementation(platform("androidx.compose:compose-bom:2025.05.01"))
+            implementation("androidx.compose.ui:ui")
+            implementation("androidx.compose.foundation:foundation")
+            implementation("androidx.compose.animation:animation")
+            implementation("androidx.compose.material3:material3")
+            implementation("androidx.compose.material:material-icons-extended")
+            implementation("androidx.compose.ui:ui-tooling-preview")
+            debugImplementation("androidx.compose.ui:ui-tooling")
+            implementation("androidx.core:core-ktx:1.16.0")
+            implementation("androidx.activity:activity-compose:1.10.1")
+            implementation("androidx.lifecycle:lifecycle-runtime-compose:2.9.1")
+            implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.9.1")
+            implementation("androidx.room:room-runtime:2.7.2")
+            implementation("androidx.room:room-ktx:2.7.2")
+            kapt("androidx.room:room-compiler:2.7.2")
+            implementation("androidx.datastore:datastore-preferences:1.1.7")
+            implementation("androidx.work:work-runtime-ktx:2.10.1")
+            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
+            implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.1")
+            implementation("io.coil-kt:coil-compose:2.7.0")
+            implementation("com.squareup.okhttp3:okhttp:4.12.0")
+            implementation("androidx.metrics:metrics-performance:1.0.0-beta02")
+            testImplementation("junit:junit:4.13.2")
+            testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
+            testImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
+            androidTestImplementation(platform("androidx.compose:compose-bom:2025.05.01"))
+            androidTestImplementation("androidx.compose.ui:ui-test-junit4")
+            androidTestImplementation("androidx.test.ext:junit:1.2.1")
+            androidTestImplementation("androidx.test:runner:1.6.2")
+            androidTestImplementation("androidx.room:room-testing:2.7.2")
+            debugImplementation("androidx.compose.ui:ui-test-manifest")
+          }
+          EOF
+          echo '<manifest xmlns:android="http://schemas.android.com/apk/res/android"><application android:theme="@android:style/Theme.Material.Light.NoActionBar" /></manifest>' > app/src/main/AndroidManifest.xml
+          cat > app/src/main/java/dev/seed/Seed.kt <<'EOF'
+          package dev.seed
+          import androidx.room.*
+          import androidx.compose.runtime.Composable
+          import androidx.compose.material3.Text
+          @Entity data class Seed(@PrimaryKey val id: String)
+          @Dao interface SeedDao { @Query("SELECT * FROM Seed") suspend fun read(): List<Seed> }
+          @Database(entities=[Seed::class], version=1, exportSchema=false) abstract class SeedDb: RoomDatabase() { abstract fun dao(): SeedDao }
+          @Composable fun Ui() { Text("toolchain") }
+          EOF
+          gradle --no-daemon assembleDebug testDebugUnitTest assembleDebugAndroidTest
+          gradle wrapper --gradle-version 8.11.1
+          mkdir -p /tmp/toolchain210
+          cp -r gradle gradlew gradlew.bat /tmp/toolchain210/
+          cp app/build.gradle.kts /tmp/toolchain210/seed-dependencies.gradle.kts
+          cp -a "$GRADLE_HOME" /tmp/toolchain210/gradle-dist
+          tar -czf /tmp/toolchain210/gradle-cache.tar.gz -C "$HOME/.gradle" caches
+          tar -czf /tmp/compose-toolchain210.tar.gz -C /tmp toolchain210
+          sha256sum /tmp/compose-toolchain210.tar.gz > /tmp/compose-toolchain210.sha256
+      - uses: actions/upload-artifact@v4
+        with:
+          name: compose-toolchain210
+          path: |
+            /tmp/compose-toolchain210.tar.gz
+            /tmp/compose-toolchain210.sha256
+          retention-days: 3
