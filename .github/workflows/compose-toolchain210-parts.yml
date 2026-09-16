@@ -1,0 +1,39 @@
+name: Split Compose toolchain 210
+on:
+  push:
+    branches: ['build/v2.0.10-compose-toolchain']
+    paths: ['.github/workflows/compose-toolchain210-parts.yml']
+permissions:
+  contents: read
+  actions: read
+jobs:
+  split:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: compose-toolchain210
+          run-id: 35079219731
+          github-token: ${{ github.token }}
+          path: /tmp/toolchain210
+      - shell: bash
+        run: |
+          cd /tmp/toolchain210
+          split -b 400M -d compose-toolchain210.tar.gz compose210.part
+          sha256sum compose210.part* > parts.sha256
+      - uses: actions/upload-artifact@v4
+        with:
+          name: compose210-part00
+          path: |
+            /tmp/toolchain210/compose210.part00
+            /tmp/toolchain210/parts.sha256
+            /tmp/toolchain210/compose-toolchain210.sha256
+          retention-days: 3
+          compression-level: 0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: compose210-part01
+          path: /tmp/toolchain210/compose210.part01
+          retention-days: 3
+          compression-level: 0
