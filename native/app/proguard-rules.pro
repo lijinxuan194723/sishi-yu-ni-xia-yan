@@ -1,0 +1,2 @@
+-keep class * extends androidx.work.ListenableWorker { public <init>(android.content.Context, androidx.work.WorkerParameters); }
+-keepattributes Signature,InnerClasses,EnclosingMethod

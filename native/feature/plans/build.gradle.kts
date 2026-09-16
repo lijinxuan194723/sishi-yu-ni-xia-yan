@@ -1,0 +1,3 @@
+plugins { id("com.android.library"); id("org.jetbrains.kotlin.android"); id("org.jetbrains.kotlin.plugin.compose") }
+android { namespace="cn.sishiyuni.feature.plans"; compileSdk=35; defaultConfig { minSdk=26 }; compileOptions { sourceCompatibility=JavaVersion.VERSION_17; targetCompatibility=JavaVersion.VERSION_17 }; kotlinOptions { jvmTarget="17"; freeCompilerArgs+=listOf("-opt-in=androidx.compose.animation.ExperimentalSharedTransitionApi","-opt-in=androidx.compose.material3.ExperimentalMaterial3Api") }; buildFeatures { compose=true } }
+dependencies { implementation(project(":core")); implementation(project(":designsystem")) }
