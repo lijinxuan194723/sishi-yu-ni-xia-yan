@@ -16,7 +16,12 @@ data class ImportPlan(
  val chapters:List<ChapterEntity>,val subjects:List<SubjectEntity>,val focusLogs:List<FocusLogEntity>,
  val records:List<RecordEntity>,val warnings:List<String>,val skills:List<SkillEntity> = emptyList(),
  val timers:List<TimerEntity> = emptyList(),val originals:List<ImportEntity> = emptyList()
-){val summary get()="${messages.size} 条消息 · ${plans.size} 项计划 · ${memos.size} 篇手记 · ${facts.size} 条记忆"}
+){
+ // Validate at inspection/construction time, before any Room transaction. Otherwise
+ // a valid message import with invalid settings could leave initialization blocked.
+ init { PreferenceRules.normalize(preferences) }
+ val summary get()="${messages.size} 条消息 · ${plans.size} 项计划 · ${memos.size} 篇手记 · ${facts.size} 条记忆"
+}
 
 object BackupDecoder {
  const val MAX_BYTES=60_000_000
@@ -95,13 +100,15 @@ object BackupDecoder {
 class BackupService(private val context:Context,private val db:LukeDatabase,private val prefs:PreferencesStore){
  suspend fun inspect(uri:Uri):ImportPlan=withContext(Dispatchers.IO){val bytes=context.contentResolver.openInputStream(uri).use{requireNotNull(it){"无法打开备份"}.readLimited(BackupDecoder.MAX_BYTES)};BackupDecoder.decode(bytes.toString(Charsets.UTF_8))}
  suspend fun import(plan:ImportPlan)=withContext(Dispatchers.IO){
+  // Validate again at the persistence boundary; retain the original backup unchanged.
+  val checkedPreferences=PreferenceRules.normalize(plan.preferences)
   db.withTransaction{
    val d=db.dao();if(d.imported(plan.digest)!=null)return@withTransaction
    check(d.messageCount()==0&&d.memoCount()==0&&d.allPlans().isEmpty()&&d.allFocusLogs().isEmpty()&&d.allFacts().isEmpty()&&d.allSkills().isEmpty()){"本机已有原生数据，本次未覆盖。请先导出备份。"}
    plan.sessions.forEach{d.putSession(it)};plan.messages.forEach{d.putMessage(it)};plan.plans.forEach{d.putPlan(it)};plan.folders.forEach{d.putFolder(it)};plan.memos.forEach{d.putMemo(it)}
    plan.facts.forEach{d.putFact(it)};plan.chapters.forEach{d.putChapter(it)};plan.subjects.forEach{d.putSubject(it)};plan.focusLogs.forEach{d.putFocusLog(it)};plan.skills.forEach{d.putSkill(it)};plan.timers.forEach{d.putTimer(it)};plan.records.forEach{d.putRecord(it)}
    plan.originals.forEach{if(d.imported(it.digest)==null)d.putImport(it)};if(d.imported(plan.digest)==null)d.putImport(ImportEntity(plan.digest,plan.source,report=plan.summary))
-   d.putRecord(RecordEntity("migration","pending-preferences",plan.preferences.toString()))
+   d.putRecord(RecordEntity("migration","pending-preferences",checkedPreferences.toString()))
   };finishPendingSettings()
  }
  suspend fun finishPendingSettings(){val pending=db.dao().record("migration","pending-preferences")?:return;prefs.restore(obj(pending.payload));db.dao().deleteRecord("migration","pending-preferences")}
@@ -128,4 +135,3 @@ class BackupService(private val context:Context,private val db:LukeDatabase,priv
   }}.toString();require(text.toByteArray().size<=BackupDecoder.MAX_BYTES){"备份超过 60 MB"};write(uri,text)
  }
  suspend fun exportText(uri:Uri,text:String)=withContext(Dispatchers.IO){write(uri,bounded(text,2000000,"导出内容"))}
-}

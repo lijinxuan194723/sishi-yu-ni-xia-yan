@@ -26,6 +26,8 @@ import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.testTag
@@ -62,6 +64,7 @@ fun SettingsScreen(graph:AppGraph,onBack:()->Unit,onSkills:()->Unit) {
     val ready by vm.ready.collectAsStateWithLifecycle()
     val pending by vm.pending.collectAsStateWithLifecycle()
     val completed by vm.completed.collectAsStateWithLifecycle()
+    val typographyReset by vm.typographyReset.collectAsStateWithLifecycle()
     val holidayBusy by vm.holidayBusy.collectAsStateWithLifecycle()
     val holidayStatus by vm.holidayStatus.collectAsStateWithLifecycle()
     val years by vm.holidayYears.collectAsStateWithLifecycle()
@@ -70,13 +73,14 @@ fun SettingsScreen(graph:AppGraph,onBack:()->Unit,onSkills:()->Unit) {
     var dialog by rememberSaveable { mutableStateOf<String?>(null) }
     var dialogId by rememberSaveable { mutableStateOf("") }
     var avatarTarget by rememberSaveable { mutableStateOf("avatarMine") }
-    var calendarYear by rememberSaveable { mutableIntStateOf(2026) }
     val now = LocalAppTime.current
-    LaunchedEffect(Unit) { calendarYear=now.year.coerceIn(1900,2100) }
+    var calendarYear by rememberSaveable { mutableIntStateOf(now.year.coerceIn(1900,2100)) }
+    val focus = LocalFocusManager.current
+    val keyboard = LocalSoftwareKeyboardController.current
     val stateHolder = rememberSaveableStateHolder()
     val reduced = LocalLukeMotion.current.reduced
     fun open(kind:String) { vm.clearError(); dialogId=newId(); dialog=kind }
-    fun back() { if(group!=null) group=null else onBack() }
+    fun back() { focus.clearFocus(); keyboard?.hide(); if(group!=null) group=null else onBack() }
     BackHandler(group!=null && dialog==null) { group=null }
     LaunchedEffect(completed,dialogId) { if(completed==dialogId && dialogId.isNotEmpty()) dialog=null }
     val photoPicker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
@@ -100,7 +104,7 @@ fun SettingsScreen(graph:AppGraph,onBack:()->Unit,onSkills:()->Unit) {
                     }) { insets ->
                         LazyColumn(Modifier.fillMaxSize().testTag("settings-list"),contentPadding=insets,verticalArrangement=Arrangement.spacedBy(10.dp)) {
                             items(found,key={it.id}) { item ->
-                                LukeCard(Modifier.fillMaxWidth().clickable(enabled=ready){group=item.id}.testTag("settings-group-${item.id}"),padding=14.dp) {
+                                LukeCard(Modifier.fillMaxWidth().clickable(enabled=ready){focus.clearFocus();keyboard?.hide();group=item.id}.testTag("settings-group-${item.id}"),padding=14.dp) {
                                     Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(14.dp)) {
                                         Icon(item.icon,null,Modifier.size(24.dp),tint=LocalSeason.current.accent)
                                         Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(3.dp)) {
@@ -139,8 +143,8 @@ fun SettingsScreen(graph:AppGraph,onBack:()->Unit,onSkills:()->Unit) {
                                 item { SettingsSwitch("触感反馈","选择与操作时的轻触感",prefs.haptics,"haptics"){vm.flag("haptics",it)} }
                             }
                             "typography" -> {
-                                item { SizeSetting("全局字号","scale",prefs.scale*100f,75f..160f,84,"%",pending>0){vm.size("scale",it/100f)} }
-                                item { SizeSetting("聊天字号","chatSize",prefs.chatSize,10f..32f,21,"",pending>0){vm.size("chatSize",it)} }
+                                item { key(typographyReset) { SizeSetting("全局字号","scale",prefs.scale*100f,75f..160f,84,"%",pending>0){vm.size("scale",it/100f)} } }
+                                item { key(typographyReset) { SizeSetting("聊天字号","chatSize",prefs.chatSize,10f..32f,21,"",pending>0){vm.size("chatSize",it)} } }
                                 item { LukeCard(Modifier.fillMaxWidth()) {
                                     Text("把日子慢慢写下来",style=MaterialTheme.typography.titleMedium)
                                     Text("文字随字号变化，按钮保留舒适的点击范围。",style=MaterialTheme.typography.bodyMedium)
@@ -214,7 +218,7 @@ fun SettingsScreen(graph:AppGraph,onBack:()->Unit,onSkills:()->Unit) {
                 val fallback=kind=="fallback"
                 var url by rememberSaveable { mutableStateOf(if(fallback)prefs.fallbackUrl else prefs.modelUrl) }
                 var model by rememberSaveable { mutableStateOf(if(fallback)prefs.fallbackModel else prefs.modelName) }
-                var secret by remember { mutableStateOf("") } // Never place a plaintext key in saved instance state.
+                var secret by remember { mutableStateOf("") }
                 SettingsForm(if(fallback)"备用模型" else "主模型",error,pending>0,{dialog=null},vm::clearError,
                     onSave={vm.saveConnection(dialogId,url,model,secret,fallback)}) {
                     OutlinedTextField(url,{url=it},Modifier.fillMaxWidth().testTag("model-url"),label={Text("服务地址")},singleLine=true,keyboardOptions=KeyboardOptions(keyboardType=KeyboardType.Uri))
@@ -273,15 +277,21 @@ fun SettingsScreen(graph:AppGraph,onBack:()->Unit,onSkills:()->Unit) {
 @Composable private fun SizeSetting(title:String,key:String,value:Float,range:ClosedFloatingPointRange<Float>,steps:Int,suffix:String,busy:Boolean,onCommit:(Float)->Unit) {
     var chosen by rememberSaveable(key) { mutableFloatStateOf(value) }
     var dragging by remember { mutableStateOf(false) }
-    LaunchedEffect(value) { if(!dragging) chosen=value }
+    var awaiting by rememberSaveable(key) { mutableStateOf<Float?>(null) }
+    fun commit() { dragging=false; awaiting=chosen.roundToInt().toFloat(); onCommit(requireNotNull(awaiting)) }
+    LaunchedEffect(value,dragging) {
+        if(!dragging && (awaiting==null || kotlin.math.abs(requireNotNull(awaiting)-value)<.05f)) {
+            chosen=value; awaiting=null
+        }
+    }
     LukeCard(Modifier.fillMaxWidth()) {
         Row(verticalAlignment=Alignment.CenterVertically) {
             Text(title,Modifier.weight(1f),style=MaterialTheme.typography.titleMedium)
             Text("${chosen.roundToInt()}$suffix",style=MaterialTheme.typography.labelLarge)
         }
         Slider(value=chosen.coerceIn(range),onValueChange={dragging=true;chosen=it},valueRange=range,steps=steps,
-            onValueChangeFinished={dragging=false;onCommit(chosen.roundToInt().toFloat())},modifier=Modifier.testTag("size-$key"))
-        if(!dragging && kotlin.math.abs(chosen-value)>.05f && !busy) TextButton(onClick={onCommit(chosen.roundToInt().toFloat())}){Text("保存字号")}
+            onValueChangeFinished=::commit,modifier=Modifier.testTag("size-$key"))
+        if(!dragging && kotlin.math.abs(chosen-value)>.05f && !busy) TextButton(onClick=::commit){Text("保存字号")}
     }
 }
 @Composable private fun AvatarSetting(title:String,path:String,tag:String,onPick:()->Unit) {

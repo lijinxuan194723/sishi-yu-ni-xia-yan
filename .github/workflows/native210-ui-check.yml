@@ -8,6 +8,9 @@ on:
       - 'native/designsystem/**'
       - 'native/feature/**'
       - 'native/uitesthost/**'
+      - 'native/core/**'
+      - 'native/gradle.properties'
+      - 'native/*.gradle.kts'
 permissions:
   contents: read
 concurrency:
@@ -126,5 +129,6 @@ jobs:
           path: |
             native/uitesthost/build/reports/androidTests
             native/uitesthost/build/outputs/androidTest-results
+            native/uitesthost/build/outputs/connected_android_test_additional_output
             native-verification
           retention-days: 7

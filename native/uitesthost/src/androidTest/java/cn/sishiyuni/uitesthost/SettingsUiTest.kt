@@ -35,7 +35,7 @@ class SettingsUiTest {
                 put("scale",.95f);put("chatSize",13f);put("season","spring");put("period","day")
                 put("effects",false);put("reduceMotion",true);put("sharing-notes",true)
             })
-            graph.prefs.state.first{it.name=="华生" && it.scale==.95f && it.chatSize==13f && it.reduceMotion && !it.effects}
+            withTimeout(10000){graph.prefs.state.first{it.name=="华生" && it.scale==.95f && it.chatSize==13f && it.reduceMotion && !it.effects}}
         }
     }
     @After fun restore() {
@@ -47,16 +47,16 @@ class SettingsUiTest {
             })
         }
     }
-    private fun screen() {
-        rule.setContent {
-            val p by graph.prefs.state.collectAsStateWithLifecycle()
-            LukeTheme(p,now=LocalDateTime.of(2026,9,16,12,0)){SettingsScreen(graph,{},{})}
-        }
+    @Composable private fun Content() {
+        val p by graph.prefs.state.collectAsStateWithLifecycle()
+        LukeTheme(p,now=LocalDateTime.of(2026,9,16,12,0)){SettingsScreen(graph,{},{})}
     }
+    private fun screen() { rule.setContent { Content() } }
     private fun vm()=ViewModelProvider(rule.activity).get("settings",SettingsViewModel::class.java)
     private fun group(id:String,search:String="") {
         if(search.isNotEmpty()) rule.onNodeWithTag("settings-search").performTextReplacement(search)
-        rule.onNodeWithTag("settings-group-$id").performScrollTo().performClick()
+        rule.onNodeWithTag("settings-list").performScrollToNode(hasTestTag("settings-group-$id"))
+        rule.onNodeWithTag("settings-group-$id").performClick()
     }
     @Test fun searchIsNotAutomaticallyFocusedAndFiltersSettings() {
         screen()
@@ -96,7 +96,8 @@ class SettingsUiTest {
         rule.onNodeWithTag("size-chatSize").performSemanticsAction(SemanticsActions.SetProgress){assertTrue(it(19f))}
         rule.waitUntil(10000){graph.prefs.state.value.chatSize==19f && vm().pending.value==0}
         assertEquals(.85f,graph.prefs.state.value.scale)
-        rule.onNodeWithTag("reset-typography").performScrollTo().performClick()
+        rule.onNodeWithTag("settings-section-typography").performScrollToNode(hasTestTag("reset-typography"))
+        rule.onNodeWithTag("reset-typography").performClick()
         rule.waitUntil(10000){graph.prefs.state.value.scale==.95f && graph.prefs.state.value.chatSize==13f && vm().pending.value==0}
     }
     @Test fun rapidExplicitThemeChoicesAreWrittenInOrderAndFinishAtLastSelection() {
@@ -107,7 +108,9 @@ class SettingsUiTest {
     }
     @Test fun sharingToggleOnlyChangesTheSelectedCategory() {
         screen();group("privacy","分享")
-        rule.onNodeWithTag("setting-sharing-notes").performScrollTo().performClick()
+        // The lazy item is deliberately not composed until its parent is scrolled.
+        rule.onNodeWithTag("settings-section-privacy").performScrollToNode(hasTestTag("setting-sharing-notes"))
+        rule.onNodeWithTag("setting-sharing-notes").assertIsDisplayed().performClick()
         rule.waitUntil(10000){graph.prefs.state.value.sharing["notes"]==false && vm().pending.value==0}
         assertEquals(original.sharing["plans"],graph.prefs.state.value.sharing["plans"])
         assertEquals(original.sharing["weather"],graph.prefs.state.value.sharing["weather"])
@@ -119,7 +122,7 @@ class SettingsUiTest {
         val after=rule.onNodeWithTag("glass-header").fetchSemanticsNode().boundsInRoot
         assertEquals(before.top,after.top,.5f);assertEquals(before.bottom,after.bottom,.5f)
         rule.onNodeWithContentDescription("返回").performClick()
-        rule.onNodeWithTag("settings-search").assertTextContains("分享")
+        rule.onNodeWithTag("settings-search").assertTextContains("分享").assertIsNotFocused()
     }
     @Test fun invalidModelAddressDoesNotDismissTheFormOrEraseTypedFields() {
         screen();group("connection","模型")
@@ -130,5 +133,35 @@ class SettingsUiTest {
         rule.waitUntil(10000){vm().error.value!=null && vm().pending.value==0}
         rule.onNodeWithTag("model-url").assertTextContains("invalid-address")
         rule.onNodeWithTag("model-name").assertTextContains("test-fixture")
+    }
+    @Test fun calendarYearSelectionSurvivesSavedStateRestoration() {
+        val restoration=StateRestorationTester(rule)
+        restoration.setContent { Content() }
+        group("calendar","日历")
+        rule.onNodeWithContentDescription("上一年").performClick()
+        rule.onNodeWithText("2025 年").assertExists()
+        restoration.emulateSavedInstanceStateRestore()
+        rule.onNodeWithText("2025 年").assertExists()
+    }
+    @Test fun unfinishedProfileTextSurvivesSavedStateRestorationWithoutSavingIt() {
+        val restoration=StateRestorationTester(rule)
+        restoration.setContent { Content() }
+        group("identity");rule.onNodeWithTag("identity-name").performClick()
+        rule.onNodeWithTag("profile-name").performTextReplacement("未保存")
+        restoration.emulateSavedInstanceStateRestore()
+        rule.onNodeWithTag("profile-name").assertTextContains("未保存")
+        assertEquals("华生",graph.prefs.state.value.name)
+    }
+    @Test fun acceptedSettingWriteFinishesAfterItsScreenViewModelIsCleared() {
+        var visible by mutableStateOf(true)
+        rule.setContent { if(visible) Content() }
+        val writer=vm()
+        rule.runOnUiThread {
+            writer.text("name","离开后保存")
+            visible=false
+            rule.activity.viewModelStore.clear()
+        }
+        rule.waitUntil(10000){graph.prefs.state.value.name=="离开后保存" && writer.pending.value==0}
+        assertNull(writer.error.value)
     }
 }
