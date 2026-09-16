@@ -1,0 +1,27 @@
+name: Native packaged holiday provenance 210
+on:
+  workflow_dispatch:
+  push:
+    branches: ['feature/v2.0.10-native-migration']
+    paths:
+      - '.github/workflows/native210-holiday-source-check.yml'
+      - '.github/scripts/check_native_holidays.py'
+      - 'native/assets/holidays/**'
+permissions:
+  contents: read
+jobs:
+  holiday-data:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Compare every packaged year with its pinned public upstream JSON
+        run: python .github/scripts/check_native_holidays.py --online
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: native210-holiday-provenance
+          path: native-holiday-verification
+          retention-days: 14
