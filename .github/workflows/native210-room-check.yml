@@ -1,0 +1,65 @@
+name: Native Room persistence 210
+on:
+  push:
+    branches: ['feature/v2.0.10-native-migration']
+    paths: ['native/core/**', '.github/workflows/native210-room-check.yml']
+permissions:
+  contents: read
+concurrency:
+  group: native210-room-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  room:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.11.1'
+      - name: Enable hosted runner hardware virtualization
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 30
+          target: default
+          arch: x86_64
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          script: cd native && gradle --no-daemon --console=plain --max-workers=2 :core:connectedDebugAndroidTest
+      - name: Summarize actual Android instrumentation results
+        if: always()
+        shell: bash
+        run: |
+          python - <<'PY'
+          import pathlib, xml.etree.ElementTree as ET, json, os
+          reports=list(pathlib.Path('native/core/build/outputs/androidTest-results').rglob('TEST-*.xml'))
+          totals={'tests':0,'failures':0,'errors':0,'skipped':0}
+          for report in reports:
+              root=ET.parse(report).getroot()
+              for key in totals:
+                  totals[key]+=int(root.attrib.get(key,0))
+          totals['scope']='Android API 30 emulator Room instrumentation only; no full app/UI/performance acceptance'
+          totals['commit']=os.environ['GITHUB_SHA']
+          print(json.dumps(totals,ensure_ascii=False))
+          output=pathlib.Path('native/core/verification'); output.mkdir(parents=True,exist_ok=True)
+          (output/'room-summary.json').write_text(json.dumps(totals,ensure_ascii=False,indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: native210-room-reports
+          path: |
+            native/core/build/reports/androidTests
+            native/core/build/outputs/androidTest-results
+            native/core/verification
+          retention-days: 7
