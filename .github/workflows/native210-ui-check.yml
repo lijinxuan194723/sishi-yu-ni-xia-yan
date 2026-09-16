@@ -3,7 +3,11 @@ on:
   workflow_dispatch:
   push:
     branches: ['feature/v2.0.10-native-migration']
-    paths: ['.github/workflows/native210-ui-check.yml']
+    paths:
+      - '.github/workflows/native210-ui-check.yml'
+      - 'native/designsystem/**'
+      - 'native/feature/**'
+      - 'native/uitesthost/**'
 permissions:
   contents: read
 concurrency:
@@ -28,6 +32,7 @@ jobs:
       - uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a
         with:
           gradle-version: '8.11.1'
+          cache-read-only: false
       - name: Compile exact committed native UI and instrumentation host
         working-directory: native
         run: gradle --no-daemon --console=plain --max-workers=2 :uitesthost:assembleDebug :uitesthost:assembleDebugAndroidTest :core:testDebugUnitTest
@@ -109,7 +114,7 @@ jobs:
           for p in reports:
               root = ET.parse(p).getroot()
               for k in total: total[k] += int(root.get(k, '0'))
-          total.update(scope='Selected Compose screens on Android emulator, not full feature parity or physical-device 120Hz', api=int(os.environ['TEST_API']), commit=os.environ['GITHUB_SHA'])
+          total.update(scope='Selected Compose screens on Android emulator; not full parity or physical-device 120Hz', api=int(os.environ['TEST_API']), commit=os.environ['GITHUB_SHA'])
           out = pathlib.Path('native-verification'); out.mkdir(exist_ok=True)
           (out/'ui-summary.json').write_text(json.dumps(total, indent=2))
           print(json.dumps(total))

@@ -8,30 +8,29 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import cn.sishiyuni.core.network.WeatherParser
 import kotlin.math.sin
 import kotlin.random.Random
 
-/** Original vector weather scene: bounded particles, no bitmaps/allocating objects per animation tick. */
+/** Original vector scene; unknown weather remains neutral rather than pretending to be sunny. */
 @Composable
 fun WeatherScene(code: Int, day: Boolean, active: Boolean, modifier: Modifier = Modifier) {
     val colors = LocalSeason.current
     val kind = WeatherParser.scene(code)
     val time = rememberSceneTime(active && kind != "none")
     val particles = remember { val random = Random(210); FloatArray(72) { random.nextFloat() } }
+    val hasSun = kind == "sun" || kind == "cloud"
+    val hasCloud = kind == "cloud" || kind == "rain" || kind == "snow" || kind == "thunder" || kind == "fog"
     val backdrop = remember(colors) { Brush.verticalGradient(listOf(colors.soft, colors.paper.copy(alpha = .2f))) }
     Canvas(modifier.fillMaxSize().testTag("weather-scene")) {
         val t = time.value
         drawRect(backdrop)
         val sky = Offset(size.width * .78f, size.height * .30f)
         val r = size.minDimension * .135f
-        if (kind in setOf("sun", "cloud", "none")) {
+        if (hasSun) {
             val glow = if (day) colors.accent.copy(alpha = .12f) else colors.ink.copy(alpha = .09f)
             drawCircle(glow, r * (1.62f + sin(t * .6f) * .05f), sky)
             drawCircle(if (day) colors.accent.copy(alpha = .36f) else colors.muted.copy(alpha = .4f), r, sky)
@@ -44,7 +43,7 @@ fun WeatherScene(code: Int, day: Boolean, active: Boolean, modifier: Modifier = 
             drawCircle(c, width * .18f, Offset(x + width * .77f, y + width * .02f))
             drawRoundRect(c, Offset(x + width * .1f, y), Size(width * .82f, width * .22f), CornerRadius(width * .12f))
         }
-        if (kind in setOf("cloud", "rain", "snow", "thunder", "fog")) {
+        if (hasCloud) {
             cloud(size.width * .55f + sin(t * .15f) * 9.dp.toPx(), size.height * .23f, size.width * .4f, .65f)
             cloud(size.width * .75f - sin(t * .19f) * 6.dp.toPx(), size.height * .42f, size.width * .25f, .4f)
         }

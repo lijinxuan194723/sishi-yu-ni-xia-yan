@@ -28,7 +28,6 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import cn.sishiyuni.core.AppGraph
 import cn.sishiyuni.core.CoreViewModel
@@ -36,12 +35,12 @@ import cn.sishiyuni.core.data.*
 import cn.sishiyuni.core.model.*
 import cn.sishiyuni.designsystem.*
 import kotlinx.coroutines.flow.*
+import androidx.lifecycle.viewModelScope
 import java.time.LocalDate
-import java.time.temporal.ChronoUnit
-
+import java.time.ZoneId
 
 data class HomeUi(val checks: List<RecordEntity> = emptyList(), val anniversaries: List<RecordEntity> = emptyList(),
-                  val plans: List<PlanEntity> = emptyList(), val memos: List<MemoEntity> = emptyList(), val logs: List<FocusLogEntity> = emptyList())
+    val plans: List<PlanEntity> = emptyList(), val memos: List<MemoEntity> = emptyList(), val logs: List<FocusLogEntity> = emptyList())
 class HomeViewModel(private val app: AppGraph) : CoreViewModel(app) {
     val ui = combine(app.dao.records("check"), app.dao.records("anniversary"), app.dao.plans(), app.dao.memos(), app.dao.focusLogs()) { checks, dates, plans, notes, logs ->
         HomeUi(checks, dates, plans, notes, logs)
@@ -49,7 +48,6 @@ class HomeViewModel(private val app: AppGraph) : CoreViewModel(app) {
     fun checkIn(date: LocalDate) = task { app.dao.putRecord(RecordEntity("check", date.toString(), "\"$date\"")) }
 }
 
-/** The hero image really participates in a shared-element transition into the photo detail. */
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun HomeScreen(graph: AppGraph, padding: PaddingValues, active: Boolean, navigate: (Int) -> Unit) {
@@ -65,7 +63,9 @@ fun HomeScreen(graph: AppGraph, padding: PaddingValues, active: Boolean, navigat
     val image = paths[(seasonIndex + p.photoIndex).mod(paths.size)]
     var expandedPath by rememberSaveable { mutableStateOf<String?>(null) }
     val today = LocalDate.now()
-    val days = runCatching { ChronoUnit.DAYS.between(LocalDate.parse(p.since), today).coerceAtLeast(0) }.getOrDefault(0)
+    val days = runCatching { togetherDays(LocalDate.parse(p.since), today) }.getOrDefault(1)
+    val zone = ZoneId.systemDefault()
+    val week = remember(ui, today, zone) { companionWeek(today, zone, ui.checks, ui.plans, ui.memos, ui.logs) }
     BackHandler(expandedPath != null) { expandedPath = null }
     SharedTransitionLayout(Modifier.fillMaxSize().testTag("home-shared-root")) {
         AnimatedContent(targetState = expandedPath, label = "home-photo-detail",
@@ -134,8 +134,9 @@ fun HomeScreen(graph: AppGraph, padding: PaddingValues, active: Boolean, navigat
                                     } }
                                     items(ui.anniversaries, key = { it.id }) { row ->
                                         val record = remember(row.payload) { runCatching { obj(row.payload) }.getOrNull() }
+                                        val title = record?.str("title").orEmpty().ifBlank { record?.str("name", "我们的约定") ?: "我们的约定" }
                                         LukeCard(Modifier.fillMaxWidth()) {
-                                            Text(record?.str("title")?.ifBlank { record.str("name", "我们的约定") } ?: "我们的约定", style = MaterialTheme.typography.titleMedium)
+                                            Text(title, style = MaterialTheme.typography.titleMedium)
                                             Text(record?.str("date").orEmpty(), style = MaterialTheme.typography.bodyMedium)
                                         }
                                     }
@@ -144,11 +145,10 @@ fun HomeScreen(graph: AppGraph, padding: PaddingValues, active: Boolean, navigat
                                 else -> {
                                     item { LukeCard(Modifier.fillMaxWidth()) {
                                         Text("我们的最近七天", style = MaterialTheme.typography.titleMedium)
-                                        val first = today.minusDays(6).toString()
-                                        Text("${ui.checks.count { it.id in first..today.toString() }} 天相伴", style = MaterialTheme.typography.headlineMedium)
-                                        Text("${ui.plans.count { it.done && it.date in first..today.toString() }} 件计划完成", style = MaterialTheme.typography.bodyLarge)
-                                        Text("${ui.memos.count { it.deletedAt == null }} 篇珍藏手记", style = MaterialTheme.typography.bodyLarge)
-                                        Text("${ui.logs.sumOf { it.minutes }.toInt()} 分钟专注时光", style = MaterialTheme.typography.bodyLarge)
+                                        Text("${week.checkDays} 天相伴", style = MaterialTheme.typography.headlineMedium)
+                                        Text("${week.completedPlans} 件计划完成", style = MaterialTheme.typography.bodyLarge)
+                                        Text("${week.notes} 篇珍藏手记", style = MaterialTheme.typography.bodyLarge)
+                                        Text("${week.minutes.toInt()} 分钟专注时光", style = MaterialTheme.typography.bodyLarge)
                                     } }
                                     item { Button(onClick = { navigate(5) }, modifier = Modifier.fillMaxWidth()) { Text("接一份专注委托") } }
                                     item { OutlinedButton(onClick = { navigate(4) }, modifier = Modifier.fillMaxWidth()) { Text("收藏今天的线索") } }

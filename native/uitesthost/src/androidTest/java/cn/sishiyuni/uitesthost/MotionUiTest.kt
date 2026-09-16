@@ -110,7 +110,8 @@ class MotionUiTest {
         var releases = 0; val selected = ruler { releases++ }
         rule.onNodeWithTag("timer-ruler").performTouchInput {
             down(0, center); moveBy(Offset(-90f, 0f), 120)
-            down(1, center + Offset(10f, 10f)); movePointerTo(0, center + Offset(-130f, 0f)); move()
+            down(1, center + Offset(10f, 10f))
+            moveTo(0, center + Offset(-130f, 0f), 32)
             up(1); up(0)
         }
         rule.runOnIdle { assertEquals(0, releases); assertEquals(25, selected.value) }
@@ -175,12 +176,11 @@ class MotionUiTest {
         rule.mainClock.autoAdvance = false
         rule.setContent {
             LukeTheme(AppPreferences(effects = true, reduceMotion = false)) {
-                time = rememberSceneTime(active)
-                Text("帧时钟检查")
+                time = rememberSceneTime(active); Text("帧时钟检查")
             }
         }
         rule.mainClock.advanceTimeBy(320)
-        rule.runOnIdle { assertTrue("Frame clock must have advanced before testing suspension", time.value > .01f); active = false }
+        rule.runOnIdle { assertTrue("Frame clock must advance before suspension", time.value > .01f); active = false }
         rule.mainClock.advanceTimeBy(32)
         val stopped = time.value
         rule.mainClock.advanceTimeBy(500)
