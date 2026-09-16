@@ -2,22 +2,24 @@ package cn.sishiyuni.designsystem
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.rememberGraphicsLayer
+import androidx.compose.ui.layout.SubcomposeLayout
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.layout.positionInRoot
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 
+private enum class LayerSlot { Header, Content }
+
 /**
- * The scrolling viewport stays full-size. Only its first/last items receive padding.
- * The measured controls float above the actual recorded content, never inside the
- * recording; this avoids both recursive blur and the old rectangular scroll cutoff.
+ * Measure the floating controls before composing the full-size scrolling viewport.
+ * A zero-height first frame used to clamp a restored list offset on photo return.
+ * Both layers now receive their final geometry in the same measure pass. Only list
+ * content padding makes room for chrome; the viewport itself is never cropped.
  */
 @Composable
 fun LayeredContent(
@@ -27,28 +29,37 @@ fun LayeredContent(
     content: @Composable (PaddingValues) -> Unit,
 ) {
     val source = rememberGraphicsLayer()
-    val density = LocalDensity.current
     val direction = LocalLayoutDirection.current
-    var headerPixels by remember { mutableIntStateOf(0) }
     var sourceOrigin by remember { mutableStateOf(Offset.Zero) }
     val top = outerPadding.calculateTopPadding()
     val horizontalStart = outerPadding.calculateStartPadding(direction)
     val horizontalEnd = outerPadding.calculateEndPadding(direction)
-    val inset = PaddingValues(
-        start = horizontalStart + 16.dp,
-        end = horizontalEnd + 16.dp,
-        top = top + with(density) { headerPixels.toDp() } + 6.dp,
-        bottom = outerPadding.calculateBottomPadding() + 20.dp,
-    )
-    Box(modifier.fillMaxSize().consumeWindowInsets(outerPadding).testTag("layered-content")) {
-        Box(Modifier.fillMaxSize().onGloballyPositioned { sourceOrigin = it.positionInRoot() }.recordPage(source)) {
-            content(inset)
-        }
-        GlassChrome(source, Modifier.align(Alignment.TopCenter).fillMaxWidth()
-            .padding(top = top, start = horizontalStart, end = horizontalEnd)
-            .onSizeChanged { headerPixels = it.height }.testTag("section-overlay"), sourceOrigin = sourceOrigin) {
-            Column(Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 6.dp, bottom = 22.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp), content = header)
+    SubcomposeLayout(modifier.fillMaxSize().consumeWindowInsets(outerPadding).testTag("layered-content")) { constraints ->
+        require(constraints.hasBoundedWidth && constraints.hasBoundedHeight) { "LayeredContent requires a bounded page viewport" }
+        val width = constraints.maxWidth
+        val height = constraints.maxHeight
+        val overlay = subcompose(LayerSlot.Header) {
+            GlassChrome(source, Modifier.fillMaxWidth()
+                .padding(top = top, start = horizontalStart, end = horizontalEnd)
+                .testTag("section-overlay"), sourceOrigin = sourceOrigin) {
+                Column(Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 6.dp, bottom = 22.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp), content = header)
+            }
+        }.single().measure(Constraints(minWidth = width, maxWidth = width, maxHeight = height))
+        val inset = PaddingValues(
+            start = horizontalStart + 16.dp,
+            end = horizontalEnd + 16.dp,
+            top = overlay.height.toDp() + 6.dp,
+            bottom = outerPadding.calculateBottomPadding() + 20.dp,
+        )
+        val page = subcompose(LayerSlot.Content) {
+            Box(Modifier.fillMaxSize().onGloballyPositioned { sourceOrigin = it.positionInRoot() }.recordPage(source)) {
+                content(inset)
+            }
+        }.single().measure(Constraints.fixed(width, height))
+        layout(width, height) {
+            page.placeRelative(0, 0)
+            overlay.placeRelative(0, 0, zIndex = 1f)
         }
     }
 }
