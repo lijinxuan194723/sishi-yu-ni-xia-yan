@@ -30,7 +30,8 @@ class MemoryBatchingTest {
         assertEquals(messages, extracted)
     }
     @Test fun payloadBudgetIncludesJsonEscaping() {
-        val messages = listOf(row(0, "\n".repeat(100)), row(1, "\n".repeat(100)))
+        // Pure newlines are intentionally excluded as blank content; test escaping in a real message.
+        val messages = listOf(row(0, "正文" + "\n".repeat(100)), row(1, "正文" + "\n".repeat(100)))
         val batch = MemoryBatching.next(messages, -1, maxPayloadCharacters = 300)
         assertEquals(1, batch.size)
         assertTrue(MemoryBatching.payload(batch).toString().length <= 300)
@@ -62,6 +63,8 @@ class MemoryBatchingTest {
         assertFalse(MemoryBatching.answerHasSummary(obj("{}")))
         assertFalse(MemoryBatching.answerHasSummary(obj("""{"summary":" ","facts":[]}""")))
         assertFalse(MemoryBatching.answerHasSummary(obj("""{"summary":"摘要","facts":null}""")))
+        assertFalse(MemoryBatching.answerHasSummary(obj("""{"summary":42,"facts":[]}""")))
+        assertFalse(MemoryBatching.answerHasSummary(obj("""{"summary":true,"facts":[]}""")))
         assertTrue(MemoryBatching.answerHasSummary(obj("""{"summary":"摘要","facts":[]}""")))
     }
     @Test fun newFingerprintInvalidatesOldTruncatedSummaries() {
