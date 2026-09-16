@@ -15,10 +15,30 @@ class ChatRepository(private val graph:AppGraph){
  val replying=MutableStateFlow<ReplyState?>(null);val error=MutableStateFlow<String?>(null)
  private val gate=Mutex();private var job:Job?=null
  suspend fun cancel(){gate.withLock{job?.cancelAndJoin();job=null}}
- suspend fun switchSession(id:String){gate.withLock{require(graph.dao.session(id)!=null);job?.cancelAndJoin();job=null;graph.prefs.text("activeSession",id)}}
- suspend fun newSession(title:String="新的悄悄话",draft:String=""):String{val id=newId();gate.withLock{job?.cancelAndJoin();job=null;graph.dao.putSession(SessionEntity(id,title.take(100),draft=draft.take(20000)));graph.prefs.text("activeSession",id)};return id}
- suspend fun rename(id:String,title:String){require(title.trim().length in 1..100);val s=graph.dao.session(id)?:error("对话不存在");graph.dao.putSession(s.copy(title=title.trim()))}
- suspend fun archive(id:String,archived:Boolean){if(graph.prefs.state.value.activeSession==id)cancel();val s=graph.dao.session(id)?:return;graph.dao.putSession(s.copy(archived=archived));if(archived&&id==graph.prefs.state.value.activeSession){val next=graph.dao.allSessions().firstOrNull{!it.archived};if(next!=null)switchSession(next.id)else newSession()}}
+ suspend fun switchSession(id:String){gate.withLock{
+  val target=graph.dao.session(id)?:error("对话不存在")
+  require(!target.archived){"请先恢复这个对话"}
+  job?.cancelAndJoin();job=null;graph.prefs.text("activeSession",id)
+ }}
+ suspend fun newSession(title:String="新的悄悄话",draft:String=""):String{
+  require(title.trim().length in 1..100)
+  val id=newId()
+  gate.withLock{job?.cancelAndJoin();job=null;graph.dao.putSession(SessionEntity(id,title.trim(),draft=draft.take(20000)));graph.prefs.text("activeSession",id)}
+  return id
+ }
+ suspend fun rename(id:String,title:String){
+  require(title.trim().length in 1..100)
+  check(graph.dao.renameSession(id,title.trim())==1){"对话不存在"}
+ }
+ suspend fun archive(id:String,archived:Boolean)=gate.withLock{
+  if(graph.prefs.state.value.activeSession==id){job?.cancelAndJoin();job=null}
+  check(graph.dao.archiveSession(id,archived)==1){"对话不存在"}
+  if(archived&&id==graph.prefs.state.value.activeSession){
+   val next=graph.dao.allSessions().firstOrNull{!it.archived}
+   val nextId=next?.id?:newId().also{graph.dao.putSession(SessionEntity(it))}
+   graph.prefs.text("activeSession",nextId)
+  }
+ }
  suspend fun edit(id:String,text:String){require(text.trim().length in 1..20000);cancel();graph.db.withTransaction{
   val m=graph.dao.message(id)?:error("消息不存在");require(m.who=="me");graph.dao.putRecord(RecordEntity("message-revision","$id:${System.currentTimeMillis()}",buildJsonObject{put("text",m.text);put("raw",m.raw)}.toString()))
   graph.dao.putMessage(m.copy(text=text.trim()));graph.dao.invalidateFacts(id);graph.dao.invalidateChapters(m.sessionId,m.ordinal)
@@ -37,14 +57,20 @@ class ChatRepository(private val graph:AppGraph){
   replying.value=ReplyState(session,replyId,token)
   job=graph.scope.launch(Dispatchers.IO){val output=StringBuilder();var status="complete";var lastWrite=0L
    try{
-    val messages=graph.dao.messagesNow(session).filter{it.id!=replyId&&it.text.isNotBlank()&&(it.who=="me"||it.status=="complete")}.takeLast(24)
-    val bounded=messages.asReversed().runningFold(emptyList<MessageEntity>()){acc,m->if(acc.sumOf{it.text.length}+m.text.length<=45000)acc+m else acc}.last().reversed()
+    val bounded=ChatContextWindow.select(graph.dao.messagesNow(session).filter{it.id!=replyId})
     val turns=bounded.map{m->ModelTurn(if(m.who=="me")"user"else "assistant",m.text,runCatching{obj(m.raw).str("image").ifBlank{null}}.getOrNull())}
     val system=prompt(text,session)
     suspend fun receive(connection:ModelConnection){graph.model.stream(connection,system,turns).collect{delta->output.append(delta);val now=System.currentTimeMillis();if(now-lastWrite>=100){graph.dao.updateMessage(replyId,output.toString(),"streaming");lastWrite=now}}}
     try{receive(graph.connection())}catch(e:CancellationException){throw e}catch(e:Exception){if(output.isEmpty()&&graph.prefs.state.value.fallbackUrl.isNotBlank())receive(graph.connection(true))else throw e}
+    check(output.isNotEmpty()){ "模型没有返回正文，请重试" }
    }catch(e:CancellationException){status="cancelled";throw e}catch(e:Exception){status=if(output.isEmpty())"error"else "interrupted";error.value=e.message?:"回复未完成，已经保留收到的内容"}
-   finally{withContext(NonCancellable+Dispatchers.IO){graph.dao.updateMessage(replyId,output.toString(),status);graph.dao.session(session)?.let{graph.dao.putSession(it.copy(updatedAt=System.currentTimeMillis()))};if(replying.value?.token==token)replying.value=null;if(status=="complete"&&output.isNotEmpty())graph.memory.enqueue(session)}}
+   finally{withContext(NonCancellable+Dispatchers.IO){
+    try{
+     graph.dao.updateMessage(replyId,output.toString(),status)
+     graph.dao.touchSession(session,System.currentTimeMillis())
+     if(status=="complete"&&output.isNotEmpty())graph.memory.enqueue(session)
+    }finally{if(replying.value?.token==token)replying.value=null}
+   }}
   }
  }}
  private suspend fun prompt(query:String,session:String):String{
