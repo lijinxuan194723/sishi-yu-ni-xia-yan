@@ -1,0 +1,41 @@
+name: Native Compose UI checkpoint 210
+on:
+  workflow_dispatch:
+  push:
+    branches: ['feature/v2.0.10-native-migration']
+    paths: ['.github/workflows/native210-ui-check.yml']
+permissions:
+  contents: read
+concurrency:
+  group: native210-ui-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  compose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407
+        with:
+          packages: platform-tools
+          log-accepted-android-sdk-licenses: false
+      - uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a
+        with:
+          gradle-version: '8.11.1'
+      - name: Compile Compose design system and retained native core tests
+        working-directory: native
+        run: gradle --no-daemon --console=plain --max-workers=2 :designsystem:assembleDebug :core:testDebugUnitTest
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: native210-compose-reports
+          path: |
+            native/core/build/test-results
+            native/core/build/reports
+          retention-days: 7
