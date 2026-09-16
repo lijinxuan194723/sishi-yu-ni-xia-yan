@@ -110,6 +110,7 @@ fun ErrorNotice(message: String?, onDismiss: () -> Unit, modifier: Modifier = Mo
 fun NativeDialog(title: String, onDismiss: () -> Unit, content: @Composable ColumnScope.() -> Unit) {
     val height = (LocalConfiguration.current.screenHeightDp - 36).coerceAtLeast(180).dp
     Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+        SeasonSystemBars()
         Surface(Modifier.widthIn(max = 640.dp).fillMaxWidth().padding(horizontal = 14.dp)
             .imePadding().heightIn(max = minOf(680.dp, height)), color = LocalSeason.current.paper,
             shape = RoundedCornerShape(28.dp)) {

@@ -23,6 +23,7 @@ fun NativeScreenFrame(
     footer: @Composable (GraphicsLayer) -> Unit = {},
     content: @Composable (PaddingValues) -> Unit,
 ) {
+    SeasonSystemBars()
     val page = rememberGraphicsLayer()
     var origin by remember { mutableStateOf(Offset.Zero) }
     Scaffold(modifier.fillMaxSize().imePadding().background(LocalSeason.current.ground).testTag("native-frame"),
@@ -33,7 +34,11 @@ fun NativeScreenFrame(
             }
         },
         bottomBar = {
-            Column(Modifier.fillMaxWidth().navigationBarsPadding()) { footer(page) }
+            Column(Modifier.fillMaxWidth()) {
+                footer(page)
+                GlassChrome(page, Modifier.fillMaxWidth().windowInsetsBottomHeight(WindowInsets.navigationBars)
+                    .testTag("system-navigation-protection"), fadeAtBottom = false, sourceOrigin = origin) { }
+            }
         },
         contentWindowInsets = WindowInsets.safeDrawing,
     ) { padding ->
