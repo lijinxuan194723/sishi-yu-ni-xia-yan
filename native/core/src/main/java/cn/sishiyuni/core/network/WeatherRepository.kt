@@ -21,11 +21,9 @@ object WeatherParser {
     private fun number(a: JsonArray, index: Int): Double? = (a.getOrNull(index) as? JsonPrimitive)?.doubleOrNull?.takeIf { it.isFinite() }
     private fun code(value: Double?): Int? = value?.takeIf { it in 0.0..999.0 && it % 1.0 == 0.0 }?.toInt()
     private fun probability(value: Double?): Double? = value?.takeIf { it in 0.0..100.0 }
-
     fun parse(root: JsonObject, city: String, at: Long): WeatherReport {
         val current = root.child("current")
-        val temperature = number(current, "temperature_2m")?.takeIf { it in -100.0..70.0 }
-            ?: error("天气响应缺少有效温度")
+        val temperature = number(current, "temperature_2m")?.takeIf { it in -100.0..70.0 } ?: error("天气响应缺少有效温度")
         val weatherCode = code(number(current, "weather_code")) ?: error("天气状态缺失或无效")
         val timestamp = current.str("time")
         val currentTime = runCatching { LocalDateTime.parse(timestamp) }.getOrNull()
@@ -52,7 +50,6 @@ object WeatherParser {
             probability(number(current, "relative_humidity_2m")), number(current, "wind_speed_10m")?.takeIf { it in 0.0..500.0 },
             weatherCode, current.num("is_day", 1) == 1L, timestamp, hours, days, at)
     }
-
     fun label(code: Int): String = when (code) {
         0 -> "晴"; 1, 2 -> "多云"; 3 -> "阴"; 45, 48 -> "雾"
         51, 53, 55, 56, 57 -> "细雨"; 61, 63, 65, 66, 67, 80, 81, 82 -> "雨"
@@ -82,15 +79,13 @@ class WeatherRepository(
     private var generation = 0L
     private var active: Job? = null
     private fun key(p: AppPreferences) = "open-meteo:${p.latitude}:${p.longitude}"
-    private fun sameLocation(a: AppPreferences, b: AppPreferences) = a.latitude == b.latitude && a.longitude == b.longitude && a.weatherCity == b.weatherCity
-
+    private fun sameLocation(a: AppPreferences, b: AppPreferences) =
+        a.latitude.toBits() == b.latitude.toBits() && a.longitude.toBits() == b.longitude.toBits() && a.weatherCity == b.weatherCity
     private fun publish(ticket: Long, p: AppPreferences, next: WeatherState) = synchronized(lock) {
         if (ticket == generation) {
-            // A preference change without a second refresh must not leave an old spinner or old-city result.
             mutableState.value = if (sameLocation(p, preferences())) next.copy(locationKey = key(p)) else WeatherState()
         }
     }
-
     suspend fun search(query: String): List<CityResult> {
         require(query.trim().length in 1..80)
         val url = httpsUrl("https://geocoding-api.open-meteo.com/v1/search").newBuilder()
@@ -103,7 +98,6 @@ class WeatherRepository(
             else CityResult(city.str("name"), listOf(city.str("name"), city.str("admin1"), city.str("country")).filter { it.isNotBlank() }.distinct().joinToString(" · "), lat, lon)
         }
     }
-
     suspend fun refresh(force: Boolean = false): Unit = coroutineScope {
         val ownJob = currentCoroutineContext().job
         val (ticket, previous) = synchronized(lock) {
@@ -136,7 +130,6 @@ class WeatherRepository(
             currentCoroutineContext().ensureActive()
             val at = clock()
             val report = WeatherParser.parse(raw, p.weatherCity, at)
-            // Cache persistence failure is not a network failure: keep the valid fresh report on screen.
             val cacheError = try { saveCache(RecordEntity("weather", cacheKey, raw.toString(), at)); null }
                 catch (e: CancellationException) { throw e }
                 catch (_: Exception) { "天气已更新，本机缓存未保存成功" }
