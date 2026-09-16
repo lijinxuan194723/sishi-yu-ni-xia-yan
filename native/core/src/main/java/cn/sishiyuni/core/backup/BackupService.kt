@@ -135,3 +135,4 @@ class BackupService(private val context:Context,private val db:LukeDatabase,priv
   }}.toString();require(text.toByteArray().size<=BackupDecoder.MAX_BYTES){"备份超过 60 MB"};write(uri,text)
  }
  suspend fun exportText(uri:Uri,text:String)=withContext(Dispatchers.IO){write(uri,bounded(text,2000000,"导出内容"))}
+}
