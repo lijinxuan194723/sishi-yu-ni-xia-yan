@@ -36,17 +36,18 @@ fun MechanicalDial(millis: Long, running: Boolean, active: Boolean, modifier: Mo
     } }
     Surface(modifier.aspectRatio(1f).testTag("mechanical-dial"), shape = CircleShape, color = colors.paper) {
         BoxWithConstraints(contentAlignment = Alignment.Center) {
+            val dialWidth = maxWidth
+            val dialHeight = maxHeight
             Canvas(Modifier.fillMaxSize()) {
-                clock.value // Only the drawing node subscribes to the frame clock.
+                clock.value // Only this draw node observes frames; no database or system-provider reads.
                 val radius = size.minDimension / 2
                 val ring = radius - 8.dp.toPx()
-                val thickness = 2.dp.toPx()
-                drawCircle(colors.border.copy(alpha = .65f), ring, style = Stroke(thickness))
+                if (ring <= 0) return@Canvas
+                drawCircle(colors.border.copy(alpha = .65f), ring, style = Stroke(2.dp.toPx()))
                 vectors.forEachIndexed { i, v ->
                     val length = if (i % 5 == 0) 12.dp.toPx() else 5.dp.toPx()
-                    val end = center + v * (ring - 6.dp.toPx())
                     drawLine(if (i % 5 == 0) colors.accent.copy(alpha = .65f) else colors.border,
-                        center + v * (ring - 6.dp.toPx() - length), end,
+                        center + v * (ring - 6.dp.toPx() - length), center + v * (ring - 6.dp.toPx()),
                         strokeWidth = if (i % 5 == 0) 1.7.dp.toPx() else 1.dp.toPx(), cap = StrokeCap.Round)
                 }
                 val shown = if (running && motion.effects) latestMillis().coerceAtLeast(0) else millis.coerceAtLeast(0)
@@ -58,15 +59,14 @@ fun MechanicalDial(millis: Long, running: Boolean, active: Boolean, modifier: Mo
                     style = Stroke(3.dp.toPx(), cap = StrokeCap.Round))
                 val angle = ((shown % 60000) / 60000.0 * 360 - 90) * Math.PI / 180
                 val v = Offset(cos(angle).toFloat(), sin(angle).toFloat())
-                // A peripheral second hand never sweeps across the number or character artwork.
                 drawLine(colors.accent, center + v * (ring - 19.dp.toPx()), center + v * (ring - 2.dp.toPx()),
                     2.6.dp.toPx(), cap = StrokeCap.Round)
                 drawCircle(colors.accent, 3.dp.toPx(), center + v * (ring - 1.dp.toPx()))
             }
             val fontScale = LocalDensity.current.fontScale.coerceAtLeast(1f)
-            val sizeSp = (maxWidth.value / 6.2f / fontScale).coerceIn(15f, 38f)
+            val sizeSp = (dialWidth.value / 6.2f / fontScale).coerceIn(15f, 38f)
             Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                if (maxHeight >= 190.dp) AssetImage("images/companions/cat.webp", null, Modifier.size((maxWidth.value * .15f).dp))
+                if (dialHeight >= 190.dp) AssetImage("images/companions/cat.webp", null, Modifier.size((dialWidth.value * .15f).dp))
                 Text(TimerMath.duration(millis), style = MaterialTheme.typography.headlineMedium.copy(
                     fontSize = sizeSp.sp, lineHeight = (sizeSp * 1.2f).sp, fontFamily = FontFamily.Monospace,
                     fontWeight = FontWeight.Medium), color = colors.ink, maxLines = 1,

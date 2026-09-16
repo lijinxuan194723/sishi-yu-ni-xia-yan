@@ -4,38 +4,28 @@ import android.os.Build
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
-import androidx.compose.foundation.layout.matchParentSize
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.BlendMode
-import androidx.compose.ui.graphics.BlurEffect
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.CompositingStrategy
-import androidx.compose.ui.graphics.TileMode
+import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.translate
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.layer.GraphicsLayer
 import androidx.compose.ui.graphics.layer.drawLayer
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.unit.dp
 
-/** Record only page content into this layer; chrome must never record itself. */
+/** Record page content only. The header/composer must remain outside this recorded layer. */
 fun Modifier.recordPage(layer: GraphicsLayer): Modifier = drawWithContent {
     layer.record { this@drawWithContent.drawContent() }
     drawLayer(layer)
 }
 
-/** Backdrop and scrim live behind the controls; text is never blurred or made translucent. */
+/** Real backdrop on API 31+, translucent gradient on older devices; foreground stays sharp. */
 @Composable
-fun GlassChrome(source: GraphicsLayer?, modifier: Modifier = Modifier, fadeAtBottom: Boolean = true, content: @Composable BoxScope.() -> Unit) {
+fun GlassChrome(source: GraphicsLayer?, modifier: Modifier = Modifier, fadeAtBottom: Boolean = true,
+                sourceOrigin: Offset = Offset.Zero, content: @Composable BoxScope.() -> Unit) {
     val paper = LocalSeason.current.paper
     val glass = LocalAppPreferences.current.glass
     var origin by remember { mutableStateOf(Offset.Zero) }
@@ -52,7 +42,7 @@ fun GlassChrome(source: GraphicsLayer?, modifier: Modifier = Modifier, fadeAtBot
                     drawRect(Brush.verticalGradient(mask), blendMode = BlendMode.DstIn)
                 }
                 .graphicsLayer { renderEffect = BlurEffect(14.dp.toPx(), 14.dp.toPx(), TileMode.Clamp) }
-                .drawWithContent { translate(-origin.x, -origin.y) { drawLayer(source) } })
+                .drawWithContent { translate(sourceOrigin.x - origin.x, sourceOrigin.y - origin.y) { drawLayer(source) } })
         }
         Box(Modifier.matchParentSize().background(Brush.verticalGradient(tint)))
         content()

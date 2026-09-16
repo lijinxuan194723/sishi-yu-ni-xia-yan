@@ -18,6 +18,7 @@ class AppGraph(val context:Context){
  val errors=MutableStateFlow<String?>(null)
  val scope=CoroutineScope(SupervisorJob()+Dispatchers.Main.immediate+CoroutineExceptionHandler{_,e->errors.value=e.message?:"操作失败，请重试"})
  val db=LukeDatabase.open(context);val dao=db.dao();val prefs=PreferencesStore(context,scope)
+ val drafts=ChatDraftRepository({id->dao.session(id)?.draft},{id,text->dao.draft(id,text)},scope)
  val vault=SecretVault(context);val http=Http();val model=ModelClient(http);val images=ImageStore(context)
  val weather=WeatherRepository(http,dao,prefs);val holidays=HolidayRepository(context,dao,http,prefs)
  val timer=TimerRepository(context,db);val skills=SkillInstaller(context,http,dao);val backup=BackupService(context,db,prefs)

@@ -1,7 +1,8 @@
 package cn.sishiyuni.designsystem
 
+import android.graphics.BitmapFactory
+import android.util.Base64
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -12,10 +13,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -25,6 +25,8 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import cn.sishiyuni.core.AppGraph
 import coil.compose.SubcomposeAsyncImage
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.File
 
 @Composable
@@ -48,11 +50,31 @@ fun LukeCard(modifier: Modifier = Modifier, padding: Dp = 16.dp, content: @Compo
 @Composable
 fun AssetImage(path: String, description: String?, modifier: Modifier = Modifier, contentScale: ContentScale = ContentScale.Fit) {
     val context = LocalContext.current
-    val model: Any = remember(path, context) {
-        when {
-            path.startsWith("images/") && !path.contains("..") -> "file:///android_asset/$path"
-            path.startsWith(context.filesDir.absolutePath + "/") -> File(path)
-            else -> "file:///android_asset/images/companions/cat.webp"
+    val fallback = "file:///android_asset/images/companions/cat.webp"
+    val model by produceState<Any?>(initialValue = null, key1 = path, key2 = context) {
+        value = withContext(Dispatchers.IO) {
+            runCatching {
+                when {
+                    path.startsWith("images/") && !path.contains("..") -> "file:///android_asset/$path"
+                    path.startsWith(context.filesDir.absolutePath + "/") -> {
+                        val file = File(path).canonicalFile
+                        require(file.path.startsWith(context.filesDir.canonicalPath + "/"))
+                        file
+                    }
+                    path.length <= 400000 && Regex("^data:image/(png|jpeg|webp);base64,").containsMatchIn(path) -> {
+                        val bytes = Base64.decode(path.substringAfter(','), Base64.NO_WRAP)
+                        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+                        BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
+                        require(bounds.outWidth > 0 && bounds.outHeight > 0 && bounds.outWidth.toLong() * bounds.outHeight <= 4000000)
+                        val options = BitmapFactory.Options().apply {
+                            inSampleSize = 1
+                            while (maxOf(bounds.outWidth, bounds.outHeight) / inSampleSize > 1024) inSampleSize *= 2
+                        }
+                        requireNotNull(BitmapFactory.decodeByteArray(bytes, 0, bytes.size, options))
+                    }
+                    else -> fallback
+                }
+            }.getOrElse { fallback }
         }
     }
     SubcomposeAsyncImage(model, description, modifier, contentScale = contentScale,
@@ -73,9 +95,10 @@ fun ErrorNotice(message: String?, onDismiss: () -> Unit, modifier: Modifier = Mo
 
 @Composable
 fun NativeDialog(title: String, onDismiss: () -> Unit, content: @Composable ColumnScope.() -> Unit) {
+    val height = (LocalConfiguration.current.screenHeightDp - 36).coerceAtLeast(180).dp
     Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
-        Surface(Modifier.fillMaxWidth().widthIn(max = 640.dp).padding(horizontal = 14.dp)
-            .imePadding().heightIn(max = 680.dp), color = LocalSeason.current.paper,
+        Surface(Modifier.widthIn(max = 640.dp).fillMaxWidth().padding(horizontal = 14.dp)
+            .imePadding().heightIn(max = minOf(680.dp, height)), color = LocalSeason.current.paper,
             shape = RoundedCornerShape(28.dp)) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {

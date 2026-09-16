@@ -28,9 +28,23 @@ jobs:
       - uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a
         with:
           gradle-version: '8.11.1'
-      - name: Compile Compose design system and retained native core tests
+      - name: Compile native chat and timer UI plus core tests
         working-directory: native
-        run: gradle --no-daemon --console=plain --max-workers=2 :designsystem:assembleDebug :core:testDebugUnitTest
+        run: gradle --no-daemon --console=plain --max-workers=2 :designsystem:assembleDebug :feature:timer:assembleDebug :feature:chat:assembleDebug :core:testDebugUnitTest
+      - name: Summarize actual unit tests
+        if: always()
+        run: |
+          python - <<'PY'
+          import pathlib, xml.etree.ElementTree as ET, json
+          total = dict(tests=0, failures=0, errors=0, skipped=0)
+          reports = list(pathlib.Path('native/core/build/test-results').rglob('TEST-*.xml'))
+          for p in reports:
+              root = ET.parse(p).getroot()
+              for k in total: total[k] += int(root.get(k, '0'))
+          total['scope'] = 'Core JVM tests only; Compose compilation is separate, no device UI tests in this job'
+          print(json.dumps(total))
+          pathlib.Path('native/core/build/unit-summary.json').write_text(json.dumps(total, indent=2))
+          PY
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
@@ -38,4 +52,5 @@ jobs:
           path: |
             native/core/build/test-results
             native/core/build/reports
+            native/core/build/unit-summary.json
           retention-days: 7
