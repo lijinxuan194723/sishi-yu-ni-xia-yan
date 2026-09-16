@@ -22,7 +22,7 @@ object MemoryBatching {
     fun next(rows: List<MessageEntity>, through: Long, maxPayloadCharacters: Int = 60_000, maxMessages: Int = 24): List<MessageEntity> {
         require(maxPayloadCharacters > 2 && maxMessages > 0)
         val result = ArrayList<MessageEntity>()
-        var size = 2 // JSON array brackets; count escaping as well as the original text.
+        var size = 2
         for (message in rows.asSequence().filter { it.ordinal > through }.sortedBy { it.ordinal }) {
             if (message.status == "streaming") break
             val increment = if (readable(message)) encode(message).toString().length + 1 else 0
@@ -37,6 +37,8 @@ object MemoryBatching {
         return result
     }
 
-    fun answerHasSummary(answer: JsonObject): Boolean =
-        (answer["summary"] as? JsonPrimitive)?.contentOrNull?.isNotBlank() == true && answer["facts"] is JsonArray
+    fun answerHasSummary(answer: JsonObject): Boolean {
+        val summary = answer["summary"] as? JsonPrimitive ?: return false
+        return summary.isString && summary.content.isNotBlank() && answer["facts"] is JsonArray
+    }
 }
