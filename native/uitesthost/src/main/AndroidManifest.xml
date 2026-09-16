@@ -1,0 +1,6 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+ <uses-permission android:name="android.permission.INTERNET" />
+ <application android:name=".TestApplication" android:theme="@android:style/Theme.Material.Light.NoActionBar" android:label="Native UI Tests" android:allowBackup="false" android:usesCleartextTraffic="false">
+  <activity android:name=".TestActivity" android:exported="true" android:windowSoftInputMode="adjustResize" />
+ </application>
+</manifest>

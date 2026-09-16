@@ -39,9 +39,8 @@ fun MechanicalDial(millis: Long, running: Boolean, active: Boolean, modifier: Mo
             val dialWidth = maxWidth
             val dialHeight = maxHeight
             Canvas(Modifier.fillMaxSize()) {
-                clock.value // Only this draw node observes frames; no database or system-provider reads.
-                val radius = size.minDimension / 2
-                val ring = radius - 8.dp.toPx()
+                clock.value
+                val ring = size.minDimension / 2 - 8.dp.toPx()
                 if (ring <= 0) return@Canvas
                 drawCircle(colors.border.copy(alpha = .65f), ring, style = Stroke(2.dp.toPx()))
                 vectors.forEachIndexed { i, v ->
@@ -54,7 +53,8 @@ fun MechanicalDial(millis: Long, running: Boolean, active: Boolean, modifier: Mo
                 val progress = if (totalMillis > 0) (shown.toDouble() / totalMillis).coerceIn(0.0, 1.0).toFloat()
                     else (shown % 3_600_000L) / 3_600_000f
                 val arcRadius = ring - 27.dp.toPx()
-                if (arcRadius > 0) drawArc(colors.accent.copy(alpha = .45f), -90f, 360f * progress, false,
+                // Very compact displays reserve the full centre for legible digits instead of intersecting an inner ring.
+                if (size.minDimension >= 150.dp.toPx()) drawArc(colors.accent.copy(alpha = .45f), -90f, 360f * progress, false,
                     topLeft = center - Offset(arcRadius, arcRadius), size = Size(arcRadius * 2, arcRadius * 2),
                     style = Stroke(3.dp.toPx(), cap = StrokeCap.Round))
                 val angle = ((shown % 60000) / 60000.0 * 360 - 90) * Math.PI / 180
@@ -63,8 +63,8 @@ fun MechanicalDial(millis: Long, running: Boolean, active: Boolean, modifier: Mo
                     2.6.dp.toPx(), cap = StrokeCap.Round)
                 drawCircle(colors.accent, 3.dp.toPx(), center + v * (ring - 1.dp.toPx()))
             }
-            val fontScale = LocalDensity.current.fontScale.coerceAtLeast(1f)
-            val sizeSp = (dialWidth.value / 6.2f / fontScale).coerceIn(15f, 38f)
+            val fittedDp = ((dialWidth.value - 78f) / 5.4f).coerceIn(13f, 38f)
+            val sizeSp = fittedDp / LocalDensity.current.fontScale.coerceAtLeast(.5f)
             Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 if (dialHeight >= 190.dp) AssetImage("images/companions/cat.webp", null, Modifier.size((dialWidth.value * .15f).dp))
                 Text(TimerMath.duration(millis), style = MaterialTheme.typography.headlineMedium.copy(

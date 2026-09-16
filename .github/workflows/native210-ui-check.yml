@@ -10,7 +10,7 @@ concurrency:
   group: native210-ui-${{ github.ref }}
   cancel-in-progress: true
 jobs:
-  compose:
+  compile:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -28,29 +28,98 @@ jobs:
       - uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a
         with:
           gradle-version: '8.11.1'
-      - name: Compile native chat and timer UI plus core tests
+      - name: Compile exact committed native UI and instrumentation host
         working-directory: native
-        run: gradle --no-daemon --console=plain --max-workers=2 :designsystem:assembleDebug :feature:timer:assembleDebug :feature:chat:assembleDebug :core:testDebugUnitTest
-      - name: Summarize actual unit tests
+        run: gradle --no-daemon --console=plain --max-workers=2 :uitesthost:assembleDebug :uitesthost:assembleDebugAndroidTest :core:testDebugUnitTest
+      - name: Summarize core JVM tests and archive the native source checkpoint
         if: always()
         run: |
           python - <<'PY'
-          import pathlib, xml.etree.ElementTree as ET, json
+          import pathlib, xml.etree.ElementTree as ET, json, os
           total = dict(tests=0, failures=0, errors=0, skipped=0)
           reports = list(pathlib.Path('native/core/build/test-results').rglob('TEST-*.xml'))
           for p in reports:
               root = ET.parse(p).getroot()
               for k in total: total[k] += int(root.get(k, '0'))
-          total['scope'] = 'Core JVM tests only; Compose compilation is separate, no device UI tests in this job'
+          total.update(scope='Native core JVM tests; not full app acceptance', commit=os.environ['GITHUB_SHA'])
+          output = pathlib.Path('native-verification'); output.mkdir(exist_ok=True)
+          (output/'core-summary.json').write_text(json.dumps(total, indent=2))
           print(json.dumps(total))
-          pathlib.Path('native/core/build/unit-summary.json').write_text(json.dumps(total, indent=2))
+          PY
+          git archive --format=zip --prefix=Four-Seasons-Native-2.0.10-checkpoint/ HEAD native > native-source-checkpoint.zip
+          sha256sum native-source-checkpoint.zip > native-source-checkpoint.zip.sha256
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: native210-compile-reports
+          path: |
+            native/core/build/test-results
+            native/core/build/reports
+            native-verification
+          retention-days: 7
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: success()
+        with:
+          name: native210-source-checkpoint
+          path: |
+            native-source-checkpoint.zip
+            native-source-checkpoint.zip.sha256
+          retention-days: 7
+  instrument:
+    needs: compile
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        api: [30, 35]
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a
+        with:
+          gradle-version: '8.11.1'
+      - name: Enable hardware virtualization for the Android emulator
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api }}
+          target: default
+          arch: x86_64
+          disable-animations: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          script: cd native && gradle --no-daemon --console=plain --max-workers=2 :uitesthost:connectedDebugAndroidTest
+      - name: Summarize actual on-device UI test results
+        if: always()
+        env:
+          TEST_API: ${{ matrix.api }}
+        run: |
+          python - <<'PY'
+          import pathlib, xml.etree.ElementTree as ET, json, os
+          total = dict(tests=0, failures=0, errors=0, skipped=0)
+          reports = list(pathlib.Path('native/uitesthost/build/outputs/androidTest-results').rglob('TEST-*.xml'))
+          for p in reports:
+              root = ET.parse(p).getroot()
+              for k in total: total[k] += int(root.get(k, '0'))
+          total.update(scope='Selected Compose screens on Android emulator, not full feature parity or physical-device 120Hz', api=int(os.environ['TEST_API']), commit=os.environ['GITHUB_SHA'])
+          out = pathlib.Path('native-verification'); out.mkdir(exist_ok=True)
+          (out/'ui-summary.json').write_text(json.dumps(total, indent=2))
+          print(json.dumps(total))
           PY
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
-          name: native210-compose-reports
+          name: native210-ui-api${{ matrix.api }}
           path: |
-            native/core/build/test-results
-            native/core/build/reports
-            native/core/build/unit-summary.json
+            native/uitesthost/build/reports/androidTests
+            native/uitesthost/build/outputs/androidTest-results
+            native-verification
           retention-days: 7

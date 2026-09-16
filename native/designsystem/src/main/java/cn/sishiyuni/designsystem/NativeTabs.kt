@@ -16,27 +16,29 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
-/** Pointer movement is the indicator's source of truth, not a second competing animation. */
 @Composable
 fun NativeTabs(labels: List<String>, pager: PagerState, modifier: Modifier = Modifier, tag: String = "section-tabs") {
     require(labels.isNotEmpty() && labels.size == pager.pageCount)
     val colors = LocalSeason.current
     val reduced = LocalLukeMotion.current.reduced
+    val rtl = LocalLayoutDirection.current == LayoutDirection.Rtl
     val scope = rememberCoroutineScope()
     var clickJob by remember { mutableStateOf<Job?>(null) }
     Row(modifier.fillMaxWidth().clip(RoundedCornerShape(22.dp))
         .background(colors.paper.copy(alpha = .84f))
         .drawBehind {
-            val position = (pager.currentPage + pager.currentPageOffsetFraction).coerceIn(0f, labels.lastIndex.toFloat())
+            val logical = (pager.currentPage + pager.currentPageOffsetFraction).coerceIn(0f, labels.lastIndex.toFloat())
+            val position = if (rtl) labels.lastIndex - logical else logical
             val inset = 4.dp.toPx()
             val slot = size.width / labels.size
             drawRoundRect(colors.soft, topLeft = Offset(position * slot + inset, inset),
@@ -53,8 +55,7 @@ fun NativeTabs(labels: List<String>, pager: PagerState, modifier: Modifier = Mod
                     }
                 }).padding(horizontal = 4.dp, vertical = 12.dp).testTag("$tag-$index"), contentAlignment = Alignment.Center) {
                 Text(title, style = MaterialTheme.typography.labelLarge,
-                    color = if (pager.currentPage == index) colors.accent else colors.muted,
-                    textAlign = TextAlign.Center)
+                    color = if (pager.currentPage == index) colors.accent else colors.muted, textAlign = TextAlign.Center)
             }
         }
     }
