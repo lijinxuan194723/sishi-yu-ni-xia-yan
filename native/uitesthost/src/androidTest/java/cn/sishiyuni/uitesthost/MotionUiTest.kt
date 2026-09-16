@@ -29,7 +29,9 @@ import kotlin.math.hypot
 class MotionUiTest {
     @get:Rule val rule = createAndroidComposeRule<TestActivity>()
     private lateinit var pager: PagerState
+    private var rightToLeft = false
     private fun tabs(reduced: Boolean = false, rtl: Boolean = false) {
+        rightToLeft = rtl
         rule.setContent {
             LukeTheme(AppPreferences(effects = false, reduceMotion = reduced, season = "spring", period = "day")) {
                 CompositionLocalProvider(LocalLayoutDirection provides if (rtl) LayoutDirection.Rtl else LayoutDirection.Ltr) {
@@ -44,16 +46,34 @@ class MotionUiTest {
             }
         }
     }
+    /** Compose idleness alone does not wait for native ripple/PixelCopy on every Android version.
+     * Wait for the actual painted frame, keeping the exact color, visible-area and position assertions.
+     * The finger remains held for drag samples; this does not turn the gesture test into a settled-tab test.
+     */
     private fun highlightCenter(): Float {
-        val image = rule.onNodeWithTag("section-tabs").captureToImage().toPixelMap()
-        val expected = seasonColors("spring", false).soft
-        val y = (image.height * .8f).toInt().coerceAtMost(image.height - 1)
-        val xs = (0 until image.width).filter { x ->
-            val c = image[x, y]
-            abs(c.red - expected.red) < .018f && abs(c.green - expected.green) < .018f && abs(c.blue - expected.blue) < .018f
+        var result: Float? = null
+        var diagnostic = "No frame captured"
+        try {
+            rule.waitUntil(5000) {
+                val image = rule.onNodeWithTag("section-tabs").captureToImage().toPixelMap()
+                val expected = seasonColors("spring", false).soft
+                val y = (image.height * .8f).toInt().coerceAtMost(image.height - 1)
+                val xs = (0 until image.width).filter { x ->
+                    val c = image[x, y]
+                    abs(c.red - expected.red) < .018f && abs(c.green - expected.green) < .018f && abs(c.blue - expected.blue) < .018f
+                }
+                val logical = (pager.currentPage + pager.currentPageOffsetFraction).coerceIn(0f, 2f)
+                val position = if (rightToLeft) 2f - logical else logical
+                val expectedCenter = image.width / 3f * (position + .5f)
+                val centroid = if (xs.isEmpty()) Float.NaN else xs.average().toFloat()
+                diagnostic = "API=${android.os.Build.VERSION.SDK_INT}, painted=${xs.size}/${image.width}, centroid=$centroid, expected=$expectedCenter, pager=$logical"
+                if (xs.size > image.width / 12 && abs(centroid - expectedCenter) <= 5f) result = centroid
+                result != null
+            }
+        } finally {
+            println("Indicator pixel sample: $diagnostic")
         }
-        assertTrue("Tab highlight was not painted", xs.size > image.width / 12)
-        return xs.average().toFloat()
+        return requireNotNull(result) { diagnostic }
     }
     @Test fun indicatorMovesBeforeFingerReleaseAndReversesWithFinger() {
         tabs(); val before = highlightCenter()
@@ -110,8 +130,7 @@ class MotionUiTest {
         var releases = 0; val selected = ruler { releases++ }
         rule.onNodeWithTag("timer-ruler").performTouchInput {
             down(0, center); moveBy(Offset(-90f, 0f), 120)
-            down(1, center + Offset(10f, 10f))
-            moveTo(0, center + Offset(-130f, 0f), 32)
+            down(1, center + Offset(10f, 10f)); moveTo(0, center + Offset(-130f, 0f), 32)
             up(1); up(0)
         }
         rule.runOnIdle { assertEquals(0, releases); assertEquals(25, selected.value) }
