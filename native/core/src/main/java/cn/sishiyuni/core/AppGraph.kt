@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cn.sishiyuni.core.backup.BackupService
 import cn.sishiyuni.core.data.*
+import cn.sishiyuni.core.journal.JournalRepository
 import cn.sishiyuni.core.memory.MemoryRepository
 import cn.sishiyuni.core.network.*
 import cn.sishiyuni.core.skills.SkillInstaller
@@ -19,6 +20,7 @@ class AppGraph(val context:Context){
  val scope=CoroutineScope(SupervisorJob()+Dispatchers.Main.immediate+CoroutineExceptionHandler{_,e->errors.value=e.message?:"操作失败，请重试"})
  val db=LukeDatabase.open(context);val dao=db.dao();val prefs=PreferencesStore(context,scope)
  val drafts=ChatDraftRepository({id->dao.session(id)?.draft},{id,text->dao.draft(id,text)},scope)
+ val journal=JournalRepository(db,scope)
  val vault=SecretVault(context);val http=Http();val model=ModelClient(http);val images=ImageStore(context)
  val weather=WeatherRepository(http,dao,prefs);val holidays=HolidayRepository(context,dao,http,prefs)
  val timer=TimerRepository(context,db);val skills=SkillInstaller(context,http,dao);val backup=BackupService(context,db,prefs)
@@ -30,7 +32,7 @@ class AppGraph(val context:Context){
    if(dao.session(prefs.state.value.activeSession)==null)prefs.text("activeSession",dao.allSessions().first().id)
    dao.allMessages().filter{it.status=="streaming"}.forEach{dao.updateMessage(it.id,it.text,"interrupted")}
    timer.restore();ready.value=true
-  }catch(e:Exception){errors.value="本机数据初始化失败，未清除数据：${e.message}"}
+  }catch(e:CancellationException){throw e}catch(e:Exception){errors.value="本机数据初始化失败，未清除数据：${e.message}"}
  }}
  suspend fun connection(fallback:Boolean=false):ModelConnection=withContext(Dispatchers.IO){
   val p=prefs.state.value;val url=if(fallback)p.fallbackUrl else p.modelUrl;val model=if(fallback)p.fallbackModel else p.modelName
