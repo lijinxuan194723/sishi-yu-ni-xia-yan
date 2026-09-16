@@ -19,7 +19,17 @@ import kotlinx.coroutines.flow.Flow
  @Query("SELECT COALESCE(MAX(ordinal),-1)+1 FROM messages WHERE sessionId=:session") suspend fun nextOrdinal(session:String):Long
  @Query("SELECT * FROM messages WHERE instr(text,:query)>0 ORDER BY at DESC LIMIT 100") suspend fun searchMessages(query:String):List<MessageEntity>
  @Query("SELECT * FROM messages WHERE favorite=1 ORDER BY at DESC") fun favoriteMessages():Flow<List<MessageEntity>>
- @Upsert suspend fun putMessage(item:MessageEntity)
+ @Insert(onConflict=OnConflictStrategy.ABORT) suspend fun insertMessage(item:MessageEntity)
+ @Update(onConflict=OnConflictStrategy.ABORT) suspend fun replaceMessage(item:MessageEntity):Int
+ /** The immutable identity includes its session and ordinal; a uniqueness conflict is never a successful no-op. */
+ @Transaction suspend fun putMessage(item:MessageEntity) {
+  val old=message(item.id)
+  if(old==null)insertMessage(item)
+  else {
+   require(old.sessionId==item.sessionId&&old.ordinal==item.ordinal){"消息归属或顺序不能在更新时改变"}
+   check(replaceMessage(item)==1){"消息已改变，请重新读取"}
+  }
+ }
  @Query("UPDATE messages SET text=:text,status=:status WHERE id=:id") suspend fun updateMessage(id:String,text:String,status:String)
  @Query("UPDATE messages SET favorite=NOT favorite WHERE id=:id") suspend fun starMessage(id:String)
  @Query("SELECT * FROM plans ORDER BY date,important DESC") fun plans():Flow<List<PlanEntity>>
@@ -64,19 +74,16 @@ import kotlinx.coroutines.flow.Flow
  @Query("DELETE FROM skills WHERE id=:id") suspend fun deleteSkill(id:String)
  @Query("UPDATE skills SET enabled=:enabled WHERE id=:id AND digest=:expectedDigest")
  suspend fun setSkillEnabledIfUnchanged(id:String,enabled:Boolean,expectedDigest:String):Int
-
- /** Updating code requires the digest of the version the user reviewed, not only a matching name. */
  @Transaction suspend fun installReviewedSkill(item:SkillEntity,expectedDigest:String?):Boolean {
   val old=skill(item.id)
   if(old==null){
    if(expectedDigest!=null)return false
    putSkill(item.copy(enabled=false));return true
   }
-  if(old.digest==item.digest)return true // Re-importing identical text must not reset an existing enable choice.
+  if(old.digest==item.digest)return true
   if(expectedDigest==null||old.digest!=expectedDigest)return false
   putSkill(item.copy(enabled=false,installedAt=old.installedAt));return true
  }
-
  @Query("SELECT * FROM records WHERE kind=:kind ORDER BY updatedAt DESC") fun records(kind:String):Flow<List<RecordEntity>>
  @Query("SELECT * FROM records WHERE kind=:kind") suspend fun recordsNow(kind:String):List<RecordEntity>
  @Query("SELECT * FROM records") suspend fun allRecords():List<RecordEntity>
