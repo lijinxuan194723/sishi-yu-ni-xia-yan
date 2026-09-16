@@ -23,12 +23,13 @@ val LocalSeason = staticCompositionLocalOf {
 }
 val LocalAppPreferences = staticCompositionLocalOf { AppPreferences() }
 
-/** Text scales, not hit targets or layout density. Chat uses its separate sp setting. */
+/** Text scales, not hit targets or layout density. Chat keeps its independent sp setting. */
 @Composable
-fun LukeTheme(preferences: AppPreferences, now: LocalDateTime = LocalDateTime.now(), content: @Composable () -> Unit) {
+fun LukeTheme(preferences: AppPreferences, now: LocalDateTime? = null, content: @Composable () -> Unit) {
+    val actualTime = now ?: rememberAppTime().value
     val motion = rememberMotionPolicy(preferences)
-    val night = preferences.isNight(now)
-    val target = seasonColors(preferences.resolvedSeason(now), night)
+    val night = preferences.isNight(actualTime)
+    val target = seasonColors(preferences.resolvedSeason(actualTime), night)
     val spec = if (motion.reduced) snap<Color>() else tween(240)
     val ground by animateColorAsState(target.ground, spec, label = "season-ground")
     val paper by animateColorAsState(target.paper, spec, label = "season-paper")
@@ -37,13 +38,27 @@ fun LukeTheme(preferences: AppPreferences, now: LocalDateTime = LocalDateTime.no
     val ink by animateColorAsState(target.ink, spec, label = "season-ink")
     val muted by animateColorAsState(target.muted, spec, label = "season-muted")
     val border by animateColorAsState(target.border, spec, label = "season-border")
-    val colors = SeasonColors(ground, paper, soft, accent, ink, muted, border)
-    val scheme = if (night) darkColorScheme() else lightColorScheme()
-    val scale = preferences.scale.coerceIn(.75f, 1.6f)
+    // Interpolating text and background through the same mid-gray made night/day text disappear.
+    val colors = accessibleSeasonColors(SeasonColors(ground, paper, soft, accent, ink, muted, border))
+    val scale = preferences.scale.takeIf { it.isFinite() }?.coerceIn(.75f, 1.6f) ?: .95f
+    val typography = remember(scale) { seasonTypography(scale) }
+    CompositionLocalProvider(LocalSeason provides colors, LocalAppPreferences provides preferences,
+        LocalLukeMotion provides motion, LocalAppTime provides actualTime) {
+        MaterialTheme(colorScheme = seasonColorScheme(colors, night), typography = typography, content = content)
+    }
+}
+
+fun seasonTypography(scale: Float): Typography {
+    val factor = scale.takeIf { it.isFinite() }?.coerceIn(.75f, 1.6f) ?: .95f
     fun style(size: Int, line: Int, weight: FontWeight = FontWeight.Normal) =
-        TextStyle(fontSize = (size * scale).sp, lineHeight = (line * scale).sp, fontWeight = weight)
-    val typography = Typography(
+        TextStyle(fontSize = (size * factor).sp, lineHeight = (line * factor).sp, fontWeight = weight)
+    return Typography(
+        displayLarge = style(32, 42, FontWeight.SemiBold),
+        displayMedium = style(30, 40, FontWeight.SemiBold),
+        displaySmall = style(28, 38, FontWeight.SemiBold),
+        headlineLarge = style(26, 36, FontWeight.SemiBold),
         headlineMedium = style(24, 32, FontWeight.SemiBold),
+        headlineSmall = style(20, 28, FontWeight.SemiBold),
         titleLarge = style(18, 26, FontWeight.SemiBold),
         titleMedium = style(16, 24, FontWeight.SemiBold),
         titleSmall = style(14, 21, FontWeight.Medium),
@@ -51,15 +66,6 @@ fun LukeTheme(preferences: AppPreferences, now: LocalDateTime = LocalDateTime.no
         labelLarge = style(13, 20, FontWeight.Medium),
         labelMedium = style(12, 18, FontWeight.Medium), labelSmall = style(11, 16),
     )
-    CompositionLocalProvider(LocalSeason provides colors, LocalAppPreferences provides preferences, LocalLukeMotion provides motion) {
-        MaterialTheme(colorScheme = scheme.copy(
-            primary = accent, onPrimary = if (night) ground else Color.White,
-            primaryContainer = soft, onPrimaryContainer = ink,
-            secondary = muted, secondaryContainer = soft, onSecondaryContainer = ink,
-            background = ground, onBackground = ink, surface = paper, onSurface = ink,
-            surfaceVariant = soft, onSurfaceVariant = muted, outline = border,
-        ), typography = typography, content = content)
-    }
 }
 
 fun seasonColors(season: String, night: Boolean): SeasonColors {

@@ -10,6 +10,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -57,13 +58,16 @@ fun HomeScreen(graph: AppGraph, padding: PaddingValues, active: Boolean, navigat
     val error by vm.error.collectAsStateWithLifecycle()
     val p = LocalAppPreferences.current
     val colors = LocalSeason.current
+    val now = LocalAppTime.current
     val reduced = LocalLukeMotion.current.reduced
     val pager = rememberPagerState { 4 }
+    // These states outlive both a lazy pager page and the photo-detail branch.
+    val lists = List(4) { rememberLazyListState() }
     val paths = remember { listOf("images/luke-blossom.webp", "images/luke-camera.webp", "images/luke-sunset.webp", "images/luke-nap.webp") }
-    val seasonIndex = listOf("spring", "summer", "autumn", "winter").indexOf(p.resolvedSeason()).coerceAtLeast(0)
+    val seasonIndex = listOf("spring", "summer", "autumn", "winter").indexOf(p.resolvedSeason(now)).coerceAtLeast(0)
     val image = paths[(seasonIndex + p.photoIndex).mod(paths.size)]
     var expandedPath by rememberSaveable { mutableStateOf<String?>(null) }
-    val today = LocalDate.now()
+    val today = now.toLocalDate()
     val days = runCatching { togetherDays(LocalDate.parse(p.since), today) }.getOrDefault(1)
     val zone = ZoneId.systemDefault()
     val week = remember(ui, today, zone) { companionWeek(today, zone, ui.checks, ui.plans, ui.memos, ui.logs) }
@@ -88,7 +92,8 @@ fun HomeScreen(graph: AppGraph, padding: PaddingValues, active: Boolean, navigat
                     ErrorNotice(error, vm::clearError)
                 }) { listPadding ->
                     HorizontalPager(pager, Modifier.fillMaxSize(), key = { it }) { section ->
-                        LazyColumn(Modifier.fillMaxSize().testTag("home-section-$section"), verticalArrangement = Arrangement.spacedBy(14.dp), contentPadding = listPadding) {
+                        LazyColumn(Modifier.fillMaxSize().testTag("home-section-$section"), state = lists[section],
+                            verticalArrangement = Arrangement.spacedBy(14.dp), contentPadding = listPadding) {
                             when (section) {
                                 0 -> {
                                     item {
@@ -98,7 +103,6 @@ fun HomeScreen(graph: AppGraph, padding: PaddingValues, active: Boolean, navigat
                                                     boundsTransform = { _, _ -> if (reduced) snap() else spring(dampingRatio = .9f, stiffness = 300f) })
                                                 .clickable { expandedPath = image }.testTag("open-photo"), ContentScale.Crop)
                                             Box(Modifier.matchParentSize().background(Brush.verticalGradient(listOf(Color.Black.copy(alpha = .12f), Color.Transparent, Color.Black.copy(alpha = .6f)))))
-                                            // Intrinsic content determines height. Enlarged text never collides with the top label.
                                             Column(Modifier.fillMaxWidth().heightIn(min = 520.dp).padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                                                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                                                     Surface(color = colors.paper.copy(alpha = .88f), shape = RoundedCornerShape(24.dp)) {
@@ -109,8 +113,9 @@ fun HomeScreen(graph: AppGraph, padding: PaddingValues, active: Boolean, navigat
                                                 }
                                                 Spacer(Modifier.height(152.dp))
                                                 Text("夏彦 & ${p.name}", color = Color.White, style = MaterialTheme.typography.headlineMedium)
-                                                Text(if (p.isNight()) "今天辛苦了，剩下的话可以慢慢说。" else "醒来见到你，今天就有了一个好开头。", color = Color.White.copy(alpha = .94f), style = MaterialTheme.typography.bodyMedium)
-                                                Text("${days} 天的陪伴", color = Color.White, style = MaterialTheme.typography.titleMedium)
+                                                Text(if (p.isNight(now)) "今天辛苦了，剩下的话可以慢慢说。" else "醒来见到你，今天就有了一个好开头。",
+                                                    Modifier.testTag("home-greeting"), color = Color.White.copy(alpha = .94f), style = MaterialTheme.typography.bodyMedium)
+                                                Text("${days} 天的陪伴", Modifier.testTag("home-day-count"), color = Color.White, style = MaterialTheme.typography.titleMedium)
                                                 Text("Since ${p.since}", color = Color.White.copy(alpha = .85f), style = MaterialTheme.typography.bodySmall)
                                                 Button(onClick = { navigate(1) }) { Text("和夏彦说说话") }
                                             }
