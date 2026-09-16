@@ -1,0 +1,31 @@
+name: Prepare 2.0.9 Android packaging tools
+on:
+  push:
+    branches: ['build/v2.0.9-apk']
+    paths: ['.github/workflows/local-apk209-toolchain.yml']
+permissions:
+  contents: read
+jobs:
+  tools:
+    if: github.repository == 'lijinxuan194723/sishi-yu-ni-xia-yan' && github.ref == 'refs/heads/build/v2.0.9-apk'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+          log-accepted-android-sdk-licenses: false
+      - name: Install required official SDK components
+        run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0' > /tmp/sdk-install.txt
+      - name: Package build tools only, no credentials or user data
+        run: |
+          set -euo pipefail
+          mkdir -p out
+          tar -czf out/android35-tools.tar.gz -C "$ANDROID_HOME" platforms/android-35 build-tools/35.0.0 platform-tools
+          sha256sum out/android35-tools.tar.gz > out/android35-tools.sha256
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android35-packaging-tools-209
+          path: out/
+          retention-days: 3
+          if-no-files-found: error
