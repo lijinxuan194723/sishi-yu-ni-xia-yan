@@ -1,0 +1,11 @@
+{
+  "repository": "NateScarlet/holiday-cn",
+  "checkedAt": "2026-09-16",
+  "note": "JSON whitespace was compacted; every upstream date, isOffDay, name and paper reference is retained. Future years are never inferred.",
+  "upstreamBlobs": {
+    "2023": "08811878cd16552760ce8abb90a1d80af4a03663",
+    "2024": "c980225ab5814997ae9e94087f75d50110772f3c",
+    "2025": "9d9d33cc6e55fa425ebea1c6e93d97ed634f6fc5",
+    "2026": "08ba80f53505dd89f789bda287c7c964b0387f35"
+  }
+}
