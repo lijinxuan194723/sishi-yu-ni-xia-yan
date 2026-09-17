@@ -1,14 +1,15 @@
 <resources>
-    <!-- Shared by the real application and the instrumentation host. Specifying
-         navigationBarColor BEFORE DecorView is created prevents Android 15 from
-         inferring a sticky force-light appearance from the initial window color.
-         Runtime icon contrast remains owned by SeasonSystemBars; no hidden flags
-         or edge-to-edge opt-outs are used. -->
+    <!-- The app and test host share this platform theme. Android 15 compares the
+         resolved navigation color with its default COLOR VALUE (not hasValue).
+         Therefore explicitly writing transparent is still treated as unspecified
+         on a transparent-default device. Keep the original app's opaque launch
+         color here; SeasonSystemBars makes it transparent after creation and owns
+         the seasonal backing and icon contrast. No hidden flags or API opt-outs. -->
     <style name="Theme.Luke.Native" parent="android:style/Theme.Material.Light.NoActionBar">
         <item name="android:fontFamily">sans</item>
         <item name="android:windowBackground">#F1F9F5</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
-        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">#F1F9F5</item>
         <item name="android:windowLightStatusBar">true</item>
         <item name="android:windowLightNavigationBar">true</item>
         <item name="android:windowActionModeOverlay">true</item>
