@@ -2,6 +2,7 @@ package cn.sishiyuni.uitesthost
 
 import android.graphics.Bitmap
 import android.util.Base64
+import android.view.View
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.rememberPagerState
@@ -18,6 +19,8 @@ import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.unit.dp
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModelProvider
 import cn.sishiyuni.core.AppGraph
 import cn.sishiyuni.core.data.*
@@ -168,7 +171,18 @@ class FeatureUiTest {
         rule.onNodeWithText("添加", useUnmergedTree = true).performClick()
         rule.waitUntil(10000) { runBlocking { app.dao.allSubjects().any { it.name == subject && !it.deleted } } }
         rule.onNodeWithContentDescription("关闭学习科目").performClick()
-        rule.onNodeWithTag("start-study").assertIsDisplayed().performClick()
+        // Android owns the dialog-window and IME transitions. Compose idleness alone
+        // is not enough after dismissal; wait on their real state, not a fixed sleep.
+        val content = rule.activity.findViewById<View>(android.R.id.content)
+        rule.waitUntil(5000) {
+            rule.onAllNodesWithContentDescription("关闭学习科目").fetchSemanticsNodes().isEmpty() &&
+                rule.activity.hasWindowFocus() &&
+                ViewCompat.getRootWindowInsets(content)?.isVisible(WindowInsetsCompat.Type.ime()) == false &&
+                rule.onNodeWithTag("start-study").isDisplayed()
+        }
+        val start = rule.onNodeWithTag("start-study").assertIsDisplayed().assertIsEnabled()
+        assertTrue("Timer action must retain its complete touch height", start.fetchSemanticsNode().boundsInRoot.height >= 47f * rule.activity.resources.displayMetrics.density)
+        start.performClick()
         rule.waitUntil(10000) { runBlocking { app.dao.timer("study")?.running == true } }
         rule.onNodeWithText("暂停").performClick()
         rule.waitUntil(10000) { runBlocking { app.dao.timer("study")?.running == false } }
