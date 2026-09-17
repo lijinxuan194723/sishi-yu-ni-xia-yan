@@ -1,6 +1,8 @@
 package cn.sishiyuni.uitesthost
 
 import android.graphics.Bitmap
+import android.os.ParcelFileDescriptor
+import android.os.SystemClock
 import android.view.View
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
@@ -43,17 +45,36 @@ class NavigationGlyphsUiTest {
         try {assertTrue("No committed Android frame",committed.await(5,TimeUnit.SECONDS))}
         finally {rule.runOnUiThread {decor.viewTreeObserver.unregisterFrameCommitCallback(callback)}}
         val automation=InstrumentationRegistry.getInstrumentation().uiAutomation
-        // SystemUI owns the glyphs; wait for its accessibility/window event stream,
-        // not just the client's Compose clock. Never poll for the expected color.
         automation.waitForIdle(300,5000)
         val image=requireNotNull(automation.takeScreenshot())
+        val dir=InstrumentationRegistry.getArguments().getString("additionalTestOutputDir")?.let(::File)
+            ?: File(rule.activity.getExternalFilesDir(null),"system-bars-checks")
+        dir.mkdirs()
         try {
-            val dir=InstrumentationRegistry.getArguments().getString("additionalTestOutputDir")?.let(::File)
-                ?: File(rule.activity.getExternalFilesDir(null),"system-bars-checks")
-            dir.mkdirs()
             File(dir,"navigation-glyphs-$name.png").outputStream().use {image.compress(Bitmap.CompressFormat.PNG,100,it)}
             val height=requireNotNull(ViewCompat.getRootWindowInsets(content)).getInsets(navigation).bottom
-            assertNightNavigationGlyphs(image,height)
+            try { assertNightNavigationGlyphs(image,height) }
+            catch (failure: AssertionError) {
+                // Diagnostic only: keep the ORIGINAL assertion and screenshot as the verdict.
+                // Dumps belong to the disposable CI emulator, never a user's device.
+                runCatching {
+                    @Suppress("DEPRECATION")
+                    val state=rule.runOnIdle {
+                        "appearance=${decor.windowInsetsController?.systemBarsAppearance}\nlegacy=${decor.systemUiVisibility}\nfocus=${decor.hasWindowFocus()}\nflags=${rule.activity.window.attributes.flags}\n"
+                    }
+                    File(dir,"navigation-client-$name.txt").writeText(state)
+                    for ((label,command) in listOf("window" to "dumpsys window", "systemui" to "dumpsys activity service com.android.systemui/.SystemUIService")) {
+                        ParcelFileDescriptor.AutoCloseInputStream(automation.executeShellCommand(command)).use { input ->
+                            File(dir,"navigation-$label-$name.txt").outputStream().use { input.copyTo(it) }
+                        }
+                    }
+                    SystemClock.sleep(1000)
+                    val later=requireNotNull(automation.takeScreenshot())
+                    try { File(dir,"navigation-later-$name.png").outputStream().use { later.compress(Bitmap.CompressFormat.PNG,100,it) } }
+                    finally { later.recycle() }
+                }.onFailure { failure.addSuppressed(it) }
+                throw failure
+            }
         } finally {image.recycle()}
     }
     @Test fun initialNightAndDialogReturnKeepActualSystemButtonsReadable() {
