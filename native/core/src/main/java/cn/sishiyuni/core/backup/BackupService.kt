@@ -17,8 +17,6 @@ data class ImportPlan(
  val records:List<RecordEntity>,val warnings:List<String>,val skills:List<SkillEntity> = emptyList(),
  val timers:List<TimerEntity> = emptyList(),val originals:List<ImportEntity> = emptyList()
 ){
- // Validate at inspection/construction time, before any Room transaction. Otherwise
- // a valid message import with invalid settings could leave initialization blocked.
  init { PreferenceRules.normalize(preferences) }
  val summary get()="${messages.size} 条消息 · ${plans.size} 项计划 · ${memos.size} 篇手记 · ${facts.size} 条记忆"
 }
@@ -43,7 +41,7 @@ object BackupDecoder {
   val logs=rows("focusLogs").map{l->require(l.dec("minutes")>0&&l.dec("minutes")<=1500);FocusLogEntity(l.str("id"),l.num("at"),l.dec("minutes"),bounded(l.str("title"),100,"记录"),bounded(l.str("group"),30,"科目"),l.str("kind"),l.str("raw","{}"))};unique(logs.map{it.id})
   val skills=rows("skills",100).map{s->val content=bounded(s.str("content"),64000,"技能");require(content.sha256()==s.str("digest"));SkillEntity(s.str("id"),bounded(s.str("name"),80,"技能名称"),bounded(s.str("description"),500,"简介"),content,s.str("source"),s.str("digest"),false,s.num("installedAt"),bounded(s.str("files","[]"),2_000_000,"参考资料"))};unique(skills.map{it.id})
   val records=rows("records").map{e->val kind=e.str("kind");require(kind!="migration"&&!Regex("secret|password|credential|authorization",RegexOption.IGNORE_CASE).containsMatchIn(kind));RecordEntity(kind,e.str("id"),e.str("payload"),e.num("updatedAt"))};unique(records.map{it.kind+"/"+it.id})
-  val timers=rows("timers",20).map{t->require(t.num("durationMs") in 0..86_400_000&&t.num("remainingMs") in 0..86_400_000);TimerEntity(t.str("id"),t.str("kind"),bounded(t.str("label"),100,"提醒标签"),t.num("durationMs"),t.num("remainingMs"),0,0,0,false,t.flag("completed"),t.num("startedWall"),newId(),t.str("raw","{}"))};unique(timers.map{it.id})
+  val timers=rows("timers",20).map(TimerBackup::decode);unique(timers.map{it.id})
   val originals=(r["originals"] as? JsonArray).orEmpty().map{val o=it.jsonObject;require(o.str("original").sha256()==o.str("digest"));ImportEntity(o.str("digest"),o.str("original"),o.num("importedAt"),o.str("report"))};unique(originals.map{it.digest})
   val pref=r.child("preferences");require(validDate(pref.str("since","2023-07-08"))&&pref.str("name","华生").length in 1..12);require(pref.dec("latitude") in -90.0..90.0&&pref.dec("longitude") in -180.0..180.0)
   return ImportPlan(text.sha256(),text,pref,sessions,messages,plans,memos,folders,facts,chapters,subjects,logs,records,listOf("导入的技能默认停用，请重新确认。","进行中的计时以暂停状态恢复，不自动响铃。","模型密钥不在备份内，请重新填写。"),skills,timers,originals)
@@ -76,10 +74,8 @@ object BackupDecoder {
   val facts=archive.arr("facts").map{val f=it.jsonObject;val i=f.num("sourceIndex",-1);FactEntity(bounded(f.str("key"),80,"记忆键"),bounded(f.str("value"),600,"记忆"),bounded(f.str("quote"),240,"引用"),messages.getOrNull(i.toInt())?.id?:"",parseTime(f.str("updatedAt")),f.flag("locked"),f.str("key") in blocked||i in muted)}.toMutableList()
   blocked.filter{b->facts.none{it.key==b}}.forEach{facts+=FactEntity(it,"",blocked=true)}
   main.child("memory").str("pinned").takeIf{it.isNotBlank()}?.let{facts+=FactEntity("用户固定记忆",bounded(it,5000,"固定记忆"),locked=true)}
-  val subjectRaw=storage.entries.firstOrNull{it.key.contains("subject")&&(it.key.contains("study")||it.key.contains("focus"))}?.value
-  val subjectJson=subjectRaw?.let{JsonCodec.parseToJsonElement(it)}
-  val subjectArray=when(subjectJson){is JsonArray->subjectJson;is JsonObject->subjectJson.arr("subjects");else->JsonArray(emptyList())}
-  val subjects=subjectArray.map{if(it is JsonPrimitive)SubjectEntity(it.content.sha256(),bounded(it.content,30,"科目"))else it.jsonObject.let{s->SubjectEntity(s.str("id",s.str("name").sha256()),bounded(s.str("name"),30,"科目"),s.flag("deleted"))}}
+  val subjectRaw=storage["luke-study-subjects-v206"]?:storage.entries.firstOrNull{it.key.contains("subject")&&(it.key.contains("study")||it.key.contains("focus"))}?.value
+  val subjects=LegacySubjects.decode(subjectRaw?.let{JsonCodec.parseToJsonElement(it)})
   val logs=main.arr("focusLog").mapIndexed{i,e->val l=e.jsonObject;require(l.dec("minutes")>0&&l.dec("minutes")<=1500);FocusLogEntity("$sid-focus-$i",parseTime(l.str("at")),l.dec("minutes"),l.str("title"),l.str("group"),l.str("kind"),l.toString())}
   val display=storage["luke-display-v206"]?.let(::obj)?:storage["luke-display-v205"]?.let(::obj)?:JsonObject(emptyMap())
   val appearance=storage["luke-appearance-v1"]?.let(::obj)?:JsonObject(emptyMap())
@@ -100,11 +96,10 @@ object BackupDecoder {
 class BackupService(private val context:Context,private val db:LukeDatabase,private val prefs:PreferencesStore){
  suspend fun inspect(uri:Uri):ImportPlan=withContext(Dispatchers.IO){val bytes=context.contentResolver.openInputStream(uri).use{requireNotNull(it){"无法打开备份"}.readLimited(BackupDecoder.MAX_BYTES)};BackupDecoder.decode(bytes.toString(Charsets.UTF_8))}
  suspend fun import(plan:ImportPlan)=withContext(Dispatchers.IO){
-  // Validate again at the persistence boundary; retain the original backup unchanged.
   val checkedPreferences=PreferenceRules.normalize(plan.preferences)
   db.withTransaction{
    val d=db.dao();if(d.imported(plan.digest)!=null)return@withTransaction
-   check(d.messageCount()==0&&d.memoCount()==0&&d.allPlans().isEmpty()&&d.allFocusLogs().isEmpty()&&d.allFacts().isEmpty()&&d.allSkills().isEmpty()){"本机已有原生数据，本次未覆盖。请先导出备份。"}
+   BackupImportGuard.requireEmpty(d)
    plan.sessions.forEach{d.putSession(it)};plan.messages.forEach{d.putMessage(it)};plan.plans.forEach{d.putPlan(it)};plan.folders.forEach{d.putFolder(it)};plan.memos.forEach{d.putMemo(it)}
    plan.facts.forEach{d.putFact(it)};plan.chapters.forEach{d.putChapter(it)};plan.subjects.forEach{d.putSubject(it)};plan.focusLogs.forEach{d.putFocusLog(it)};plan.skills.forEach{d.putSkill(it)};plan.timers.forEach{d.putTimer(it)};plan.records.forEach{d.putRecord(it)}
    plan.originals.forEach{if(d.imported(it.digest)==null)d.putImport(it)};if(d.imported(plan.digest)==null)d.putImport(ImportEntity(plan.digest,plan.source,report=plan.summary))
@@ -130,7 +125,7 @@ class BackupService(private val context:Context,private val db:LukeDatabase,priv
    table("skills",d.allSkills().map{buildJsonObject{put("id",it.id);put("name",it.name);put("description",it.description);put("content",it.content);put("source",it.source);put("digest",it.digest);put("enabled",false);put("installedAt",it.installedAt);put("files",it.files)}})
    table("records",d.allRecords().filter{it.kind!="migration"}.map{buildJsonObject{put("kind",it.kind);put("id",it.id);put("payload",it.payload);put("updatedAt",it.updatedAt)}})
    val time=cn.sishiyuni.core.timer.AndroidTime(context)
-   table("timers",d.allTimers().map{t->val remaining=if(t.kind=="study")cn.sishiyuni.core.timer.TimerMath.studyElapsed(t,time)else cn.sishiyuni.core.timer.TimerMath.remaining(t,time);buildJsonObject{put("id",t.id);put("kind",t.kind);put("label",t.label);put("durationMs",t.durationMs);put("remainingMs",remaining);put("completed",t.completed);put("running",t.running);put("startedWall",t.startedWall);put("generation",t.generation);put("raw",t.raw)}})
+   table("timers",d.allTimers().map{TimerBackup.encode(it,time)})
    table("originals",d.allImports().filter{runCatching{obj(it.original).str("format")!="four-seasons-luke-native-backup"}.getOrDefault(false)}.map{buildJsonObject{put("digest",it.digest);put("original",it.original);put("importedAt",it.importedAt);put("report",it.report)}})
   }}.toString();require(text.toByteArray().size<=BackupDecoder.MAX_BYTES){"备份超过 60 MB"};write(uri,text)
  }
