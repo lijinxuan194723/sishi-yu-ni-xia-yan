@@ -4,6 +4,8 @@ import android.graphics.BitmapFactory
 import android.util.Base64
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
@@ -11,10 +13,11 @@ import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.PersonOutline
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -53,7 +56,6 @@ fun LukeCard(modifier: Modifier = Modifier, padding: Dp = 16.dp, content: @Compo
 fun AssetImage(path: String, description: String?, modifier: Modifier = Modifier, contentScale: ContentScale = ContentScale.Fit) {
     val context = LocalContext.current
     if (path.startsWith("images/") && !path.contains("..")) {
-        // Same cache key at list/detail sizes: the source bitmap remains visible while detail decoding finishes.
         var previous by remember { mutableStateOf<MemoryCache.Key?>(null) }
         val request = remember(path, context) {
             val key = "luke-asset:$path"
@@ -98,7 +100,7 @@ fun AssetImage(path: String, description: String?, modifier: Modifier = Modifier
 fun ErrorNotice(message: String?, onDismiss: () -> Unit, modifier: Modifier = Modifier) {
     if (message == null) return
     Surface(modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp), color = MaterialTheme.colorScheme.errorContainer) {
-        Row(Modifier.padding(start = 14.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+        Row(Modifier.padding(start = 14.dp), verticalAlignment = Alignment.CenterVertically) {
             Text(message, Modifier.weight(1f).padding(vertical = 10.dp), color = MaterialTheme.colorScheme.onErrorContainer,
                 style = MaterialTheme.typography.bodySmall)
             IconButton(onClick = onDismiss) { Icon(Icons.Outlined.Close, "关闭错误提示") }
@@ -106,20 +108,28 @@ fun ErrorNotice(message: String?, onDismiss: () -> Unit, modifier: Modifier = Mo
     }
 }
 
+/**
+ * The title is outside the body scroller. Available window constraints, not a cached
+ * display height, bound the body after IME resize. Bounded lazy lists remain usable
+ * inside the body; callers must give nested lazy lists a finite height.
+ */
 @Composable
 fun NativeDialog(title: String, onDismiss: () -> Unit, content: @Composable ColumnScope.() -> Unit) {
-    val height = (LocalConfiguration.current.screenHeightDp - 36).coerceAtLeast(180).dp
     Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         SeasonSystemBars()
-        Surface(Modifier.widthIn(max = 640.dp).fillMaxWidth().padding(horizontal = 14.dp)
-            .imePadding().heightIn(max = minOf(680.dp, height)), color = LocalSeason.current.paper,
-            shape = RoundedCornerShape(28.dp)) {
-            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-                    Text(title, Modifier.weight(1f), style = MaterialTheme.typography.titleLarge)
-                    IconButton(onClick = onDismiss) { Icon(Icons.Outlined.Close, "关闭$title") }
+        BoxWithConstraints(Modifier.fillMaxWidth().imePadding().padding(vertical = 12.dp), contentAlignment = Alignment.Center) {
+            val availableHeight = minOf(680.dp, maxHeight).coerceAtLeast(0.dp)
+            Surface(Modifier.widthIn(max = 640.dp).fillMaxWidth().padding(horizontal = 14.dp)
+                .heightIn(max = availableHeight).testTag("dialog-surface"), color = LocalSeason.current.paper,
+                shape = RoundedCornerShape(28.dp)) {
+                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Row(Modifier.fillMaxWidth().testTag("dialog-title"), verticalAlignment = Alignment.CenterVertically) {
+                        Text(title, Modifier.weight(1f), style = MaterialTheme.typography.titleLarge)
+                        IconButton(onClick = onDismiss) { Icon(Icons.Outlined.Close, "关闭$title") }
+                    }
+                    Column(Modifier.weight(1f, fill = false).fillMaxWidth().verticalScroll(rememberScrollState()).testTag("dialog-body"),
+                        verticalArrangement = Arrangement.spacedBy(10.dp), content = content)
                 }
-                content()
             }
         }
     }
@@ -127,7 +137,7 @@ fun NativeDialog(title: String, onDismiss: () -> Unit, content: @Composable Colu
 
 @Composable
 fun NativeTitle(title: String, onBack: (() -> Unit)? = null, actions: @Composable RowScope.() -> Unit = {}) {
-    Row(Modifier.fillMaxWidth().heightIn(min = 58.dp).padding(horizontal = 12.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+    Row(Modifier.fillMaxWidth().heightIn(min = 58.dp).padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
         if (onBack != null) IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Outlined.ArrowBack, "返回") }
         Text(title, Modifier.weight(1f).padding(start = if (onBack == null) 6.dp else 0.dp), style = MaterialTheme.typography.titleLarge)
         actions()
