@@ -1,0 +1,80 @@
+name: Inspect archived navigation pixels 210
+on:
+  workflow_dispatch:
+  push:
+    branches: ['feature/v2.0.10-native-migration']
+    paths: ['.github/workflows/native210-nav-artifact-check.yml']
+permissions:
+  contents: read
+  actions: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: native210-ui-api35
+          run-id: 35185999724
+          github-token: ${{ github.token }}
+          path: prior-evidence
+      - name: Decode actual screenshots and report navigation geometry
+        run: |
+          python - <<'PY'
+          import collections, json, pathlib, struct, zlib
+          def read_png(path):
+              data=path.read_bytes(); assert data[:8]==b'\x89PNG\r\n\x1a\n'
+              pos=8; payload=bytearray()
+              while pos<len(data):
+                  length=struct.unpack_from('>I',data,pos)[0]
+                  kind=data[pos+4:pos+8]; content=data[pos+8:pos+8+length]
+                  if kind==b'IHDR':
+                      w,h,bits,color,compression,filtering,interlace=struct.unpack('>IIBBBBB',content)
+                      assert bits==8 and color in (2,6) and interlace==0
+                  elif kind==b'IDAT': payload.extend(content)
+                  pos+=length+12
+                  if kind==b'IEND': break
+              bpp=4 if color==6 else 3; stride=w*bpp
+              raw=zlib.decompress(payload); assert len(raw)==h*(stride+1)
+              rows=[]; previous=bytearray(stride); pos=0
+              for _ in range(h):
+                  kind=raw[pos];pos+=1;row=bytearray(raw[pos:pos+stride]);pos+=stride
+                  for x in range(stride):
+                      a=row[x-bpp] if x>=bpp else 0; b=previous[x]; c=previous[x-bpp] if x>=bpp else 0
+                      if kind==1: addition=a
+                      elif kind==2: addition=b
+                      elif kind==3: addition=(a+b)//2
+                      elif kind==4:
+                          p=a+b-c;pa,pb,pc=abs(p-a),abs(p-b),abs(p-c)
+                          addition=a if pa<=pb and pa<=pc else b if pb<=pc else c
+                      elif kind==0: addition=0
+                      else: raise ValueError('Invalid PNG filter')
+                      row[x]=(row[x]+addition)&255
+                  rows.append([tuple(row[x:x+3]) for x in range(0,stride,bpp)]);previous=row
+              return w,h,rows
+          results=[]
+          for path in sorted(pathlib.Path('prior-evidence').rglob('*.png')):
+              if path.name not in ('plain-window.png','navigation-glyphs-initial-night.png','navigation-later-initial-night.png','navigation-night-display.png'): continue
+              w,h,rows=read_png(path);top=max(0,h-48)
+              colors=collections.Counter(p for row in rows[top:] for p in row)
+              points={(x,y) for y in range(top,h) for x in range(w) if min(rows[y][x])>150}
+              remaining=set(points);groups=[]
+              while remaining:
+                  queue=[remaining.pop()];group=[]
+                  while queue:
+                      x,y=queue.pop();group.append((x,y))
+                      for n in ((x-1,y),(x+1,y),(x,y-1),(x,y+1)):
+                          if n in remaining:remaining.remove(n);queue.append(n)
+                  if len(group)>=3:groups.append({'pixels':len(group),'bounds':[min(x for x,y in group),min(y for x,y in group),max(x for x,y in group)+1,max(y for x,y in group)+1]})
+              result={'file':path.name,'size':[w,h],'nav_common_colors':[(str(k),v) for k,v in colors.most_common(8)],'bright_components':sorted(groups,key=lambda g:g['pixels'],reverse=True)[:12],'last48_bright_by_third':[sum(1 for x,y in points if section*w//3<=x<(section+1)*w//3) for section in range(3)]}
+              print(json.dumps(result));results.append(result)
+              for y in range(top,h,3):
+                  print(f'{y:04d} '+''.join('#' if any((x,yy) in points for yy in range(y,min(h,y+3)) for x in range(xx,min(w,xx+4))) else '.' for xx in range(0,w,4)))
+          assert results,'Required screenshot evidence missing'
+          pathlib.Path('navigation-pixels.json').write_text(json.dumps(results,indent=2))
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: native210-prior-navigation-pixel-diagnostic
+          path: navigation-pixels.json
+          retention-days: 7
