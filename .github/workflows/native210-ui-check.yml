@@ -97,14 +97,22 @@ jobs:
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
-      - uses: reactivecircus/android-emulator-runner@v2
+      - uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d
         with:
           api-level: ${{ matrix.api }}
           target: default
           arch: x86_64
+          profile: pixel_2
           disable-animations: false
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
-          script: cd native && gradle --no-daemon --console=plain --max-workers=2 :uitesthost:connectedDebugAndroidTest
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -no-metrics
+          script: |
+            adb shell wm size 320x640
+            adb shell wm density 160
+            adb shell input keyevent KEYCODE_WAKEUP
+            adb shell wm size
+            adb shell wm density
+            grep -E 'hw.mainKeys|hw.dPad|hw.lcd' "$ANDROID_AVD_HOME/test.avd/config.ini" || true
+            cd native && gradle --no-daemon --console=plain --max-workers=2 :uitesthost:connectedDebugAndroidTest
       - name: Summarize actual on-device UI test results
         if: always()
         env:
@@ -117,7 +125,7 @@ jobs:
           for p in reports:
               root = ET.parse(p).getroot()
               for k in total: total[k] += int(root.get(k, '0'))
-          total.update(scope='Selected Compose screens on Android emulator; not full parity or physical-device 120Hz', api=int(os.environ['TEST_API']), commit=os.environ['GITHUB_SHA'])
+          total.update(scope='Selected Compose screens on software-navigation emulator; not full parity or physical-device 120Hz', api=int(os.environ['TEST_API']), commit=os.environ['GITHUB_SHA'], viewport='320x640 at 160dpi', device='pixel_2')
           out = pathlib.Path('native-verification'); out.mkdir(exist_ok=True)
           (out/'ui-summary.json').write_text(json.dumps(total, indent=2))
           print(json.dumps(total))
