@@ -47,8 +47,9 @@ fun TimerScreen(graph: AppGraph, padding: PaddingValues, active: Boolean) {
     val minutes by vm.minutes.collectAsStateWithLifecycle()
     val busy by vm.busy.collectAsStateWithLifecycle()
     val error by vm.error.collectAsStateWithLifecycle()
+    val reminderWarning by vm.reminderWarning.collectAsStateWithLifecycle()
     var manage by rememberSaveable { mutableStateOf(false) }
-    val pager = rememberPagerState { 4 }
+    val pager = rememberPagerState { 5 }
     val lifecycle = LocalLifecycleOwner.current.lifecycle
     var tick by remember { mutableLongStateOf(0L) }
     LaunchedEffect(active, lifecycle) {
@@ -57,8 +58,9 @@ fun TimerScreen(graph: AppGraph, padding: PaddingValues, active: Boolean) {
         }
     }
     Column(Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        NativeTabs(listOf("专注", "倒计时", "统计", "提醒"), pager, tag = "timer-tabs")
+        NativeTabs(listOf("学习", "番茄钟", "倒计时", "统计", "提醒"), pager, tag = "timer-tabs")
         ErrorNotice(error, vm::clearError)
+        ErrorNotice(reminderWarning, vm::clearReminderWarning)
         HorizontalPager(pager, Modifier.weight(1f), key = { it }) { page ->
             when (page) {
                 0 -> {
@@ -97,14 +99,15 @@ fun TimerScreen(graph: AppGraph, padding: PaddingValues, active: Boolean) {
                         }
                     }
                 }
-                1 -> {
+                1 -> PomodoroPage(ui, busy, tick, active && pager.currentPage == 1, vm)
+                2 -> {
                     val timer = ui.timers.firstOrNull { it.id == "countdown" }?.takeIf { it.generation.isNotBlank() && !it.completed }
                     val remaining = remember(timer, tick) { timer?.let { TimerMath.remaining(it, vm.time) } ?: minutes * 60000L }
                     Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text("给自己留一段时间", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 8.dp))
                         BoxWithConstraints(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
                             val diameter = minOf(maxWidth - 28.dp, maxHeight - 8.dp).coerceAtLeast(0.dp)
-                            if (diameter >= 130.dp) MechanicalDial(remaining, timer?.running == true, active && pager.currentPage == 1,
+                            if (diameter >= 130.dp) MechanicalDial(remaining, timer?.running == true, active && pager.currentPage == 2,
                                 Modifier.size(diameter), totalMillis = timer?.durationMs ?: minutes * 60000L,
                                 liveMillis = { timer?.let { TimerMath.remaining(it, vm.time) } ?: minutes * 60000L })
                             else Text(TimerMath.duration(remaining), style = MaterialTheme.typography.headlineMedium, fontFamily = FontFamily.Monospace)
@@ -119,7 +122,7 @@ fun TimerScreen(graph: AppGraph, padding: PaddingValues, active: Boolean) {
                         }
                     }
                 }
-                2 -> LazyColumn(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(10.dp), contentPadding = PaddingValues(bottom = 16.dp)) {
+                3 -> LazyColumn(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(10.dp), contentPadding = PaddingValues(bottom = 16.dp)) {
                     item { LukeCard(Modifier.fillMaxWidth()) { Text("专注时光", style = MaterialTheme.typography.titleMedium); Text("${ui.logs.sumOf { it.minutes }.toInt()} 分钟 · ${ui.logs.size} 条记录", style = MaterialTheme.typography.headlineMedium) } }
                     if (ui.logs.isEmpty()) item { Text("还没有学习记录。", style = MaterialTheme.typography.bodyMedium) }
                     items(ui.logs, key = { it.id }) { log -> LukeCard(Modifier.fillMaxWidth()) {
@@ -127,7 +130,7 @@ fun TimerScreen(graph: AppGraph, padding: PaddingValues, active: Boolean) {
                         Text("${"%.1f".format(log.minutes)} 分钟 · ${Instant.ofEpochMilli(log.at).atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("M月d日 HH:mm"))}", style = MaterialTheme.typography.bodySmall)
                     } }
                 }
-                else -> ReminderPermissions(graph, tick)
+                else -> ReminderPermissions(graph, tick, busy, vm::retryReminders)
             }
         }
     }
@@ -157,7 +160,7 @@ private fun SubjectManager(subjects: List<SubjectEntity>, busy: Boolean, vm: Tim
 }
 
 @Composable
-private fun ReminderPermissions(graph: AppGraph, tick: Long) {
+private fun ReminderPermissions(graph: AppGraph, tick: Long, busy: Boolean, retry: () -> Unit) {
     val context = LocalContext.current
     val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
     val now = remember(tick) { java.time.LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm")) }
@@ -165,7 +168,9 @@ private fun ReminderPermissions(graph: AppGraph, tick: Long) {
         item { LukeCard(Modifier.fillMaxWidth()) { Text(now, style = MaterialTheme.typography.headlineMedium, fontFamily = FontFamily.Monospace); Text("时间到了，夏彦会提醒你。", style = MaterialTheme.typography.bodyMedium) } }
         item { LukeCard(Modifier.fillMaxWidth()) {
             Text("到时提醒", style = MaterialTheme.typography.titleMedium)
-            Text("倒计时使用系统闹钟；通知和电池策略会影响锁屏后的提醒。", style = MaterialTheme.typography.bodySmall)
+            Text("倒计时与番茄钟使用系统闹钟。权限或电池策略可能延迟提醒；没有准时提醒权限时仍保留计时。", style = MaterialTheme.typography.bodySmall)
+            Text(if (graph.timer.exactAllowed()) "准时提醒权限已允许" else "当前使用非精确提醒，可能延迟", style = MaterialTheme.typography.bodySmall)
+            OutlinedButton(onClick = retry, enabled = !busy, modifier = Modifier.testTag("retry-timer-reminders")) { Text("重新设置进行中的提醒") }
             if (Build.VERSION.SDK_INT >= 33) OutlinedButton(onClick = { permission.launch(Manifest.permission.POST_NOTIFICATIONS) }) { Text("允许计时通知") }
             if (Build.VERSION.SDK_INT >= 31 && !graph.timer.exactAllowed()) OutlinedButton(onClick = {
                 context.startActivity(Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, Uri.parse("package:${context.packageName}")))
