@@ -50,18 +50,25 @@ class TimerRepository(
         schedule(timer)
     }
 
+    suspend fun savePomodoroPreset(preset: PomodoroPreset) = mutex.withLock {
+        preset.validate()
+        check(!Pomodoro.isActive(db.dao().timer(Pomodoro.ID))) { "请先结束这一组，再修改番茄钟设置" }
+        db.dao().putRecord(RecordEntity("timer-config", Pomodoro.ID, preset.encode(), time.wall()))
+    }
     suspend fun startPomodoro(config: PomodoroConfig, label: String, group: String = "") = mutex.withLock {
+        val preset = PomodoroPreset(config, label.trim(), group.trim()).validate()
         val old = db.dao().timer(Pomodoro.ID)
         if (Pomodoro.isActive(old)) {
-            check(old!!.running && Pomodoro.state(old).config == config && old.label == label.trim()) {
+            val state = Pomodoro.state(old!!)
+            check(old.running && state.config == preset.config && old.label == preset.title && state.group == preset.group) {
                 "还有未结束的番茄钟，请继续或先结束这一组"
             }
-            return@withLock // Do not restart on a duplicate start callback.
+            return@withLock
         }
-        val timer = Pomodoro.start(Pomodoro.ready(config, label, group, newId()), time)
+        val timer = Pomodoro.start(Pomodoro.ready(preset.config, preset.title, preset.group, newId()), time)
         db.withTransaction {
             db.dao().putTimer(timer)
-            db.dao().putRecord(RecordEntity("timer-config", Pomodoro.ID, timer.raw, time.wall()))
+            db.dao().putRecord(RecordEntity("timer-config", Pomodoro.ID, preset.encode(), time.wall()))
         }
         if (old != null) alarms.cancel(old)
         alarms.dismiss(timer.id)
@@ -72,7 +79,6 @@ class TimerRepository(
     suspend fun pause(id: String = "countdown") = mutex.withLock {
         val timer = db.dao().timer(id) ?: return@withLock
         if (!timer.running) return@withLock
-        // A pause landing on the deadline must finish once, not leave a zero-length paused phase.
         if (timer.kind != "study" && TimerMath.remaining(timer, time) == 0L) {
             finishLocked(timer.id, timer.generation)
             return@withLock
@@ -105,6 +111,9 @@ class TimerRepository(
     }
     suspend fun cancelPomodoro(confirmed: Boolean) = mutex.withLock {
         check(confirmed) { "请先确认结束这一组番茄钟" }
+        val old = db.dao().timer(Pomodoro.ID) ?: return@withLock
+        // Cancellation at or after the deadline must not lose an already completed work period.
+        if (old.running && TimerMath.remaining(old, time) == 0L) finishLocked(old.id, old.generation)
         db.dao().timer(Pomodoro.ID)?.let { resetLocked(it, false) }
     }
     private suspend fun resetLocked(timer: TimerEntity, discardStudyConfirmed: Boolean) {
@@ -132,7 +141,6 @@ class TimerRepository(
         }
     }
 
-    /** Mutex plus database transaction protects phase/log pairs against alarm and foreground races. */
     private suspend fun finishLocked(id: String, generation: String) {
         val fired = db.withTransaction {
             val timer = db.dao().timer(id) ?: return@withTransaction null
@@ -147,7 +155,6 @@ class TimerRepository(
         }
         if (fired != null) {
             alarms.cancel(fired)
-            // Keep this inside the command mutex so a concurrent reset cannot be followed by a stale notification.
             try { alarms.notifyFinished(fired) }
             catch (_: RuntimeException) { reminderWarning.value = "计时已结束，系统未能显示提醒。" }
         }
@@ -158,10 +165,16 @@ class TimerRepository(
         reminderWarning.value = null
         db.dao().allTimers().filter { it.running && !it.completed && it.kind != "study" }.forEach { timer ->
             val remaining = TimerMath.remaining(timer, time)
-            val updated = if (timer.bootCount != time.boot()) timer.copy(bootCount = time.boot(),
-                elapsedDeadline = time.elapsed() + remaining, wallDeadline = time.wall() + remaining) else timer
-            db.dao().putTimer(updated)
-            if (remaining == 0L) finishLocked(updated.id, updated.generation) else schedule(updated)
+            if (remaining == 0L) {
+                // Finish against the original boot/deadline before rebasing. Otherwise a
+                // delayed reboot would move yesterday's finished study record into today.
+                finishLocked(timer.id, timer.generation)
+            } else {
+                val updated = if (timer.bootCount != time.boot()) timer.copy(bootCount = time.boot(),
+                    elapsedDeadline = time.elapsed() + remaining, wallDeadline = time.wall() + remaining) else timer
+                db.dao().putTimer(updated)
+                schedule(updated)
+            }
         }
     }
     suspend fun checkForeground() {
