@@ -19,7 +19,7 @@ jobs:
         run: |
           npm ci --no-audit --no-fund
           npm install --save-exact --no-audit --no-fund motion@12.23.24 fflate@0.8.2
-          node -e 'for (const n of ["motion","fflate","react","typescript"]) console.log(n,require(n+"/package.json").version)' > webview-dependencies.txt
+          node -e 'const fs=require("node:fs"); for (const n of ["motion","fflate","react","typescript"]) console.log(n,JSON.parse(fs.readFileSync("node_modules/"+n+"/package.json","utf8")).version)' > webview-dependencies.txt
       - name: Archive tooling and resulting lock
         run: |
           mkdir -p tooling
