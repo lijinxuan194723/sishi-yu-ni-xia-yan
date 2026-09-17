@@ -1,0 +1,34 @@
+name: Prepare WebView 2.0.10 dependencies
+on:
+  workflow_dispatch:
+  push:
+    branches: ['feature/v2.0.10-webview-polish']
+    paths: ['.github/workflows/prepare-webview210-deps.yml']
+permissions:
+  contents: read
+jobs:
+  dependencies:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Restore verified dependency lock and add pinned UI helpers
+        run: |
+          npm ci --no-audit --no-fund
+          npm install --save-exact --no-audit --no-fund motion@12.23.24 fflate@0.8.2
+          node -e 'for (const n of ["motion","fflate","react","typescript"]) console.log(n,require(n+"/package.json").version)' > webview-dependencies.txt
+      - name: Archive tooling and resulting lock
+        run: |
+          mkdir -p tooling
+          cp package.json package-lock.json webview-dependencies.txt tooling/
+          tar -czf tooling/node_modules.tar.gz node_modules
+          (cd tooling && sha256sum node_modules.tar.gz package.json package-lock.json > SHA256SUMS)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: webview210-pinned-tooling
+          path: tooling/
+          retention-days: 7
+          if-no-files-found: error
