@@ -20,7 +20,8 @@ class JournalRepository(private val db: LukeDatabase, private val scope: Corouti
         dao.putMemo(note); return note.id
     }
     suspend fun open(id: String): MemoEditorSession = gate.withLock {
-        editors[id]?.let { return@withLock it }
+        editors[id]?.takeUnless { it.state.value.closed }?.let { return@withLock it }
+        editors.remove(id)
         val memo = dao.memo(id) ?: error("手记不存在")
         require(memo.deletedAt == null) { "请先从回收站恢复这篇手记" }
         val raw = dao.record("journal-draft", id)
@@ -32,7 +33,6 @@ class JournalRepository(private val db: LukeDatabase, private val scope: Corouti
         MemoEditorSession(memo, draft, ::persist, scope).also { editors[id] = it }
     }
     private suspend fun persist(draft: MemoDraft): Long {
-        // Retain the draft even if optimistic commit detects a stale revision.
         dao.putRecord(RecordEntity("journal-draft", draft.id, buildJsonObject {
             put("title", draft.title); put("body", draft.body); put("mood", draft.mood); put("baseRevision", draft.baseRevision)
         }.toString()))
@@ -45,11 +45,11 @@ class JournalRepository(private val db: LukeDatabase, private val scope: Corouti
             Math.addExact(draft.baseRevision, 1)
         }
     }
-    suspend fun close(id: String): Boolean {
-        val editor = gate.withLock { editors[id] } ?: return true
-        if (!editor.flush()) return false
-        gate.withLock { if (editors[id] === editor) { editors.remove(id); editor.dispose() } }
-        return true
+    suspend fun close(id: String): Boolean = gate.withLock {
+        val editor = editors[id] ?: return@withLock true
+        if (!editor.close()) return@withLock false
+        editors.remove(id)
+        true
     }
     suspend fun flushAll() {
         val items = gate.withLock { editors.values.toList() }
@@ -57,14 +57,19 @@ class JournalRepository(private val db: LukeDatabase, private val scope: Corouti
     }
     suspend fun copyDraft(id: String): String {
         val value = open(id).state.value
-        return create(value.title, value.body).also { newId ->
-            val note = requireNotNull(dao.memo(newId)); dao.putMemo(note.copy(mood = value.mood))
+        return db.withTransaction {
+            val copy = MemoEntity(newId(), title = value.title, body = value.body, mood = value.mood)
+            dao.putMemo(copy)
+            copy.id
         }
     }
-    suspend fun change(id: String, action: String, folder: String? = null) {
+    suspend fun change(id: String, action: String, folder: String? = null) = gate.withLock {
         require(action in setOf("star", "pin", "trash", "restore", "folder"))
-        val editor = gate.withLock { editors[id] }
-        if (editor != null) check(editor.flush()) { "请先处理这篇手记未保存的草稿" }
+        // Serialize detach and reopen. An existing editor rejects new input before
+        // its revision is replaced; another open cannot receive that stale handle.
+        val editor = editors[id]
+        if (editor != null) check(editor.close()) { "请先处理这篇手记未保存的草稿" }
+        editors.remove(id)
         db.withTransaction {
             val old = dao.memo(id) ?: error("手记不存在")
             if (action != "restore") require(old.deletedAt == null) { "手记已经移入回收站" }
@@ -79,7 +84,6 @@ class JournalRepository(private val db: LukeDatabase, private val scope: Corouti
             }
             dao.putMemo(next.copy(revision = Math.addExact(old.revision, 1)))
         }
-        gate.withLock { editors.remove(id)?.dispose() }
     }
     suspend fun folder(id: String? = null, name: String): String = db.withTransaction {
         val text = name.trim(); require(text.length in 1..30) { "笔记本名称为 1–30 个字" }
@@ -91,9 +95,14 @@ class JournalRepository(private val db: LukeDatabase, private val scope: Corouti
         dao.putFolder(next); next.id
     }
     suspend fun deleteFolder(id: String) = db.withTransaction { dao.unfileMemos(id); dao.deleteFolder(id) }
-    suspend fun purge(id: String) {
-        require(dao.memo(id)?.deletedAt != null) { "只能彻底删除回收站中的手记" }
-        db.withTransaction { dao.purgeMemo(id); dao.deleteRecord("journal-draft", id) }
-        gate.withLock { editors.remove(id)?.dispose() }
+    suspend fun purge(id: String) = gate.withLock {
+        // Re-check deletion eligibility in the SAME transaction as DELETE. A note
+        // restored concurrently must not disappear through an old purge confirmation.
+        db.withTransaction {
+            require(dao.memo(id)?.deletedAt != null) { "只能彻底删除回收站中的手记" }
+            dao.purgeMemo(id)
+            dao.deleteRecord("journal-draft", id)
+        }
+        editors.remove(id)?.dispose()
     }
 }

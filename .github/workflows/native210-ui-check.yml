@@ -9,6 +9,7 @@ on:
       - 'native/feature/**'
       - 'native/uitesthost/**'
       - 'native/core/**'
+      - 'native/tools/report_tests.py'
       - 'native/gradle.properties'
       - 'native/*.gradle.kts'
 permissions:
@@ -42,18 +43,7 @@ jobs:
       - name: Summarize core JVM tests and archive the native source checkpoint
         if: always()
         run: |
-          python - <<'PY'
-          import pathlib, xml.etree.ElementTree as ET, json, os
-          total = dict(tests=0, failures=0, errors=0, skipped=0)
-          reports = list(pathlib.Path('native/core/build/test-results').rglob('TEST-*.xml'))
-          for p in reports:
-              root = ET.parse(p).getroot()
-              for k in total: total[k] += int(root.get(k, '0'))
-          total.update(scope='Native core JVM tests; not full app acceptance', commit=os.environ['GITHUB_SHA'])
-          output = pathlib.Path('native-verification'); output.mkdir(exist_ok=True)
-          (output/'core-summary.json').write_text(json.dumps(total, indent=2))
-          print(json.dumps(total))
-          PY
+          python native/tools/report_tests.py native/core/build/test-results native-verification/core-summary.json --scope 'Native core JVM tests; not full app acceptance'
           git archive --format=zip --prefix=Four-Seasons-Native-2.0.10-checkpoint/ HEAD native > native-source-checkpoint.zip
           sha256sum native-source-checkpoint.zip > native-source-checkpoint.zip.sha256
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -117,19 +107,7 @@ jobs:
         if: always()
         env:
           TEST_API: ${{ matrix.api }}
-        run: |
-          python - <<'PY'
-          import pathlib, xml.etree.ElementTree as ET, json, os
-          total = dict(tests=0, failures=0, errors=0, skipped=0)
-          reports = list(pathlib.Path('native/uitesthost/build/outputs/androidTest-results').rglob('TEST-*.xml'))
-          for p in reports:
-              root = ET.parse(p).getroot()
-              for k in total: total[k] += int(root.get(k, '0'))
-          total.update(scope='Selected Compose screens on software-navigation emulator; not full parity or physical-device 120Hz', api=int(os.environ['TEST_API']), commit=os.environ['GITHUB_SHA'], viewport='320x640 at 160dpi', device='pixel_2')
-          out = pathlib.Path('native-verification'); out.mkdir(exist_ok=True)
-          (out/'ui-summary.json').write_text(json.dumps(total, indent=2))
-          print(json.dumps(total))
-          PY
+        run: python native/tools/report_tests.py native/uitesthost/build/outputs/androidTest-results native-verification/ui-summary.json --scope 'Selected Compose screens at 320x640/160dpi; not full parity or physical-device 120Hz' --diagnostics native/uitesthost/build/outputs/connected_android_test_additional_output
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:

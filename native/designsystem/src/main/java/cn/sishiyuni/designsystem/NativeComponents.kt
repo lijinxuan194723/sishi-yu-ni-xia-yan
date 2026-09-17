@@ -109,12 +109,12 @@ fun ErrorNotice(message: String?, onDismiss: () -> Unit, modifier: Modifier = Mo
 }
 
 /**
- * The title is outside the body scroller. Available window constraints, not a cached
- * display height, bound the body after IME resize. Bounded lazy lists remain usable
- * inside the body; callers must give nested lazy lists a finite height.
+ * Header stays outside the bounded body. Forms with their own weighted field scroller
+ * and fixed action row keep finite constraints (the default). Simple long content can
+ * opt into scrollBody; never wrap an existing weighted form in an unbounded scroller.
  */
 @Composable
-fun NativeDialog(title: String, onDismiss: () -> Unit, content: @Composable ColumnScope.() -> Unit) {
+fun NativeDialog(title: String, onDismiss: () -> Unit, scrollBody: Boolean = false, content: @Composable ColumnScope.() -> Unit) {
     Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         SeasonSystemBars()
         BoxWithConstraints(Modifier.fillMaxWidth().imePadding().padding(vertical = 12.dp), contentAlignment = Alignment.Center) {
@@ -127,7 +127,9 @@ fun NativeDialog(title: String, onDismiss: () -> Unit, content: @Composable Colu
                         Text(title, Modifier.weight(1f), style = MaterialTheme.typography.titleLarge)
                         IconButton(onClick = onDismiss) { Icon(Icons.Outlined.Close, "关闭$title") }
                     }
-                    Column(Modifier.weight(1f, fill = false).fillMaxWidth().verticalScroll(rememberScrollState()).testTag("dialog-body"),
+                    val scroll = rememberScrollState()
+                    Column(Modifier.weight(1f, fill = false).fillMaxWidth()
+                        .then(if (scrollBody) Modifier.verticalScroll(scroll) else Modifier).testTag("dialog-body"),
                         verticalArrangement = Arrangement.spacedBy(10.dp), content = content)
                 }
             }

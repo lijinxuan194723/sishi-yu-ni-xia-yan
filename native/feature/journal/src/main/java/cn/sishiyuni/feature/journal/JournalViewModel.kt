@@ -31,13 +31,15 @@ class JournalViewModel(graph: AppGraph) : CoreViewModel(graph) {
 
     fun open(id: String) = command {
         val current = editor.value
-        if (current?.state?.value?.id == id) return@command
+        if (current?.state?.value?.id == id && !current.state.value.closed) return@command
         if (current != null) check(graph.journal.close(current.state.value.id)) { "请先保存当前手记" }
+        editor.value = null
         editor.value = graph.journal.open(id)
     }
     fun create(done: (String) -> Unit) = command {
         val current = editor.value
         if (current != null) check(graph.journal.close(current.state.value.id)) { "请先保存当前手记" }
+        editor.value = null
         val id = graph.journal.create()
         editor.value = graph.journal.open(id)
         done(id)
@@ -73,18 +75,4 @@ class JournalViewModel(graph: AppGraph) : CoreViewModel(graph) {
         done()
     }
     fun export(uri: Uri, text: String) = command { graph.backup.exportText(uri, text) }
-}
-
-/** Pure list projection: archived notes stay in the database and remain searchable in Trash. */
-fun journalItems(memos: List<MemoEntity>, query: String, section: String, folderId: String?): List<MemoEntity> {
-    val needle = query.trim()
-    return memos.asSequence()
-        .filter { if (section == "trash") it.deletedAt != null else it.deletedAt == null }
-        .filter { folderId == null || it.folderId == folderId }
-        .filter { section != "starred" || it.starred }
-        .filter { section != "music" || it.raw.contains("music", ignoreCase = true) || it.raw.contains("song", ignoreCase = true) }
-        .filter { section != "books" || it.raw.contains("book", ignoreCase = true) }
-        .filter { needle.isEmpty() || it.title.contains(needle, true) || it.body.contains(needle, true) }
-        .sortedWith(compareByDescending<MemoEntity> { it.pinnedAt ?: Long.MIN_VALUE }.thenByDescending { it.updatedAt }.thenBy { it.id })
-        .toList()
 }

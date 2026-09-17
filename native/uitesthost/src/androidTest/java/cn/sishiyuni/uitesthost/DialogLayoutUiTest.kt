@@ -2,6 +2,8 @@ package cn.sishiyuni.uitesthost
 
 import android.view.View
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -24,7 +26,7 @@ class DialogLayoutUiTest {
     @Test fun scrollingLongDialogDoesNotMoveItsTitleOrHideClose() {
         var closed by mutableStateOf(false)
         rule.setContent { LukeTheme(AppPreferences(effects=false, reduceMotion=true)) {
-            if (!closed) NativeDialog("更多设置", {closed=true}) {
+            if (!closed) NativeDialog("更多设置", {closed=true}, scrollBody=true) {
                 repeat(40) { Text("设置条目 $it", Modifier.fillMaxWidth().padding(vertical=12.dp)) }
                 Button(onClick={}, modifier=Modifier.testTag("dialog-last")) { Text("最后一项") }
             }
@@ -39,7 +41,7 @@ class DialogLayoutUiTest {
 
     @Test fun largeTextKeepsHeaderSeparateFromTheScrollableBody() {
         rule.setContent { LukeTheme(AppPreferences(effects=false, reduceMotion=true, scale=1.6f, period="night")) {
-            NativeDialog("较长的设置分组标题", {}) {
+            NativeDialog("较长的设置分组标题", {}, scrollBody=true) {
                 repeat(20) { Text("内容应该在标题下方滚动，而不是把关闭按钮推走。") }
                 TextButton(onClick={}, modifier=Modifier.testTag("large-last")) { Text("完成") }
             }
@@ -57,7 +59,7 @@ class DialogLayoutUiTest {
         var view: View? = null
         var text by mutableStateOf("")
         rule.setContent { LukeTheme(AppPreferences(effects=false, reduceMotion=true)) {
-            NativeDialog("编辑内容", {}) {
+            NativeDialog("编辑内容", {}, scrollBody=true) {
                 val current = LocalView.current
                 SideEffect { view = current }
                 OutlinedTextField(text, {text=it}, modifier=Modifier.fillMaxWidth().testTag("dialog-input"), singleLine=true)
@@ -73,5 +75,22 @@ class DialogLayoutUiTest {
         val last = rule.onNodeWithTag("keyboard-last").fetchSemanticsNode().boundsInRoot
         assertTrue(last.top >= body.top && last.bottom <= body.bottom)
         assertEquals("输入法检查", text)
+    }
+
+    @Test fun formOwnedScrollerKeepsItsSaveRowFixedWithoutNestedUnboundedLayout() {
+        rule.setContent { LukeTheme(AppPreferences(effects=false, reduceMotion=true, scale=1.6f)) {
+            NativeDialog("表单分组", {}) {
+                Column(Modifier.weight(1f,fill=false).verticalScroll(rememberScrollState()).testTag("owned-fields")) {
+                    repeat(35) { Text("可滚动字段 $it", Modifier.padding(vertical=10.dp)) }
+                    Text("字段末尾", Modifier.testTag("owned-last"))
+                }
+                Button(onClick={}, modifier=Modifier.fillMaxWidth().testTag("fixed-save")) { Text("保存表单") }
+            }
+        } }
+        val before = rule.onNodeWithTag("fixed-save").assertIsDisplayed().fetchSemanticsNode().boundsInRoot
+        rule.onNodeWithTag("owned-last").performScrollTo().assertIsDisplayed()
+        val after = rule.onNodeWithTag("fixed-save").assertIsDisplayed().fetchSemanticsNode().boundsInRoot
+        assertEquals(before.top, after.top, 1f); assertEquals(before.bottom, after.bottom, 1f)
+        rule.onNodeWithContentDescription("关闭表单分组").assertIsDisplayed()
     }
 }
