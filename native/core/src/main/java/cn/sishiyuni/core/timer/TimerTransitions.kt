@@ -12,7 +12,7 @@ object TimerTransitions {
         require(generation.isNotBlank())
         if (previous?.running == true) {
             require(previous.label == name) { "请先结束当前科目的学习" }
-            return previous // A repeated start event must not restart the clock.
+            return previous
         }
         check(previous == null || previous.completed || !hasStudy(previous)) { "还有暂停中的学习，请继续或先结束这一段" }
         return TimerEntity(id = "study", kind = "study", label = name,
@@ -25,15 +25,29 @@ object TimerTransitions {
 
     fun pauseStudy(timer: TimerEntity, time: TimeSource): TimerEntity {
         require(timer.kind == "study")
+        val original = obj(timer.raw)
+        val intervals = when (val stored = original["segments"]) {
+            null -> JsonArray(emptyList())
+            is JsonArray -> stored
+            else -> error("学习时段格式异常，原记录未改动")
+        }
+        var accounted = 0L
+        for (element in intervals) {
+            val row = element as? JsonObject ?: error("学习时段格式异常")
+            val from = (row["from"] as? JsonPrimitive)?.longOrNull ?: error("学习时段缺少开始时间")
+            val millis = (row["millis"] as? JsonPrimitive)?.longOrNull ?: error("学习时段缺少时长")
+            require(from >= 0 && millis in 0..86_400_000L && from <= Long.MAX_VALUE - millis) { "学习时段超出有效范围" }
+            accounted = Math.addExact(accounted, millis)
+        }
+        require(accounted == timer.remainingMs) { "学习累计时长与明细不一致，原记录未改动" }
+        // Validation also runs for an already-paused timer: finishStudy uses this
+        // transition before recording it, and must not turn malformed data into zero logs.
         if (!timer.running) return timer
         val total = TimerMath.studyElapsed(timer, time)
-        val segment = buildJsonObject {
-            put("from", timer.wallDeadline)
-            put("millis", (total - timer.remainingMs).coerceAtLeast(0))
-        }
-        // A malformed stored segment is an error, not a reason to silently drop previous study intervals.
-        val original = obj(timer.raw)
-        val raw = original.change("segments" to JsonArray(original.arr("segments") + segment)).toString()
+        val duration = (total - timer.remainingMs).coerceAtLeast(0)
+        require(timer.wallDeadline >= 0 && timer.wallDeadline <= Long.MAX_VALUE - duration)
+        val segment = buildJsonObject { put("from", timer.wallDeadline); put("millis", duration) }
+        val raw = original.change("segments" to JsonArray(intervals + segment)).toString()
         return timer.copy(remainingMs = total, running = false, raw = raw)
     }
 
