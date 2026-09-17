@@ -28,7 +28,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import cn.sishiyuni.core.AppGraph
 import cn.sishiyuni.core.data.AppPreferences
 import cn.sishiyuni.designsystem.*
-import cn.sishiyuni.feature.chat.ChatComposer
 import cn.sishiyuni.feature.chat.ChatScreen
 import cn.sishiyuni.feature.home.HomeScreen
 import cn.sishiyuni.feature.settings.SettingsScreen
@@ -88,7 +87,6 @@ fun StartupFailure(message: String) {
 
 @Composable
 private fun NativeWorkspace(graph: AppGraph) {
-    // Only small navigation identifiers enter saved state; messages and drafts stay in their repositories.
     val pager = rememberPagerState { pageTitles.size }
     var route by rememberSaveable { mutableStateOf("main") }
     var skillsParent by rememberSaveable { mutableStateOf("main") }
@@ -142,7 +140,7 @@ private fun NativeWorkspace(graph: AppGraph) {
                     }
                 }, footer = { layer ->
                     Column(Modifier.fillMaxWidth()) {
-                        if (pager.currentPage == 1) ChatComposer(graph, layer, Modifier.padding(horizontal = 12.dp, vertical = 8.dp))
+                        if (pager.currentPage == 1) AppChatComposer(graph, layer, Modifier.padding(horizontal = 12.dp, vertical = 8.dp))
                         if (!imeVisible) GlassChrome(layer, Modifier.fillMaxWidth(), fadeAtBottom = false) {
                             NativeBottomBar(pager)
                         }
@@ -163,7 +161,7 @@ private fun NativeWorkspace(graph: AppGraph) {
     }
 }
 
-/** Explicit feature gate. It must never masquerade as an empty user collection or a finished page. */
+/** Explicit feature gate, never a fake empty collection. */
 @Composable
 private fun PendingMigrationPage(page: Int, padding: PaddingValues) {
     val detail = when (page) {

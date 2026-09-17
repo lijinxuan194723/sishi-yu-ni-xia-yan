@@ -1,7 +1,7 @@
 plugins { id("com.android.application"); id("org.jetbrains.kotlin.android"); id("org.jetbrains.kotlin.plugin.compose") }
 android {
  namespace="cn.sishiyuni.app"; compileSdk=35
- defaultConfig { applicationId="cn.sishiyuni.nativeapp"; minSdk=26; targetSdk=35; versionCode=902062; versionName="2.0.10-native.3"; testInstrumentationRunner="androidx.test.runner.AndroidJUnitRunner" }
+ defaultConfig { applicationId="cn.sishiyuni.nativeapp"; minSdk=26; targetSdk=35; versionCode=902063; versionName="2.0.10-native.4"; testInstrumentationRunner="androidx.test.runner.AndroidJUnitRunner" }
  sourceSets["main"].assets.srcDir("../assets")
  compileOptions { sourceCompatibility=JavaVersion.VERSION_17; targetCompatibility=JavaVersion.VERSION_17 }
  kotlinOptions { jvmTarget="17"; freeCompilerArgs+=listOf("-opt-in=androidx.compose.animation.ExperimentalSharedTransitionApi","-opt-in=androidx.compose.material3.ExperimentalMaterial3Api") }

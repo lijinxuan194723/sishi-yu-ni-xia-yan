@@ -26,27 +26,10 @@ jobs:
         working-directory: native
         run: gradle --no-daemon --console=plain --max-workers=2 :app:assembleSideload :app:assembleDebug :app:assembleDebugAndroidTest :core:testDebugUnitTest
       - name: Verify signing, no-testOnly, launcher, ABIs and single APK structure
-        run: python native/tools/check_installable.py native/app/build/outputs/apk/sideload/app-sideload.apk install-checks
-      - name: Inspect framework references instead of assuming a descriptor creates a WebView
         run: |
-          python - <<'PY'
-          import io,pathlib,subprocess,zipfile
-          root=pathlib.Path.home()/'.gradle/caches/modules-2/files-2.1'
-          for path in root.rglob('*.aar'):
-              if not any(p in str(path) for p in ['androidx.compose.ui','androidx.core','androidx.activity']): continue
-              with zipfile.ZipFile(path) as a:
-                  if 'classes.jar' not in a.namelist():continue
-                  contents=a.read('classes.jar')
-                  with zipfile.ZipFile(io.BytesIO(contents)) as jar:
-                      for name in jar.namelist():
-                          if not name.endswith('.class') or b'android/webkit/WebView' not in jar.read(name):continue
-                          print('REFERENCE OWNER',str(path),name)
-                          temp=pathlib.Path('/tmp/reference.jar');temp.write_bytes(contents)
-                          text=subprocess.run(['javap','-classpath',str(temp),'-c','-p',name[:-6].replace('/','.')],capture_output=True,text=True,check=True).stdout
-                          rows=text.splitlines()
-                          for i,line in enumerate(rows):
-                              if 'webkit' in line:print('\n'.join(rows[max(0,i-5):i+6]))
-          PY
+          python native/tools/check_installable.py native/app/build/outputs/apk/sideload/app-sideload.apk install-checks > install-package-log.txt
+          cat install-checks/installable.json
+          python -c "import json; from pathlib import Path; r=json.loads(Path('install-checks/installable.json').read_text()); assert r['web_descriptor_findings']==[], r"
       - name: Archive source and test summaries
         if: always()
         run: |
@@ -114,8 +97,10 @@ jobs:
             python native/tools/verify_normal_install.py apk/app-sideload.apk install-checks
             adb install --no-streaming instrument/debug/app-debug.apk
             adb install --no-streaming -t instrument/androidTest/debug/app-debug-androidTest.apk
-            adb shell am instrument -w -r -e class cn.sishiyuni.app.AppStartupSmokeTest -e additionalTestOutputDir /sdcard/app-smoke cn.sishiyuni.nativeapp.test/androidx.test.runner.AndroidJUnitRunner > install-checks/instrumentation.txt
+            adb shell mkdir -p /sdcard/Android/media/cn.sishiyuni.nativeapp/app-smoke
+            adb shell am instrument -w -r -e class cn.sishiyuni.app.AppStartupSmokeTest -e additionalTestOutputDir /sdcard/Android/media/cn.sishiyuni.nativeapp/app-smoke cn.sishiyuni.nativeapp.test/androidx.test.runner.AndroidJUnitRunner > install-checks/instrumentation.txt
             cat install-checks/instrumentation.txt
+            adb pull /sdcard/Android/media/cn.sishiyuni.nativeapp/app-smoke install-checks/screenshots
             python -c "from pathlib import Path; s=Path('install-checks/instrumentation.txt').read_text(); assert 'OK (7 tests)' in s and 'FAILURES' not in s, s"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
