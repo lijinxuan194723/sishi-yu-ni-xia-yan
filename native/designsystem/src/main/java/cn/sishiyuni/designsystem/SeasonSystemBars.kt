@@ -3,6 +3,7 @@ package cn.sishiyuni.designsystem
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
+import android.graphics.drawable.ColorDrawable
 import android.os.Build
 import android.view.View
 import android.view.ViewParent
@@ -13,6 +14,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.compositeOver
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.window.DialogWindowProvider
 import androidx.core.view.WindowCompat
@@ -38,25 +40,33 @@ fun nativeWindow(view: View): Window? {
     return view.context.findActivity()?.window
 }
 
-/** Small platform update only when icon contrast crosses a threshold, not every animation frame. */
+/** Platform updates occur at a logical theme change or icon contrast crossing, not every frame. */
 @Composable
 fun SeasonSystemBars() {
     val view = LocalView.current
     val window = remember(view) { nativeWindow(view) } ?: return
     val activityWindow = remember(view) { view.context.findActivity()?.window }
+    val preferences = LocalAppPreferences.current
+    val now = LocalAppTime.current
+    val season = preferences.resolvedSeason(now)
+    val night = preferences.isNight(now)
+    // The window remains opaque even before the next Compose buffer covers resized
+    // insets. This is the target palette, not a Binder/window update per animated color.
+    val backing = remember(season, night) { seasonColors(season, night).paper.toArgb() }
     val dim = if (window !== activityWindow && window.attributes.flags and WindowManager.LayoutParams.FLAG_DIM_BEHIND != 0)
         window.attributes.dimAmount.coerceIn(0f, 1f) else 0f
     val behindIcons = Color.Black.copy(alpha = dim).compositeOver(LocalSeason.current.paper)
     val darkIcons = contrastRatio(Color.Black, behindIcons) >= contrastRatio(Color.White, behindIcons)
-    DisposableEffect(window, view, darkIcons) {
+    DisposableEffect(window, view, darkIcons, backing) {
         @Suppress("DEPRECATION")
         fun applyStyle() {
+            // Never give a Compose Dialog a rectangular background: its rounded,
+            // transparent margins must still reveal the dimmed activity underneath.
+            if (window === activityWindow) window.setBackgroundDrawable(ColorDrawable(backing))
             window.statusBarColor = android.graphics.Color.TRANSPARENT
             window.navigationBarColor = android.graphics.Color.TRANSPARENT
             if (Build.VERSION.SDK_INT >= 28) window.navigationBarDividerColor = android.graphics.Color.TRANSPARENT
             if (Build.VERSION.SDK_INT >= 29) {
-                // The app paints a seasonal gradient under the controls. A second system
-                // scrim otherwise becomes an opaque white block in a manual night theme.
                 window.isNavigationBarContrastEnforced = false
                 window.isStatusBarContrastEnforced = false
             }
@@ -67,8 +77,8 @@ fun SeasonSystemBars() {
         }
         applyStyle()
         val pending = Runnable { applyStyle() }
-        view.post(pending) // Apply after Compose Dialog finishes updating its window parameters.
+        view.post(pending)
         onDispose { view.removeCallbacks(pending) }
-        // Do not restore a stale style from an outgoing animated screen over its successor.
+        // Do not restore an outgoing screen's stale style over its successor.
     }
 }
