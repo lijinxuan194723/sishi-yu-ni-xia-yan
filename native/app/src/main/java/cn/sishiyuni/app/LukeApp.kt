@@ -142,7 +142,7 @@ private fun NativeWorkspace(graph: AppGraph) {
                     Column(Modifier.fillMaxWidth()) {
                         if (pager.currentPage == 1) AppChatComposer(graph, layer, Modifier.padding(horizontal = 12.dp, vertical = 8.dp))
                         if (!imeVisible) GlassChrome(layer, Modifier.fillMaxWidth(), fadeAtBottom = false) {
-                            NativeBottomBar(pager)
+                            NativeBottomBar(pager, onSelect = ::navigate)
                         }
                     }
                 }) { padding ->

@@ -28,7 +28,7 @@ import kotlinx.coroutines.launch
 
 /** Tab labels do not change size or vertical position when selected. */
 @Composable
-fun NativeBottomBar(pager: PagerState, modifier: Modifier = Modifier) {
+fun NativeBottomBar(pager: PagerState, modifier: Modifier = Modifier, onSelect: ((Int) -> Unit)? = null) {
     val labels = remember { listOf("回到身边", "悄悄话", "他的此刻", "一起计划", "时光手记", "计时") }
     val icons = remember { listOf(Icons.Outlined.Home, Icons.Outlined.ChatBubbleOutline, Icons.Outlined.FavoriteBorder,
         Icons.Outlined.CalendarMonth, Icons.Outlined.MenuBook, Icons.Outlined.Timer) }
@@ -49,10 +49,14 @@ fun NativeBottomBar(pager: PagerState, modifier: Modifier = Modifier) {
         }, verticalAlignment = Alignment.CenterVertically) {
         labels.forEachIndexed { index, label ->
             Column(Modifier.weight(1f).heightIn(min = 72.dp).selectable(pager.currentPage == index, role = Role.Tab, onClick = {
-                click?.cancel()
-                click = scope.launch {
-                    if (reduced) pager.scrollToPage(index)
-                    else pager.animateScrollToPage(index, animationSpec = spring(dampingRatio = 1f, stiffness = 420f))
+                // A production owner can keep navigation alive while IME/footer visibility changes.
+                if (onSelect != null) onSelect(index)
+                else {
+                    click?.cancel()
+                    click = scope.launch {
+                        if (reduced) pager.scrollToPage(index)
+                        else pager.animateScrollToPage(index, animationSpec = spring(dampingRatio = 1f, stiffness = 420f))
+                    }
                 }
             }).padding(horizontal = 2.dp, vertical = 10.dp).testTag("main-tab-$index"),
                 horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(7.dp)) {

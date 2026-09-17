@@ -1,17 +1,26 @@
 plugins { id("com.android.application"); id("org.jetbrains.kotlin.android"); id("org.jetbrains.kotlin.plugin.compose") }
 android {
  namespace="cn.sishiyuni.app"; compileSdk=35
- defaultConfig { applicationId="cn.sishiyuni.nativeapp"; minSdk=26; targetSdk=35; versionCode=902063; versionName="2.0.10-native.4"; testInstrumentationRunner="androidx.test.runner.AndroidJUnitRunner" }
+ defaultConfig { applicationId="cn.sishiyuni.nativeapp"; minSdk=26; targetSdk=35; versionCode=902064; versionName="2.0.10-native.5"; testInstrumentationRunner="androidx.test.runner.AndroidJUnitRunner" }
  sourceSets["main"].assets.srcDir("../assets")
  compileOptions { sourceCompatibility=JavaVersion.VERSION_17; targetCompatibility=JavaVersion.VERSION_17 }
  kotlinOptions { jvmTarget="17"; freeCompilerArgs+=listOf("-opt-in=androidx.compose.animation.ExperimentalSharedTransitionApi","-opt-in=androidx.compose.material3.ExperimentalMaterial3Api") }
  buildFeatures { compose=true; buildConfig=true }
+ val externalKey = providers.environmentVariable("LUKE_KEYSTORE").orNull
+ signingConfigs {
+  if (externalKey != null) create("localInstall") {
+   storeFile=file(externalKey)
+   storePassword=providers.environmentVariable("LUKE_STORE_PASSWORD").get()
+   keyAlias=providers.environmentVariable("LUKE_KEY_ALIAS").get()
+   keyPassword=providers.environmentVariable("LUKE_KEY_PASSWORD").get()
+  }
+ }
  buildTypes {
   release { isMinifyEnabled=true; proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"),"proguard-rules.pro") }
   create("sideload") {
    initWith(getByName("release"))
    applicationIdSuffix=".preview"
-   signingConfig=signingConfigs.getByName("debug")
+   signingConfig=signingConfigs.getByName(if (externalKey != null) "localInstall" else "debug")
    isDebuggable=false
    matchingFallbacks+=listOf("release")
   }

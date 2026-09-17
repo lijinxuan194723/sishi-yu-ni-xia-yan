@@ -36,9 +36,22 @@ class AppStartupSmokeTest {
         rule.waitUntil(10000) { rule.onAllNodesWithTag(tag).fetchSemanticsNodes().isNotEmpty() }
         rule.onNodeWithTag(tag).assertIsDisplayed()
     }
-    private fun tab(index: Int) {
-        rule.onNodeWithTag("main-tab-$index").performClick()
+    private fun awaitActivityInput() {
+        // Compose can finish a route's layout before the dismissed Dialog returns Android focus.
+        // Wait for that actual condition, not a fixed delay or a bypassed semantics click.
+        rule.waitUntil(10000) { rule.activity.hasWindowFocus() }
+        rule.waitForIdle()
+    }
+    private fun assertTabSettled(index: Int) {
+        rule.waitUntil(10000) {
+            rule.onAllNodes(hasTestTag("main-tab-$index") and isSelected()).fetchSemanticsNodes().isNotEmpty()
+        }
         rule.onNodeWithTag("main-tab-$index").assertIsSelected()
+    }
+    private fun tab(index: Int) {
+        awaitActivityInput()
+        rule.onNodeWithTag("main-tab-$index").performClick()
+        assertTabSettled(index)
     }
     private fun hideKeyboard() {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
@@ -46,7 +59,10 @@ class AppStartupSmokeTest {
         var visible = false
         instrumentation.runOnMainSync { visible = ViewCompat.getRootWindowInsets(content)?.isVisible(WindowInsetsCompat.Type.ime()) == true }
         if (visible) instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_BACK)
-        waitFor("bottom-navigation")
+        rule.waitUntil(10000) {
+            ViewCompat.getRootWindowInsets(content)?.isVisible(WindowInsetsCompat.Type.ime()) == false
+        }
+        waitFor("bottom-navigation"); awaitActivityInput()
     }
     private fun capture(name: String) {
         rule.waitForIdle()
@@ -78,9 +94,9 @@ class AppStartupSmokeTest {
     @Test fun followFingerPagingWorksFromTheRealChatPage() {
         tab(1);waitFor("chat-input")
         rule.onNodeWithTag("main-pager").performTouchInput { swipeLeft() }
-        rule.onNodeWithTag("main-tab-2").assertIsSelected();waitFor("migration-pending-2")
+        assertTabSettled(2);waitFor("migration-pending-2")
         rule.onNodeWithTag("main-pager").performTouchInput { swipeRight() }
-        rule.onNodeWithTag("main-tab-1").assertIsSelected();waitFor("chat-input")
+        assertTabSettled(1);waitFor("chat-input")
     }
     @Test fun activityRecreationKeepsCurrentConversationAndDraft() {
         tab(1);waitFor("chat-input")
@@ -102,7 +118,7 @@ class AppStartupSmokeTest {
     }
     @Test fun conversationToolsOpenSkillsAndReturnWithoutChangingTheTab() {
         tab(1);waitFor("chat-input");rule.onNodeWithTag("open-chat-tools").performClick()
-        waitFor("new-conversation");rule.onNodeWithText("Skills").performClick();waitFor("skills-route")
+        waitFor("new-conversation");rule.onNodeWithText("Skills").performClick();waitFor("skills-route");awaitActivityInput()
         rule.onNodeWithText("选择文件").assertIsDisplayed();rule.onNodeWithContentDescription("返回").performClick()
         waitFor("chat-input");rule.onNodeWithTag("main-tab-1").assertIsSelected();rule.onNodeWithTag("new-conversation").assertDoesNotExist()
     }
@@ -121,4 +137,24 @@ class AppStartupSmokeTest {
         rule.onNodeWithTag("bottom-navigation").assertDoesNotExist();capture("launcher-keyboard")
         hideKeyboard();rule.onNodeWithTag("main-tab-1").assertIsSelected()
     }
+    @Test fun repeatedToolsRoundTripKeepsTheRealNavigationUsable() {
+        tab(1); waitFor("chat-input")
+        repeat(3) {
+            rule.onNodeWithTag("open-chat-tools").performClick(); waitFor("new-conversation")
+            rule.onNodeWithText("Skills").performClick(); waitFor("skills-route"); awaitActivityInput()
+            rule.onNodeWithContentDescription("返回").performClick()
+            waitFor("chat-input"); awaitActivityInput(); assertTabSettled(1)
+            tab(5); waitFor("timer-tabs"); tab(1); waitFor("chat-input")
+        }
+    }
+    @Test fun navigationAfterKeyboardClosureRetainsDraftAndCanReturnHome() {
+        tab(1); waitFor("chat-input")
+        rule.waitUntil(10000) { graph.prefs.state.value.activeSession in graph.drafts.state.value }
+        val text = "收起键盘之后不丢失的文字"
+        rule.onNodeWithTag("chat-input").performTextReplacement(text)
+        hideKeyboard(); tab(5); waitFor("timer-tabs")
+        tab(1); rule.onNodeWithTag("chat-input").assertTextEquals(text)
+        tab(0); waitFor("home-shared-root"); capture("launcher-return-home")
+    }
+
 }

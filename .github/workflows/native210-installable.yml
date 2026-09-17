@@ -30,11 +30,12 @@ jobs:
           python native/tools/check_installable.py native/app/build/outputs/apk/sideload/app-sideload.apk install-checks > install-package-log.txt
           cat install-checks/installable.json
           python -c "import json; from pathlib import Path; r=json.loads(Path('install-checks/installable.json').read_text()); assert r['web_descriptor_findings']==[], r"
+          sha256sum native/app/build/outputs/apk/sideload/app-sideload.apk > install-checks/delivered-apk.sha256
       - name: Archive source and test summaries
         if: always()
         run: |
           python native/tools/report_tests.py native/core/build/test-results install-checks/core-tests.json --scope 'Installable application core tests; incomplete feature migration'
-          git archive --format=zip --prefix=Four-Seasons-Native-2.0.10/ HEAD native > native210-installable-source.zip
+          git archive --format=zip --prefix=Four-Seasons-Native-2.0.10/ HEAD native .github/workflows/native210-installable.yml > native210-installable-source.zip
           sha256sum native210-installable-source.zip > native210-installable-source.zip.sha256
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
@@ -52,7 +53,9 @@ jobs:
         if: always()
         with:
           name: native210-install-build-checks
-          path: install-checks
+          path: |
+            install-checks
+            install-package-log.txt
           retention-days: 7
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
@@ -101,7 +104,7 @@ jobs:
             adb shell am instrument -w -r -e class cn.sishiyuni.app.AppStartupSmokeTest -e additionalTestOutputDir /sdcard/Android/media/cn.sishiyuni.nativeapp/app-smoke cn.sishiyuni.nativeapp.test/androidx.test.runner.AndroidJUnitRunner > install-checks/instrumentation.txt
             cat install-checks/instrumentation.txt
             adb pull /sdcard/Android/media/cn.sishiyuni.nativeapp/app-smoke install-checks/screenshots
-            python -c "from pathlib import Path; s=Path('install-checks/instrumentation.txt').read_text(); assert 'OK (7 tests)' in s and 'FAILURES' not in s, s"
+            python -c "from pathlib import Path; s=Path('install-checks/instrumentation.txt').read_text(); assert 'OK (9 tests)' in s and 'FAILURES' not in s, s"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
