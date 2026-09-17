@@ -1,12 +1,21 @@
 plugins { id("com.android.application"); id("org.jetbrains.kotlin.android"); id("org.jetbrains.kotlin.plugin.compose") }
 android {
  namespace="cn.sishiyuni.app"; compileSdk=35
- defaultConfig { applicationId="cn.sishiyuni.nativeapp"; minSdk=26; targetSdk=35; versionCode=902061; versionName="2.0.10-native.2"; testInstrumentationRunner="androidx.test.runner.AndroidJUnitRunner" }
+ defaultConfig { applicationId="cn.sishiyuni.nativeapp"; minSdk=26; targetSdk=35; versionCode=902062; versionName="2.0.10-native.3"; testInstrumentationRunner="androidx.test.runner.AndroidJUnitRunner" }
  sourceSets["main"].assets.srcDir("../assets")
  compileOptions { sourceCompatibility=JavaVersion.VERSION_17; targetCompatibility=JavaVersion.VERSION_17 }
  kotlinOptions { jvmTarget="17"; freeCompilerArgs+=listOf("-opt-in=androidx.compose.animation.ExperimentalSharedTransitionApi","-opt-in=androidx.compose.material3.ExperimentalMaterial3Api") }
  buildFeatures { compose=true; buildConfig=true }
- buildTypes { release { isMinifyEnabled=true; proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"),"proguard-rules.pro") } }
+ buildTypes {
+  release { isMinifyEnabled=true; proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"),"proguard-rules.pro") }
+  create("sideload") {
+   initWith(getByName("release"))
+   applicationIdSuffix=".preview"
+   signingConfig=signingConfigs.getByName("debug")
+   isDebuggable=false
+   matchingFallbacks+=listOf("release")
+  }
+ }
  packaging { resources.excludes+=setOf("META-INF/AL2.0","META-INF/LGPL2.1") }
 }
 dependencies {

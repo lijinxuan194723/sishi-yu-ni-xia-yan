@@ -1,0 +1,125 @@
+name: Native directly installable APK 210
+on:
+  workflow_dispatch:
+  push:
+    branches: ['feature/v2.0.10-native-migration']
+    paths: ['native/app/**','native/core/**','native/designsystem/**','native/feature/**','native/tools/**','.github/workflows/native210-installable.yml']
+permissions:
+  contents: read
+concurrency:
+  group: native210-installable-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {persist-credentials: false}
+      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
+        with: {distribution: temurin, java-version: '17'}
+      - uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407
+        with: {packages: platform-tools, log-accepted-android-sdk-licenses: false}
+      - uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a
+        with: {gradle-version: '8.11.1', cache-read-only: false}
+      - name: Build signed standalone production module and instrumentation pair
+        working-directory: native
+        run: gradle --no-daemon --console=plain --max-workers=2 :app:assembleSideload :app:assembleDebug :app:assembleDebugAndroidTest :core:testDebugUnitTest
+      - name: Verify signing, no-testOnly, launcher, ABIs and single APK structure
+        run: python native/tools/check_installable.py native/app/build/outputs/apk/sideload/app-sideload.apk install-checks
+      - name: Inspect framework references instead of assuming a descriptor creates a WebView
+        run: |
+          python - <<'PY'
+          import io,pathlib,subprocess,zipfile
+          root=pathlib.Path.home()/'.gradle/caches/modules-2/files-2.1'
+          for path in root.rglob('*.aar'):
+              if not any(p in str(path) for p in ['androidx.compose.ui','androidx.core','androidx.activity']): continue
+              with zipfile.ZipFile(path) as a:
+                  if 'classes.jar' not in a.namelist():continue
+                  contents=a.read('classes.jar')
+                  with zipfile.ZipFile(io.BytesIO(contents)) as jar:
+                      for name in jar.namelist():
+                          if not name.endswith('.class') or b'android/webkit/WebView' not in jar.read(name):continue
+                          print('REFERENCE OWNER',str(path),name)
+                          temp=pathlib.Path('/tmp/reference.jar');temp.write_bytes(contents)
+                          text=subprocess.run(['javap','-classpath',str(temp),'-c','-p',name[:-6].replace('/','.')],capture_output=True,text=True,check=True).stdout
+                          rows=text.splitlines()
+                          for i,line in enumerate(rows):
+                              if 'webkit' in line:print('\n'.join(rows[max(0,i-5):i+6]))
+          PY
+      - name: Archive source and test summaries
+        if: always()
+        run: |
+          python native/tools/report_tests.py native/core/build/test-results install-checks/core-tests.json --scope 'Installable application core tests; incomplete feature migration'
+          git archive --format=zip --prefix=Four-Seasons-Native-2.0.10/ HEAD native > native210-installable-source.zip
+          sha256sum native210-installable-source.zip > native210-installable-source.zip.sha256
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: native210-sideload-candidate
+          path: native/app/build/outputs/apk/sideload/app-sideload.apk
+          retention-days: 7
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: native210-debug-instrumentation-pair
+          path: |
+            native/app/build/outputs/apk/debug/app-debug.apk
+            native/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+          retention-days: 7
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: native210-install-build-checks
+          path: install-checks
+          retention-days: 7
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: native210-install-source
+          path: |
+            native210-installable-source.zip
+            native210-installable-source.zip.sha256
+          retention-days: 7
+  install:
+    needs: package
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix: {api: [26,30,35]}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {persist-credentials: false}
+      - uses: actions/download-artifact@v4
+        with: {name: native210-sideload-candidate, path: apk}
+      - uses: actions/download-artifact@v4
+        with: {name: native210-debug-instrumentation-pair, path: instrument}
+      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
+        with: {distribution: temurin, java-version: '17'}
+      - name: Enable emulator virtualization
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d
+        with:
+          api-level: ${{ matrix.api }}
+          target: default
+          arch: x86_64
+          profile: pixel_2
+          disable-animations: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -no-metrics
+          script: |
+            adb shell wm size 393x852
+            adb shell wm density 160
+            adb shell input keyevent KEYCODE_WAKEUP
+            python native/tools/verify_normal_install.py apk/app-sideload.apk install-checks
+            adb install --no-streaming instrument/debug/app-debug.apk
+            adb install --no-streaming -t instrument/androidTest/debug/app-debug-androidTest.apk
+            adb shell am instrument -w -r -e class cn.sishiyuni.app.AppStartupSmokeTest -e additionalTestOutputDir /sdcard/app-smoke cn.sishiyuni.nativeapp.test/androidx.test.runner.AndroidJUnitRunner > install-checks/instrumentation.txt
+            cat install-checks/instrumentation.txt
+            python -c "from pathlib import Path; s=Path('install-checks/instrumentation.txt').read_text(); assert 'OK (7 tests)' in s and 'FAILURES' not in s, s"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: native210-install-api${{ matrix.api }}
+          path: install-checks
+          retention-days: 7
