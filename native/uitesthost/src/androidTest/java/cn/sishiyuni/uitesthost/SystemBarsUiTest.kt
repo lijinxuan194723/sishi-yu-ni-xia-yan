@@ -2,6 +2,7 @@ package cn.sishiyuni.uitesthost
 
 import android.graphics.Color as AndroidColor
 import android.os.Build
+import android.view.View
 import android.view.Window
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
@@ -10,7 +11,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.test.platform.app.InstrumentationRegistry
 import cn.sishiyuni.core.data.AppPreferences
 import cn.sishiyuni.designsystem.*
@@ -33,6 +36,8 @@ class SystemBarsUiTest {
     }
     private fun preferences(night: Boolean) = AppPreferences(effects=false, reduceMotion=true, season="spring", period=if(night)"night" else "day")
     private fun icons(window: Window = rule.activity.window) = WindowCompat.getInsetsController(window, window.decorView)
+    private fun rootInsets(): WindowInsetsCompat? = ViewCompat.getRootWindowInsets(
+        rule.activity.findViewById<View>(android.R.id.content))
 
     @Test fun manualNightAndDayUpdateBothSystemIconFamilies() {
         val p = mutableStateOf(preferences(false)); screen(p)
@@ -45,16 +50,25 @@ class SystemBarsUiTest {
     @Suppress("DEPRECATION")
     @Test fun seasonalProtectionDoesNotHideButtonsOrKeepTheWhitePlatformScrim() {
         screen(mutableStateOf(preferences(true)))
-        rule.waitForIdle()
+        // Compose idleness does not mean that the platform's first inset dispatch has
+        // happened. A deprecated aggregate inset of zero is not a visibility signal.
+        // Wait for real navigation-bar insets, then assert visibility AND geometry.
+        val navigation = WindowInsetsCompat.Type.navigationBars()
+        rule.waitUntil(5000) {
+            val insets = rootInsets()
+            insets != null && insets.isVisible(navigation) && insets.getInsets(navigation).bottom > 0
+        }
         rule.runOnIdle {
             val window = rule.activity.window
             assertEquals(AndroidColor.TRANSPARENT, window.statusBarColor)
             assertEquals(AndroidColor.TRANSPARENT, window.navigationBarColor)
             if(Build.VERSION.SDK_INT>=29) assertFalse(window.isNavigationBarContrastEnforced)
-            assertNotEquals("System navigation must not be hidden",0,
-                window.decorView.rootWindowInsets?.systemWindowInsetBottom ?: 0)
+            assertTrue("System navigation must remain visible", requireNotNull(rootInsets()).isVisible(navigation))
         }
-        rule.onNodeWithTag("system-navigation-protection").assertExists()
+        val protection = rule.onNodeWithTag("system-navigation-protection").assertExists().fetchSemanticsNode().boundsInRoot
+        val expected = requireNotNull(rootInsets()).getInsets(navigation).bottom.toFloat()
+        assertTrue("Navigation protection must have a visible height", protection.height > 0f)
+        assertEquals("Protection must match the actual platform inset", expected, protection.height, 1.1f)
     }
     @Test fun actualNightWindowHasNoWhiteNavigationStrip() {
         screen(mutableStateOf(preferences(true)))
@@ -63,7 +77,6 @@ class SystemBarsUiTest {
         InstrumentationRegistry.getInstrumentation().waitForIdleSync()
         val image = requireNotNull(InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot())
         try {
-            // Away from the Back/Home/Recents glyphs. Check real window pixels, not only Compose state.
             for(x in listOf(2, image.width-3)) {
                 val color = image.getPixel(x,image.height-6)
                 assertTrue("Night navigation protection is white: $color", maxOf(AndroidColor.red(color),AndroidColor.green(color),AndroidColor.blue(color)) < 100)
