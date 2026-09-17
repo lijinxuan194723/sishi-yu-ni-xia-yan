@@ -1,0 +1,125 @@
+name: Native application build and launch 210
+on:
+  workflow_dispatch:
+  push:
+    branches: ['feature/v2.0.10-native-migration']
+    paths:
+      - '.github/workflows/native210-app-check.yml'
+      - 'native/app/**'
+      - 'native/core/**'
+      - 'native/designsystem/**'
+      - 'native/feature/**'
+      - 'native/assets/**'
+      - 'native/*.gradle.kts'
+      - 'native/gradle.properties'
+      - 'native/tools/**'
+permissions:
+  contents: read
+concurrency:
+  group: native210-app-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407
+        with:
+          packages: platform-tools
+          log-accepted-android-sdk-licenses: false
+      - uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a
+        with:
+          gradle-version: '8.11.1'
+          cache-read-only: false
+      - name: Compile the real application, release variant and native unit tests
+        working-directory: native
+        run: gradle --no-daemon --console=plain --max-workers=2 :app:assembleDebug :app:assembleDebugAndroidTest :app:assembleRelease :core:testDebugUnitTest
+      - name: Record core test outcome
+        if: always()
+        run: python native/tools/report_tests.py native/core/build/test-results native-verification/app-core-summary.json --scope 'Core tests for application integration; not full parity'
+      - name: Audit built application packages and archive the exact source
+        run: |
+          python native/tools/audit_native_app.py native/app/build/outputs/apk native-verification/app-package-audit.json
+          git archive --format=zip --prefix=Four-Seasons-Native-2.0.10-development/ HEAD native .github/workflows/native210-app-check.yml > native210-app-source.zip
+          sha256sum native210-app-source.zip > native210-app-source.zip.sha256
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: native210-app-build-reports
+          path: |
+            native-verification
+            native/core/build/test-results
+            native/app/build/outputs/mapping
+            native/app/build/outputs/logs
+          retention-days: 7
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: native210-app-source-development
+          path: |
+            native210-app-source.zip
+            native210-app-source.zip.sha256
+          retention-days: 7
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: native210-app-debug-development-not-full-parity
+          path: native/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 7
+  launch:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        api: [30, 35]
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a
+        with:
+          gradle-version: '8.11.1'
+      - name: Enable hardware virtualization
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d
+        with:
+          api-level: ${{ matrix.api }}
+          target: default
+          arch: x86_64
+          profile: pixel_2
+          disable-animations: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -no-metrics
+          script: |
+            adb shell wm size 393x852
+            adb shell wm density 160
+            adb shell input keyevent KEYCODE_WAKEUP
+            cd native && gradle --no-daemon --console=plain --max-workers=2 :app:connectedDebugAndroidTest
+      - name: Summarize actual launcher and navigation checks
+        if: always()
+        env:
+          TEST_API: ${{ matrix.api }}
+        run: python native/tools/report_tests.py native/app/build/outputs/androidTest-results native-verification/app-launch-summary.json --scope 'Real app MainActivity launch/navigation at 393x852/160dpi; reduced-motion smoke scenarios, not full feature or 120Hz acceptance'
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: native210-app-launch-api${{ matrix.api }}
+          path: |
+            native-verification
+            native/app/build/reports/androidTests
+            native/app/build/outputs/androidTest-results
+            native/app/build/outputs/connected_android_test_additional_output
+          retention-days: 7
