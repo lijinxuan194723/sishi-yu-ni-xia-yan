@@ -1,0 +1,68 @@
+name: Verify exact signed native APK 210
+on:
+  workflow_dispatch:
+  push:
+    branches: ['feature/v2.0.10-native-migration']
+    paths: ['.github/workflows/native210-sideload-verify.yml']
+permissions:
+  contents: read
+  actions: read
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix: {api: [26,30,35]}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: befb09110c123f8179f023a8a5bc7f44efdc20f7
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: native210-sideload-candidate
+          run-id: 35193867915
+          github-token: ${{ github.token }}
+          path: apk
+      - uses: actions/download-artifact@v4
+        with:
+          name: native210-debug-instrumentation-pair
+          run-id: 35193867915
+          github-token: ${{ github.token }}
+          path: instrument
+      - name: Verify the precise candidate fingerprint before installing
+        run: echo '096c6a4bbfab23a0e11ffd7cf24f75b980325fe656cf0eac5ebb5a727da459e1  apk/app-sideload.apk' | sha256sum -c -
+      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
+        with: {distribution: temurin, java-version: '17'}
+      - name: Enable emulator virtualization
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d
+        with:
+          api-level: ${{ matrix.api }}
+          target: default
+          arch: x86_64
+          profile: pixel_2
+          disable-animations: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -no-metrics
+          script: |
+            adb shell wm size 393x852
+            adb shell wm density 160
+            adb shell input keyevent KEYCODE_WAKEUP
+            python native/tools/verify_normal_install.py apk/app-sideload.apk install-checks
+            adb install --no-streaming instrument/debug/app-debug.apk
+            adb install --no-streaming -t instrument/androidTest/debug/app-debug-androidTest.apk
+            adb shell mkdir -p /sdcard/Android/media/cn.sishiyuni.nativeapp/app-smoke
+            adb shell am instrument -w -r -e class cn.sishiyuni.app.AppStartupSmokeTest -e additionalTestOutputDir /sdcard/Android/media/cn.sishiyuni.nativeapp/app-smoke cn.sishiyuni.nativeapp.test/androidx.test.runner.AndroidJUnitRunner > install-checks/instrumentation.txt
+            cat install-checks/instrumentation.txt
+            adb pull /sdcard/Android/media/cn.sishiyuni.nativeapp/app-smoke install-checks/screenshots
+            python -c "from pathlib import Path; s=Path('install-checks/instrumentation.txt').read_text(); assert 'OK (7 tests)' in s and 'FAILURES' not in s, s"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: native210-verified-install-api${{ matrix.api }}
+          path: install-checks
+          retention-days: 7
