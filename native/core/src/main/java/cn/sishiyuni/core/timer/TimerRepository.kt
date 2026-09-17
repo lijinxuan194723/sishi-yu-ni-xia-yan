@@ -1,118 +1,196 @@
 package cn.sishiyuni.core.timer
 
-import android.Manifest
-import android.app.*
 import android.content.*
-import android.content.pm.PackageManager
-import android.media.RingtoneManager
-import android.net.Uri
-import android.os.Build
 import android.os.SystemClock
 import android.provider.Settings
-import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
-import androidx.core.content.ContextCompat
 import androidx.room.withTransaction
+import cn.sishiyuni.core.GraphOwner
 import cn.sishiyuni.core.data.*
 import cn.sishiyuni.core.model.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.*
 
-class AndroidTime(private val context:Context):TimeSource{
- override fun wall()=System.currentTimeMillis()
- override fun elapsed()=SystemClock.elapsedRealtime()
- override fun boot()=Settings.Global.getInt(context.contentResolver,Settings.Global.BOOT_COUNT,0)
+class AndroidTime(private val context: Context) : TimeSource {
+    override fun wall() = System.currentTimeMillis()
+    override fun elapsed() = SystemClock.elapsedRealtime()
+    override fun boot() = Settings.Global.getInt(context.contentResolver, Settings.Global.BOOT_COUNT, 0)
 }
-class TimerRepository(private val context:Context,private val db:LukeDatabase,val time:TimeSource=AndroidTime(context)){
- private val mutex=Mutex();private val alarms=context.getSystemService(AlarmManager::class.java)
- val states=db.dao().timers()
- suspend fun startCountdown(minutes:Int,label:String="夏彦提醒你：休息一下",replaceExisting:Boolean=false)=mutex.withLock{
-  require(minutes in 1..180)
-  val old=db.dao().timer("countdown")
-  TimerTransitions.requireCountdownReplacement(old,replaceExisting)
-  val duration=minutes*60000L
-  val t=TimerEntity(durationMs=duration,remainingMs=duration,elapsedDeadline=time.elapsed()+duration,wallDeadline=time.wall()+duration,bootCount=time.boot(),running=true,startedWall=time.wall(),generation=newId(),label=label.take(100))
-  db.dao().putTimer(t)
-  if(old!=null)cancelAlarm(old)
-  schedule(t)
- }
- suspend fun pause(id:String="countdown")=mutex.withLock{
-  val t=db.dao().timer(id)?:return@withLock
-  if(!t.running)return@withLock
-  val paused=if(t.kind=="study")TimerTransitions.pauseStudy(t,time)
-   else t.copy(remainingMs=TimerMath.remaining(t,time),running=false)
-  db.dao().putTimer(paused)
-  cancelAlarm(t)
- }
- suspend fun resume(id:String="countdown")=mutex.withLock{
-  val t=db.dao().timer(id)?:return@withLock
-  if(t.running||t.completed||t.generation.isBlank())return@withLock
-  val study=t.kind=="study"
-  val resumed=t.copy(running=true,elapsedDeadline=if(study)time.elapsed()else time.elapsed()+t.remainingMs,wallDeadline=if(study)time.wall()else time.wall()+t.remainingMs,bootCount=time.boot())
-  db.dao().putTimer(resumed)
-  if(!study)schedule(resumed)
- }
- suspend fun reset(id:String="countdown",discardStudyConfirmed:Boolean=false)=mutex.withLock{
-  val t=db.dao().timer(id)?:return@withLock
-  val reset=TimerTransitions.reset(t,discardStudyConfirmed)
-  db.dao().putTimer(reset)
-  cancelAlarm(t)
-  NotificationManagerCompat.from(context).cancel(id.hashCode())
- }
- suspend fun startStudy(subject:String)=mutex.withLock{
-  val old=db.dao().timer("study")
-  val next=TimerTransitions.startStudy(old,subject,time,newId())
-  if(next!==old)db.dao().putTimer(next)
- }
- suspend fun finishStudy()=mutex.withLock{db.withTransaction{
-  val t=db.dao().timer("study")?:return@withTransaction
-  if(t.completed||!TimerTransitions.hasStudy(t))return@withTransaction
-  val paused=TimerTransitions.pauseStudy(t,time)
-  val segments=obj(paused.raw).arr("segments")
-  segments.forEachIndexed{i,e->val s=e.jsonObject
-   TimerMath.splitStudy(s.num("from"),s.num("millis").coerceIn(0,24*3600000L)).forEachIndexed{j,(at,minutes)->
-    if(minutes>0)db.dao().putFocusLog(FocusLogEntity("${t.generation}:$i:$j",at,minutes,t.label,t.label,"study"))
-   }
-  }
-  db.dao().putTimer(paused.copy(completed=true))
- }}
- private fun pending(t:TimerEntity,flags:Int=PendingIntent.FLAG_UPDATE_CURRENT):PendingIntent?=PendingIntent.getBroadcast(context,t.id.hashCode(),Intent(context,TimerReceiver::class.java).setAction("finish").setData(Uri.parse("luke-timer://${t.id}/${t.generation}")).putExtra("id",t.id).putExtra("generation",t.generation),flags or PendingIntent.FLAG_IMMUTABLE)
- private fun cancelAlarm(t:TimerEntity){pending(t,PendingIntent.FLAG_NO_CREATE)?.let{alarms.cancel(it);it.cancel()}}
- fun exactAllowed():Boolean=Build.VERSION.SDK_INT<31||alarms.canScheduleExactAlarms()
- private fun schedule(t:TimerEntity){
-  if(t.kind=="study"||!t.running)return
-  val intent=pending(t)?:return
-  val trigger=time.elapsed()+TimerMath.remaining(t,time)
-  try{if(exactAllowed())alarms.setExactAndAllowWhileIdle(AlarmManager.ELAPSED_REALTIME_WAKEUP,trigger,intent)else alarms.setAndAllowWhileIdle(AlarmManager.ELAPSED_REALTIME_WAKEUP,trigger,intent)}
-  catch(_:SecurityException){alarms.setAndAllowWhileIdle(AlarmManager.ELAPSED_REALTIME_WAKEUP,trigger,intent)}
- }
- suspend fun fire(id:String,generation:String){
-  val fired=mutex.withLock{db.withTransaction{
-   val t=db.dao().timer(id)?:return@withTransaction null
-   if(t.kind=="study"||!t.running||t.completed||t.generation!=generation)return@withTransaction null
-   if(TimerMath.remaining(t,time)>0){schedule(t);return@withTransaction null}
-   db.dao().putTimer(t.copy(running=false,completed=true,remainingMs=0));t
-  }}
-  if(fired!=null)notify(fired)
- }
- suspend fun restore(){mutex.withLock{db.dao().allTimers().filter{it.running&&it.kind!="study"}.forEach{t->
-  val remaining=TimerMath.remaining(t,time)
-  val updated=if(t.bootCount!=time.boot())t.copy(bootCount=time.boot(),elapsedDeadline=time.elapsed()+remaining,wallDeadline=time.wall()+remaining)else t
-  db.dao().putTimer(updated);schedule(updated)
- }}}
- suspend fun checkForeground(){db.dao().allTimers().filter{it.running&&it.kind!="study"&&TimerMath.remaining(it,time)==0L}.forEach{fire(it.id,it.generation)}}
- private fun notify(t:TimerEntity){
-  val manager=context.getSystemService(NotificationManager::class.java)
-  val channel=NotificationChannel("luke-timers","计时结束",NotificationManager.IMPORTANCE_HIGH).apply{description="倒计时到时提醒";enableVibration(true);setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM),android.media.AudioAttributes.Builder().setUsage(android.media.AudioAttributes.USAGE_ALARM).build())}
-  manager.createNotificationChannel(channel)
-  if(Build.VERSION.SDK_INT>=33&&ContextCompat.checkSelfPermission(context,Manifest.permission.POST_NOTIFICATIONS)!=PackageManager.PERMISSION_GRANTED)return
-  val launch=context.packageManager.getLaunchIntentForPackage(context.packageName)?.apply{flags=Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP}
-  val content=launch?.let{PendingIntent.getActivity(context,0,it,PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)}
-  val n=NotificationCompat.Builder(context,"luke-timers").setSmallIcon(android.R.drawable.ic_lock_idle_alarm).setContentTitle("夏彦提醒你").setContentText(t.label).setCategory(NotificationCompat.CATEGORY_ALARM).setPriority(NotificationCompat.PRIORITY_HIGH).setAutoCancel(true).setContentIntent(content).build()
-  NotificationManagerCompat.from(context).notify(t.id.hashCode(),n)
- }
+
+class TimerRepository(
+    context: Context,
+    private val db: LukeDatabase,
+    val time: TimeSource = AndroidTime(context),
+    private val alarms: TimerAlarms = AndroidTimerAlarms(context, time),
+) {
+    private val mutex = Mutex()
+    val states = db.dao().timers()
+    val reminderWarning = MutableStateFlow<String?>(null)
+
+    private fun schedule(timer: TimerEntity) {
+        try { alarms.schedule(timer) }
+        catch (_: RuntimeException) { reminderWarning.value = "计时已保存，但系统提醒未设置成功。可在提醒页重试。" }
+    }
+    fun exactAllowed(): Boolean = alarms.exactAllowed()
+
+    suspend fun startCountdown(minutes: Int, label: String = "夏彦提醒你：休息一下", replaceExisting: Boolean = false) = mutex.withLock {
+        require(minutes in 1..180)
+        val old = db.dao().timer("countdown")
+        TimerTransitions.requireCountdownReplacement(old, replaceExisting)
+        val duration = minutes * 60000L
+        val timer = TimerEntity(durationMs = duration, remainingMs = duration,
+            elapsedDeadline = time.elapsed() + duration, wallDeadline = time.wall() + duration,
+            bootCount = time.boot(), running = true, startedWall = time.wall(), generation = newId(), label = label.take(100))
+        db.dao().putTimer(timer)
+        if (old != null) alarms.cancel(old)
+        alarms.dismiss(timer.id)
+        reminderWarning.value = null
+        schedule(timer)
+    }
+
+    suspend fun startPomodoro(config: PomodoroConfig, label: String, group: String = "") = mutex.withLock {
+        val old = db.dao().timer(Pomodoro.ID)
+        if (Pomodoro.isActive(old)) {
+            check(old!!.running && Pomodoro.state(old).config == config && old.label == label.trim()) {
+                "还有未结束的番茄钟，请继续或先结束这一组"
+            }
+            return@withLock // Do not restart on a duplicate start callback.
+        }
+        val timer = Pomodoro.start(Pomodoro.ready(config, label, group, newId()), time)
+        db.withTransaction {
+            db.dao().putTimer(timer)
+            db.dao().putRecord(RecordEntity("timer-config", Pomodoro.ID, timer.raw, time.wall()))
+        }
+        if (old != null) alarms.cancel(old)
+        alarms.dismiss(timer.id)
+        reminderWarning.value = null
+        schedule(timer)
+    }
+
+    suspend fun pause(id: String = "countdown") = mutex.withLock {
+        val timer = db.dao().timer(id) ?: return@withLock
+        if (!timer.running) return@withLock
+        // A pause landing on the deadline must finish once, not leave a zero-length paused phase.
+        if (timer.kind != "study" && TimerMath.remaining(timer, time) == 0L) {
+            finishLocked(timer.id, timer.generation)
+            return@withLock
+        }
+        val paused = if (timer.kind == "study") TimerTransitions.pauseStudy(timer, time)
+            else timer.copy(remainingMs = TimerMath.remaining(timer, time), running = false)
+        db.dao().putTimer(paused)
+        alarms.cancel(timer)
+    }
+
+    suspend fun resume(id: String = "countdown") = mutex.withLock {
+        val timer = db.dao().timer(id) ?: return@withLock
+        if (timer.running || timer.completed || timer.generation.isBlank()) return@withLock
+        val study = timer.kind == "study"
+        val resumed = if (timer.kind == Pomodoro.ID) Pomodoro.start(timer, time) else timer.copy(
+            running = true, elapsedDeadline = if (study) time.elapsed() else time.elapsed() + timer.remainingMs,
+            wallDeadline = if (study) time.wall() else time.wall() + timer.remainingMs, bootCount = time.boot())
+        db.dao().putTimer(resumed)
+        alarms.dismiss(id)
+        if (!study) {
+            reminderWarning.value = null
+            if (TimerMath.remaining(resumed, time) == 0L) finishLocked(id, resumed.generation) else schedule(resumed)
+        }
+    }
+
+    suspend fun reset(id: String = "countdown", discardStudyConfirmed: Boolean = false) = mutex.withLock {
+        val timer = db.dao().timer(id) ?: return@withLock
+        check(!Pomodoro.isActive(timer)) { "结束番茄钟需要确认，已完成的专注记录会保留" }
+        resetLocked(timer, discardStudyConfirmed)
+    }
+    suspend fun cancelPomodoro(confirmed: Boolean) = mutex.withLock {
+        check(confirmed) { "请先确认结束这一组番茄钟" }
+        db.dao().timer(Pomodoro.ID)?.let { resetLocked(it, false) }
+    }
+    private suspend fun resetLocked(timer: TimerEntity, discardStudyConfirmed: Boolean) {
+        db.dao().putTimer(TimerTransitions.reset(timer, discardStudyConfirmed))
+        alarms.cancel(timer)
+        alarms.dismiss(timer.id)
+    }
+    suspend fun startStudy(subject: String) = mutex.withLock {
+        val old = db.dao().timer("study")
+        val next = TimerTransitions.startStudy(old, subject, time, newId())
+        if (next !== old) db.dao().putTimer(next)
+    }
+    suspend fun finishStudy() = mutex.withLock {
+        db.withTransaction {
+            val timer = db.dao().timer("study") ?: return@withTransaction
+            if (timer.completed || !TimerTransitions.hasStudy(timer)) return@withTransaction
+            val paused = TimerTransitions.pauseStudy(timer, time)
+            obj(paused.raw).arr("segments").forEachIndexed { i, element ->
+                val segment = element.jsonObject
+                TimerMath.splitStudy(segment.num("from"), segment.num("millis").coerceIn(0, 24 * 3600000L)).forEachIndexed { j, (at, minutes) ->
+                    if (minutes > 0) db.dao().putFocusLog(FocusLogEntity("${timer.generation}:$i:$j", at, minutes, timer.label, timer.label, "study"))
+                }
+            }
+            db.dao().putTimer(paused.copy(completed = true))
+        }
+    }
+
+    /** Mutex plus database transaction protects phase/log pairs against alarm and foreground races. */
+    private suspend fun finishLocked(id: String, generation: String) {
+        val fired = db.withTransaction {
+            val timer = db.dao().timer(id) ?: return@withTransaction null
+            if (timer.kind == "study" || !timer.running || timer.completed || timer.generation != generation) return@withTransaction null
+            if (TimerMath.remaining(timer, time) > 0) { schedule(timer); return@withTransaction null }
+            if (timer.kind == Pomodoro.ID) {
+                val result = Pomodoro.complete(timer, time, newId()) ?: return@withTransaction null
+                result.log?.let { db.dao().putFocusLog(it) }
+                db.dao().putTimer(result.next)
+            } else db.dao().putTimer(timer.copy(running = false, completed = true, remainingMs = 0))
+            timer
+        }
+        if (fired != null) {
+            alarms.cancel(fired)
+            // Keep this inside the command mutex so a concurrent reset cannot be followed by a stale notification.
+            try { alarms.notifyFinished(fired) }
+            catch (_: RuntimeException) { reminderWarning.value = "计时已结束，系统未能显示提醒。" }
+        }
+    }
+    suspend fun fire(id: String, generation: String) = mutex.withLock { finishLocked(id, generation) }
+
+    suspend fun restore() = mutex.withLock {
+        reminderWarning.value = null
+        db.dao().allTimers().filter { it.running && !it.completed && it.kind != "study" }.forEach { timer ->
+            val remaining = TimerMath.remaining(timer, time)
+            val updated = if (timer.bootCount != time.boot()) timer.copy(bootCount = time.boot(),
+                elapsedDeadline = time.elapsed() + remaining, wallDeadline = time.wall() + remaining) else timer
+            db.dao().putTimer(updated)
+            if (remaining == 0L) finishLocked(updated.id, updated.generation) else schedule(updated)
+        }
+    }
+    suspend fun checkForeground() {
+        db.dao().allTimers().filter { it.running && it.kind != "study" && TimerMath.remaining(it, time) == 0L }
+            .forEach { fire(it.id, it.generation) }
+    }
 }
-class TimerReceiver:BroadcastReceiver(){override fun onReceive(context:Context,intent:Intent){val pending=goAsync();CoroutineScope(SupervisorJob()+Dispatchers.IO).launch{try{val graph=(context.applicationContext as cn.sishiyuni.core.GraphOwner).graph;graph.timer.fire(intent.getStringExtra("id")?:"",intent.getStringExtra("generation")?:"")}finally{pending.finish()}}}}
-class RestoreReceiver:BroadcastReceiver(){override fun onReceive(context:Context,intent:Intent){val pending=goAsync();CoroutineScope(SupervisorJob()+Dispatchers.IO).launch{try{val graph=(context.applicationContext as cn.sishiyuni.core.GraphOwner).graph;graph.timer.restore()}finally{pending.finish()}}}}
+
+private fun BroadcastReceiver.timerWork(context: Context, work: suspend (cn.sishiyuni.core.AppGraph) -> Unit) {
+    val pending = goAsync()
+    CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
+        try {
+            withTimeout(8000) {
+                val graph = (context.applicationContext as? GraphOwner)?.graph ?: return@withTimeout
+                try { work(graph) }
+                catch (e: CancellationException) { throw e }
+                catch (_: Exception) { graph.errors.value = "计时状态暂未处理完成，重新打开应用后会重试。" }
+            }
+        } finally { pending.finish() }
+    }
+}
+class TimerReceiver : BroadcastReceiver() {
+    override fun onReceive(context: Context, intent: Intent) {
+        if (intent.action != "finish") return
+        val id = intent.getStringExtra("id") ?: return
+        val generation = intent.getStringExtra("generation") ?: return
+        timerWork(context) { it.timer.fire(id, generation) }
+    }
+}
+class RestoreReceiver : BroadcastReceiver() {
+    override fun onReceive(context: Context, intent: Intent) { timerWork(context) { it.timer.restore() } }
+}
