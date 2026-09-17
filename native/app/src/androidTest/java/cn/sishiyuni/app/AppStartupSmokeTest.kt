@@ -53,12 +53,23 @@ class AppStartupSmokeTest {
         rule.onNodeWithTag("main-tab-$index").performClick()
         assertTabSettled(index)
     }
+    private fun openKeyboard() {
+        rule.onNodeWithTag("chat-input").performClick()
+        val content = rule.activity.findViewById<View>(android.R.id.content)
+        rule.waitUntil(10000) {
+            ViewCompat.getRootWindowInsets(content)?.isVisible(WindowInsetsCompat.Type.ime()) == true
+        }
+        rule.onNodeWithTag("chat-input").assertIsDisplayed()
+    }
     private fun hideKeyboard() {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         val content = rule.activity.findViewById<View>(android.R.id.content)
-        var visible = false
-        instrumentation.runOnMainSync { visible = ViewCompat.getRootWindowInsets(content)?.isVisible(WindowInsetsCompat.Type.ime()) == true }
-        if (visible) instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_BACK)
+        // InputConnection focus and IME show are asynchronous, especially on API 26.
+        // Do not mistake "not open yet" for "already closed", then tap a disappearing bar.
+        rule.waitUntil(10000) {
+            ViewCompat.getRootWindowInsets(content)?.isVisible(WindowInsetsCompat.Type.ime()) == true
+        }
+        instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_BACK)
         rule.waitUntil(10000) {
             ViewCompat.getRootWindowInsets(content)?.isVisible(WindowInsetsCompat.Type.ime()) == false
         }
@@ -103,6 +114,7 @@ class AppStartupSmokeTest {
         rule.waitUntil(10000) { graph.prefs.state.value.activeSession in graph.drafts.state.value }
         val text = "旋转与返回以后仍保留的草稿"
         val session = graph.prefs.state.value.activeSession
+        openKeyboard()
         rule.onNodeWithTag("chat-input").performTextReplacement(text)
         assertEquals("Repository must accept the typed input immediately",text,graph.drafts.state.value[session]?.text)
         rule.onNodeWithTag("chat-input").assertTextEquals(text)
@@ -130,9 +142,7 @@ class AppStartupSmokeTest {
         rule.onNodeWithTag("main-tab-0").assertIsSelected()
     }
     @Test fun keyboardKeepsComposerVisibleInsteadOfStackingTwoBottomBars() {
-        tab(1);waitFor("chat-input");rule.onNodeWithTag("chat-input").performClick()
-        val content = rule.activity.findViewById<View>(android.R.id.content)
-        rule.waitUntil(10000) { ViewCompat.getRootWindowInsets(content)?.isVisible(WindowInsetsCompat.Type.ime()) == true }
+        tab(1);waitFor("chat-input");openKeyboard()
         rule.onNodeWithTag("chat-input").assertIsDisplayed();rule.onNodeWithTag("chat-send").assertIsDisplayed()
         rule.onNodeWithTag("bottom-navigation").assertDoesNotExist();capture("launcher-keyboard")
         hideKeyboard();rule.onNodeWithTag("main-tab-1").assertIsSelected()
@@ -151,6 +161,7 @@ class AppStartupSmokeTest {
         tab(1); waitFor("chat-input")
         rule.waitUntil(10000) { graph.prefs.state.value.activeSession in graph.drafts.state.value }
         val text = "收起键盘之后不丢失的文字"
+        openKeyboard()
         rule.onNodeWithTag("chat-input").performTextReplacement(text)
         hideKeyboard(); tab(5); waitFor("timer-tabs")
         tab(1); rule.onNodeWithTag("chat-input").assertTextEquals(text)
