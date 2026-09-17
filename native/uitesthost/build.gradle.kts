@@ -28,6 +28,7 @@ dependencies {
     implementation(project(":feature:timer"))
     implementation(project(":feature:settings"))
     implementation(project(":feature:plans"))
+    implementation(project(":feature:journal"))
     implementation("androidx.activity:activity-compose:1.10.1")
     androidTestImplementation(platform("androidx.compose:compose-bom:2025.05.01"))
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
