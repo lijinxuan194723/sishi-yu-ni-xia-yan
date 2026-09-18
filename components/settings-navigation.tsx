@@ -6,7 +6,7 @@ import {DialogTitle,DialogDescription} from '@/components/ui/dialog';
 const sections=[
  {group:'日常与外观',items:[{id:'appearance',title:'外观与字号',hint:'四季、昼夜、背景与字体大小',Icon:Palette},{id:'chat-style',title:'头像与聊天样式',hint:'我的头像、聊天气泡与字号',Icon:MessageCircle},{id:'celebrations',title:'生日与纪念日',hint:'生日祝福与相伴日期',Icon:Gift}]},
  {group:'聊天与记忆',items:[{id:'model',title:'聊天模型',hint:'服务地址、模型与连接',Icon:SlidersHorizontal},{id:'memory',title:'长期聊天记忆',hint:'摘要、重要约定与聊天备份',Icon:BookHeart},{id:'luke-memory',title:'夏彦的记忆',hint:'角色资料与内容范围',Icon:UserRound},{id:'context',title:'聊天近况',hint:'选择向对话分享的近况',Icon:MessageCircle}]},
- {group:'数据与权限',items:[{id:'general',title:'日常与数据',hint:'称呼、备份与恢复',Icon:Database},{id:'weather',title:'天气与位置',hint:'天气服务与定位',Icon:CloudSun},{id:'permissions',title:'权限与隐私',hint:'何时申请、数据去向',Icon:Shield},{id:'disclaimer',title:'关于与免责声明',hint:'版本、资料来源与使用说明',Icon:BookHeart}]}];
+ {group:'数据与权限',items:[{id:'general',title:'日常与数据',hint:'称呼、备份与恢复',Icon:Database},{id:'holiday',title:'日历与节假日',hint:'静态数据、在线备用与自动更新',Icon:CloudSun},{id:'weather',title:'天气与位置',hint:'天气服务与定位',Icon:CloudSun},{id:'permissions',title:'权限与隐私',hint:'何时申请、数据去向',Icon:Shield},{id:'disclaimer',title:'关于与免责声明',hint:'版本、资料来源与使用说明',Icon:BookHeart}]}];
 export function SettingsNavigation({value,onChange}:{value:string;onChange:(value:string)=>void}) {
  const [query,setQuery]=useState('');
  const directory=useRef<HTMLDivElement>(null), heading=useRef<HTMLHeadingElement>(null);

@@ -1,0 +1,23 @@
+name: Verify WebView 2.0.10 source
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm run check:types
+      - run: npm run test:unit
+      - run: npm run build:mobile
+      - uses: actions/upload-artifact@v4
+        with:
+          name: webview210-mobile-web
+          path: work/mobile-web
+          retention-days: 7

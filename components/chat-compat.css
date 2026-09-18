@@ -1,0 +1,26 @@
+/* Narrowly scoped chat fixes. Other pages, calendar, memory and native shell are unchanged. */
+:root .chat-compat-settings .chat-person-switch{display:flex;gap:6px;padding:5px;border:1px solid var(--scene-border);background:var(--scene-paper);border-radius:17px}
+:root .chat-person-switch button{flex:1;min-height:44px;padding:9px 12px;border-radius:12px;background:transparent;color:var(--scene-muted);font-size:.875rem}
+:root .chat-person-switch button[aria-pressed=true]{background:var(--season-soft);color:var(--season-accent);font-weight:600}
+:root .chat-compat-settings .avatar-choices button{min-width:56px;min-height:56px;background:none;border-radius:16px}
+:root .chat-page .message:has(>.bubble-compat210){width:fit-content;max-width:min(96%,480px);grid-template-columns:36px minmax(0,1fr);gap:5px 12px;margin-bottom:0}
+:root .chat-page .message.mine:has(>.bubble-compat210){grid-template-columns:minmax(0,1fr) 36px;justify-self:end}
+:root .chat-page .message:has(>.bubble-compat210)>.chat-avatar{grid-row:2;align-self:start;padding:0;object-fit:contain;border:0;background:transparent;border-radius:0}
+:root .chat-page .message:has(>.bubble-compat210)>.chat-avatar[data-personal-photo=true]{object-fit:cover;border-radius:50%}
+:root .chat-page .chat-head>.chat-avatar{padding:0;border:0;background:none;object-fit:contain;border-radius:0}
+:root .chat-page .chat-head>.chat-avatar[data-personal-photo=true]{object-fit:cover;border-radius:50%}
+:root .chat-page .message:has(>.bubble-compat210)>small{min-height:20px;font-size:.72rem;line-height:1.5;padding-inline:0!important}
+:root .chat-page .message .bubble-frame.bubble-compat210{padding:18px 19px 16px;min-width:0;width:fit-content;max-width:100%;border-radius:16px;--edge:22px 19px 17px 22px}
+:root .chat-page .message .bubble-frame.bubble-compat210[data-skin=sunflower]{--edge:19px 23px 20px 24px;padding:16px 20px 17px}
+:root .chat-page .message .bubble-frame.bubble-compat210[data-skin=hearts]{--edge:26px 20px 15px 22px;padding:24px 20px 15px}
+:root .chat-page .message .bubble-frame.bubble-compat210[data-skin=plain]{padding:11px 14px;border-radius:17px 17px 17px 6px}
+:root .chat-page .message.mine .bubble-frame.bubble-compat210[data-skin=plain]{border-radius:17px 17px 6px 17px}
+:root .chat-page .message .bubble-frame.bubble-compat210 p{width:auto!important;line-height:1.7;word-break:normal;overflow-wrap:anywhere}
+:root .chat-page .message:has(>.bubble-compat210) .message-edit{margin-top:0;min-height:32px;font-size:.72rem}
+:root .chat-page .messages:has(.bubble-compat210){padding:20px 14px 22px;gap:22px;justify-content:flex-start;scroll-padding-block:20px;-webkit-mask-image:linear-gradient(to bottom,transparent,#000 10px,#000 calc(100% - 16px),transparent);mask-image:linear-gradient(to bottom,transparent,#000 10px,#000 calc(100% - 16px),transparent)}
+:root .chat-page .composer.composer-compat210{margin:8px 12px 12px;padding:8px;border-radius:26px;border:1px solid var(--scene-border);background:var(--scene-paper);box-shadow:0 5px 20px var(--scene-shadow);gap:8px;min-width:0}
+:root .chat-page .composer-compat210 textarea{border:0;box-shadow:none!important;background:transparent;padding:10px 8px;min-height:44px;line-height:1.5}
+:root .chat-page .composer-compat210>.primary{min-width:44px;min-height:44px;width:44px;height:44px;border-radius:50%;padding:10px}
+@supports(backdrop-filter:blur(1px)){:root .chat-page .composer.composer-compat210{background:color-mix(in srgb,var(--scene-paper) 90%,transparent);backdrop-filter:blur(14px)}}
+@media(prefers-reduced-transparency:reduce),(prefers-contrast:more){:root .chat-page .composer.composer-compat210{background:var(--scene-paper);backdrop-filter:none}}
+@media(max-width:360px){:root .chat-page .message:has(>.bubble-compat210){grid-template-columns:32px minmax(0,1fr);gap:4px 8px;max-width:100%}:root .chat-page .message.mine:has(>.bubble-compat210){grid-template-columns:minmax(0,1fr) 32px}:root .chat-page .message:has(>.bubble-compat210)>.chat-avatar{width:32px;height:32px}}

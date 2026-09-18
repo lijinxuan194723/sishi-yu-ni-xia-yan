@@ -36,4 +36,4 @@ test('timer footer and browser-native date input are removed',()=>{assert.doesNo
 test('focus pendant animates only transform with reduced-motion handling',()=>{const css=read('components/timer-polish.css');assert.match(css,/@keyframes luke-focus-sway/);assert.match(css,/prefers-reduced-motion/);assert.doesNotMatch(css,/filter:|animation:.*background/);});
 test('worker cancels model processing and bounds timeout',()=>{const s=read('hooks/use-conversation-memory.ts');assert.match(s,/60000/);assert.match(s,/latest.memoryArchive!==initialArchive/);assert.match(s,/controller.signal.aborted/);});
 test('normal send does not wait for legacy rolling summaries',()=>assert.doesNotMatch(read('app/page.tsx'),/await prepareMemory/));
-test('new version keeps the original upgrade identity',()=>{const s=read('mobile/android/AndroidManifest.xml');assert.match(s,/902010/);assert.match(s,/2\.0\.5/);assert.match(s,/com.luke.summer/);});
+test('new version keeps the original upgrade identity',()=>{const s=read('mobile/android/AndroidManifest.xml');assert.match(s,/902063/);assert.match(s,/2\.0\.10/);assert.match(s,/com.luke.summer/);});

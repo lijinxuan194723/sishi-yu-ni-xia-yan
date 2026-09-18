@@ -1,4 +1,5 @@
 'use client';
+import {GlassPreference} from './glass-preference';
 import { useEffect, useId, useRef, useState } from 'react';
 import { ImagePlus, RotateCcw } from 'lucide-react';
 import { Ambience, SeasonPhoto, useAmbience } from './ambience';
@@ -55,7 +56,7 @@ export function AppearanceSettings() {
     <fieldset className="appearance-options"><legend>昼夜光照</legend><div>{(['auto', ...periods] as const).map(value => <button type="button" key={value} disabled={!scene} aria-pressed={options.period === value} onClick={() => setOptions({ ...options, period: value })}>{value === 'auto' ? '随时间' : value}</button>)}</div></fieldset>
     <label className="inline-label"><input type="checkbox" role="switch" aria-checked={options.effects !== false} checked={options.effects !== false} onChange={event => setOptions({ ...options, effects: event.target.checked })} /> 季节动画</label>
     <p className="feedback-help">开屏圆章与这里的季节一致；“随日期”会在每次打开时重新判断季节。</p>
-    <FontSettings/><FeedbackSettings />
+    <GlassPreference/><FontSettings/><FeedbackSettings />
     <section className={styles.background} aria-label="悄悄话背景设置" aria-busy={busy}>
       <h3>悄悄话背景</h3><p className={styles.help} id={helpId}>支持 JPG、PNG、WebP，最大 8 MB。自动优化图片尺寸，节省本地空间，不上传图片。</p>
       {background && <img className={styles.preview} src={background} alt="当前自定义聊天背景" onError={() => setBackgroundError('已保存的背景无法显示，原记录已保留。可重新选择或恢复季节背景。')} />}

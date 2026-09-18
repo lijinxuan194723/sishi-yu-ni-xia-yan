@@ -1,0 +1,12 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import {spawnSync} from 'node:child_process';
+const read=p=>fs.readFileSync(p,'utf8');
+test('WebView package, release metadata and Android manifest agree on 2.0.10 / 902063',()=>{assert.equal(JSON.parse(read('package.json')).version,'2.0.10');assert.equal(JSON.parse(read('package-lock.json')).packages[''].version,'2.0.10');assert.match(read('mobile/android/AndroidManifest.xml'),/versionCode='902063'.*versionName='2.0.10'/);assert.match(read('lib/release-info.ts'),/version: '2.0.10'/);});
+test('native build entry defaults unsigned and does not generate a secret or bundle a model key',()=>{const s=read('mobile/build-local.mjs');assert.doesNotMatch(s,/genkeypair|execSync\(.*shell|personal-model\.json.*writeFile/);assert.match(s,/签名必须提供/);assert.match(s,/默认仅生成未签名/);});
+test('build command --help succeeds without a network request or Android key',()=>{const p=spawnSync(process.execPath,['mobile/build-local.mjs','--help'],{encoding:'utf8'});assert.equal(p.status,0);assert.match(p.stdout,/2\.0\.10/);assert.match(p.stdout,/不会创建密钥/);});
+test('source includes only a manually invoked verification workflow, not an automatic release job',()=>{assert.deepEqual(fs.readdirSync('.github/workflows'),['verify-webview210.yml']);const s=read('.github/workflows/verify-webview210.yml');assert.match(s,/workflow_dispatch/);assert.doesNotMatch(s,/contents: write|gh release|push:/);});
+test('user cut-out provenance points to real transparent assets, not added icon backplates',()=>{const data=JSON.parse(read('docs/user-cutout-assets210.json'));assert.equal(data.length,3);for(const d of data){assert.ok(fs.existsSync(d.output));assert.match(d.operation,/no added background/);}assert.match(read('app/webview210.css'),/desk-camera210.*background:none/);});
+test('markdown skill and conversation exports preserve their MIME type in both browser and native paths',()=>{assert.match(read('lib/mobile.ts'),/text\/markdown/);assert.match(read('mobile/android/MainActivity.java'),/endsWith\("\.md"\)\?"text\/markdown"/);});
+test('invalid conversation rename is stopped before entering the React functional state updater',()=>{assert.match(read('components/conversation-hub.tsx'),/const clean=title.trim\(\);if\(!clean\|\|clean.length>80\)throw Error/);});

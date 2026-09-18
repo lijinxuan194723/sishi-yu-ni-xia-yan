@@ -1,65 +1,13 @@
-# 四时与你（夏彦）
+# 四时与你 · WebView 2.0.10 hotfix.3
 
-一个以夏彦为主题的本地陪伴式 Web 应用，围绕四季、天气、聊天、记录和日常陪伴展开。数据默认保存在浏览器本地，模型与天气服务由用户自行配置。
+本版以已上传的 **hotfix.2完整源码** 为基线，修复的是指针、提醒时钟和计时分区布局。版本 2.0.10，Android versionCode 902063；本批 `hotfix.3-visible-clock-hands`。
 
-![四时与你](public/images/luke-sunset.jpg)
+专注使用实际表心分针/秒针，数字移到钟面外。提醒未启动时显示当前时钟，启动后显示倒计时，暂停真的停针；番茄计时也接入同一引擎。关闭装饰效果只改成每秒跳针，不会让功能性时钟停走。常规屏幕大表盘、短屏表盘/读数并排；科目、历史、系统时钟入口及已有记录不删减。
 
-## 项目介绍
+**构建说明：[BUILD-WebView-2.0.10.md](BUILD-WebView-2.0.10.md)**。重新构建网页后再原生打包，不混用上一版work目录。依赖锁文件不变。
 
-这是一个面向个人使用的四时陪伴空间：你可以在四季主题场景中与夏彦聊天，记录日记和待办，使用专注、学习、阅读、音乐等日常功能，也可以导入或导出本地备份。
+本轮类型检查和网页/Android原生编译通过，483项逻辑测试与199项离线浏览器检查通过。实际边界见 [本批说明](docs/releases/WebView-hotfix3.md) 和 [验证汇总](verification/clock-hotfix3/summary.json)。全部原图片、计时数据核心、聊天/存档键、备份和自动记忆文件未改写。
 
-角色设定、模型接入方式和天气接口说明见 [docs/CHARACTER_AND_API.md](docs/CHARACTER_AND_API.md)。项目不会在仓库中保存真实 API Key；请在本地设置页面中填写自己的接口配置。
+本包不包含SDK、node_modules、签名密钥、模型Key或真实用户记录。当前交付APK是独立签名包名，不是旧应用覆盖升级；先导出备份再导入，勿卸载旧版。旧verification目录只是历史，不代表当前检查。
 
-## 主要功能
-
-- 夏彦角色陪伴、聊天记录与本地记忆
-- 春夏秋冬主题场景、图片和动态氛围
-- 天气显示、降水提示与地点配置
-- 日记、手记、待办、学习、阅读、专注和倒计时
-- 本地数据导入导出，支持旧版备份迁移
-- Android APK 发布包，见 [Releases](../../releases)
-
-![四季场景](public/images/seasons/spring.png)
-
-## 本地运行
-
-环境要求：Node.js `>=22.13.0`。
-
-```bash
-npm install
-npm run dev
-```
-
-构建生产版本：
-
-```bash
-npm run build
-```
-
-## Android 下载
-
-每个 APK 都按版本单独放在 GitHub Releases 中，包含 `Summer-Luke` 和 `Four-Seasons-Luke` 两条版本线。打开 [Releases](../../releases) 后，选择需要的版本并下载对应 APK。
-
-![夏彦角色图](public/images/luke-blossom.jpg)
-
-## 目录说明
-
-| 目录 | 内容 |
-| --- | --- |
-| `app/`、`components/` | Web 页面和界面组件 |
-| `lib/`、`hooks/` | 业务逻辑和状态钩子 |
-| `public/` | 角色、四季和应用资源 |
-| `mobile/` | Android 壳与构建脚本 |
-| `docs/` | 接口说明和验证记录 |
-| `scripts/checks/` | 功能与交互检查脚本 |
-| `CHANGELOG.md` | 版本变更记录 |
-
-## 隐私与安全
-
-- API Key、Token、密码和签名文件不会提交到仓库。
-- 聊天记录和应用数据默认保存在当前浏览器，不写入项目服务器。
-- 使用模型或天气服务时，请遵守对应服务商的条款与额度限制。
-
-## 版本记录
-
-完整变更记录见 [CHANGELOG.md](CHANGELOG.md)。历史版本标签包括 `v0.1` 至 `v0.5`。
+本轮未向GitHub写入、未改原生迁移分支或主线。原有Weather/Skills/其他依赖许可与分发边界保持原说明；本补丁未引入新的天气供应商、脚本权限或动画库。

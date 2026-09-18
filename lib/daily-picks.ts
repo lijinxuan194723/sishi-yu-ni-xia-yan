@@ -1,3 +1,4 @@
+import {retrieveArchive} from './memory-archive.ts';
 import {complete,LUKE_PERSONA,currentState,relatedMemories,type ChatMessage,type ModelConfig} from './model.ts';
 import {dateKey,emptyMemory,type Data} from './companion.ts';
 
@@ -82,9 +83,9 @@ export function dailyPicksStale(picks:DailyPicks|undefined,now=new Date()){
 }
 
 export function dailyRecommendationContext(data:Data,weather:string){
- const memory=data.memory??emptyMemory;
- return JSON.stringify({state:currentState(data,weather),confirmedMemory:memory.pinned,longTermSummary:memory.summary,
-  relevantOriginalMessages:relatedMemories(data),recentMessages:data.messages.filter(m=>m.who==='me'||m.source==='model').slice(-12).map(m=>({who:m.who,text:m.text.slice(0,1200),at:m.at})),
+ const memory=data.memory??emptyMemory,muted=new Set(data.memoryArchive?.mutedSources??[]),visibleMessages=data.messages.filter((_,i)=>!muted.has(i)),archive=retrieveArchive(data.messages,data.memoryArchive,'喜欢的歌和书、音乐与阅读喜好');
+ return JSON.stringify({state:currentState(data,weather),confirmedMemory:memory.pinned,longTermSummary:memory.summary,confirmedFacts:archive.facts,archiveSummaries:archive.chapters,
+  relevantOriginalMessages:relatedMemories(data),recentMessages:visibleMessages.filter(m=>m.who==='me'||m.source==='model').slice(-12).map(m=>({who:m.who,text:m.text.slice(0,1200),at:m.at})),
  });
 }
 

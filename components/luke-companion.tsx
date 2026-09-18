@@ -1,4 +1,5 @@
 'use client';
+import {ExpandableNote} from './expandable-note';
 import {FocusKeepsake} from './focus-keepsake';
 import { memo, useMemo, useState } from 'react';
 import { Bird, BookHeart, Camera, ChevronLeft, ChevronRight, KeyRound, MessageCircle, RefreshCw, Timer } from 'lucide-react';
@@ -17,19 +18,14 @@ export function LukeDesk({ data, today }: { data: Data; today: string }) {
       <div className="luke-note"><strong>给华生的今日便笺</strong><p role="status" aria-live="polite">{companionNote(today, offset)}</p></div></div>
     <div className="luke-desk-actions">
       <button type="button" onClick={() => requestCompanionPage('timers')}><Timer size={18} /><span>接一份专注委托<small>{minutes > 0 ? `今天已记录 ${formatCompanionMinutes(minutes)}` : '我在这里，陪你开始'}</small></span></button>
-      <button type="button" onClick={() => requestCompanionPage('notes')}><Camera size={18} /><span>收藏今天的线索<small>把小事写进手记</small></span></button>
+      <button type="button" onClick={() => requestCompanionPage('notes')}><img className="desk-camera210" src="/images/details210/orange-camera.webp" alt="" width={26} height={26}/><span>收藏今天的线索<small>把小事写进手记</small></span></button>
       <button type="button" onClick={() => requestCompanionPage('chat')}><MessageCircle size={18} /><span>和夏彦聊一会儿<small>慢慢说，我听着</small></span></button>
     </div>
   </section>;
 }
 
 export const StudyCompanion = memo(function StudyCompanion({ running, subject, today }: { running: boolean; subject: string; today: string }) {
-  return <div className="study-companion-note">
-    <img src="/images/companions/cat.webp" alt="" width={56} height={56} />
-    <div><strong>夏彦 <span>{running ? '正在陪你专注' : '等你一起开始'}</span></strong>
-      <p>{running ? `华生，${subject || '这一页'}交给你。我先安静陪着，结束后再一起收好今天的成果。` : companionNote(today, 2)}</p>
-      </div>
-  </div>;
+  return <ExpandableNote label="夏彦的陪伴便笺" title={<span className="study-heading210"><img src="/images/companions/cat.webp" alt="" width={36} height={36}/><span><strong>夏彦陪你学习</strong><small>{running?'正在陪你专注':'等你一起开始'}</small></span></span>}><p>{running ? `华生，${subject || '这一页'}交给你。我先安静陪着，结束后再一起收好今天的成果。` : companionNote(today, 2)}</p></ExpandableNote>;
 });
 
 export function StudyDial({ seconds, running, subject }: { seconds: number; running: boolean; subject: string }) {
@@ -47,7 +43,7 @@ export function LukeStudyCalendar({ data, day, today, onDay }: { data: Data; day
   const values = month.days.map(date => daily[date] ?? 0), total = values.reduce((a, b) => a + b, 0), max = Math.max(1, ...values);
   const selected = daily[day] ?? 0;
   return <section className="card luke-study-calendar" aria-label="和夏彦的专注月历">
-    <header><div><BookHeart size={18} aria-hidden="true" /><h2>和夏彦的专注月历<small>{month.title}</small></h2></div><div>
+    <header><div><BookHeart size={18} aria-hidden="true" /><h2 aria-label="和夏彦的专注月历">专注月历<small>{month.title}</small></h2></div><div>
       <button type="button" className="round" aria-label="上个月的专注印记" onClick={() => onDay(month.previous)}><ChevronLeft size={18} /></button>
       <button type="button" className="round" aria-label="下个月的专注印记" onClick={() => onDay(month.next)}><ChevronRight size={18} /></button></div></header>
     <div className="luke-stamp-grid">{'一二三四五六日'.split('').map(d => <small key={d}>{d}</small>)}

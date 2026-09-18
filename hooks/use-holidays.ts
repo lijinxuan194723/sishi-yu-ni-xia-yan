@@ -1,0 +1,8 @@
+'use client';
+import {useEffect,useSyncExternalStore} from 'react';
+import {networkFetch} from '@/lib/mobile';
+import {HolidayRepository,HOLIDAY_CACHE,HOLIDAY_PREFS,chinaYear} from '@/lib/holiday-repository';
+let repository:HolidayRepository|undefined;
+export function holidays(){if(!repository){let storage:Storage|undefined;try{storage=localStorage;}catch{}repository=new HolidayRepository(storage,networkFetch,Date.now,()=>!document.hidden&&navigator.onLine!==false);}return repository;}
+export function useHolidayYear(year:number,month?:number,enabled=true){const repo=holidays();useSyncExternalStore(repo.subscribe,()=>repo.revision,()=>repo.revision);useEffect(()=>{if(!enabled)return;void repo.refresh(year);if(month===11)void repo.refresh(year+1);},[year,month,enabled]);return repo.snapshot(year);}
+export function useHolidayMaintenance(){useEffect(()=>{const repo=holidays();const wake=()=>{if(document.hidden||navigator.onLine===false){repo.cancel();return;}const now=Date.now(),year=chinaYear(now);void repo.refresh(year);if(new Date(now+28800000).getUTCMonth()>=9)void repo.refresh(year+1);};const changed=(e:StorageEvent)=>{if(e.key===null||[HOLIDAY_CACHE,HOLIDAY_PREFS].includes(e.key)){repo.reload();wake();}};const timer=setTimeout(wake,1800),interval=setInterval(wake,30*60000);window.addEventListener('online',wake);window.addEventListener('offline',wake);window.addEventListener('storage',changed);document.addEventListener('visibilitychange',wake);return()=>{clearTimeout(timer);clearInterval(interval);window.removeEventListener('online',wake);window.removeEventListener('offline',wake);window.removeEventListener('storage',changed);document.removeEventListener('visibilitychange',wake);repo.cancel();};},[]);}

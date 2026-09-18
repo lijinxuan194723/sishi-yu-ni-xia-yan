@@ -1,0 +1,7 @@
+import type {Data} from './companion.ts';
+import {FAVORITES_KEY,parseFavorites} from './recommendation-favorites.ts';
+export const RECOMMENDATION_PREFS='luke-recommendation-preferences-v206';
+export type RecommendationPreferences={song:string;book:string;useMemory:boolean};
+export function readRecommendationPreferences():RecommendationPreferences{const raw=JSON.parse(localStorage.getItem(RECOMMENDATION_PREFS)||'{}');if(!raw||typeof raw!=='object'||Array.isArray(raw))throw Error('偏好设置无法读取，原内容已保留。');return {song:typeof raw.song==='string'?raw.song.slice(0,2000):'',book:typeof raw.book==='string'?raw.book.slice(0,2000):'',useMemory:raw.useMemory!==false};}
+export function saveRecommendationPreferences(p:RecommendationPreferences){const old=JSON.parse(localStorage.getItem(RECOMMENDATION_PREFS)||'{}');if(!old||typeof old!=='object'||Array.isArray(old))throw Error('偏好设置异常，不能覆盖。');localStorage.setItem(RECOMMENDATION_PREFS,JSON.stringify({...old,...p,song:p.song.slice(0,2000),book:p.book.slice(0,2000)}));window.dispatchEvent(new Event('luke-recommendation-preferences-change'));}
+export function preferenceEvidence(){const pref=readRecommendationPreferences();const favorites=parseFavorites(localStorage.getItem(FAVORITES_KEY)||'[]').slice(0,20).map(v=>({kind:v.kind,title:v.title,creator:v.creator}));return {explicitPreferences:pref,favorites:pref.useMemory?favorites:[],interpretation:'用户明确喜好优先。收藏只是可能喜欢的弱信号，不代表已读、已听或固定偏好，不推导私人身份。'};}

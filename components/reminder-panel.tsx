@@ -23,6 +23,7 @@ export function ReminderPanel() {
   <button type="button" className="primary" disabled={!supported || busy} data-haptic="confirm" onClick={() => void openClock(mode)}>{busy ? '正在打开系统时钟…' : '到系统时钟确认提醒'}</button>
   <button type="button" className="soft-button" disabled={!supported || busy} onClick={() => void openClock('manage')}>查看或管理系统闹钟</button>
 
+  {!supported&&<p className="reminder-unavailable-hf3" role="status">当前环境不能打开系统时钟，上方倒计时仍可使用。</p>}
   {notice && <p role="status">{notice}</p>}
  </section>;
 }

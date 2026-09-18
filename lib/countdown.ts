@@ -1,0 +1,7 @@
+import type {Data} from './companion.ts';
+export function countdownRemaining(c:Data['countdown'],wall=Date.now()){if(!c)return 0;return Math.max(0,Math.min(c.seconds*1000,c.endsAt===undefined?c.remainingMs:c.endsAt-wall));}
+export function startCountdown(data:Data,minutes:number,now=Date.now()):Partial<Data>{if(!Number.isInteger(minutes)||minutes<1||minutes>180||!Number.isSafeInteger(now)||now<0)throw Error('请选择 1～180 分钟。');if(data.countdown?.endsAt!==undefined&&countdownRemaining(data.countdown,now)>0)throw Error('请先暂停或重置当前倒计时。');return {countdown:{seconds:minutes*60,remainingMs:minutes*60000,endsAt:now+minutes*60000}};}
+export function pauseCountdown(data:Data,expected:number,now=Date.now()):Partial<Data>{const c=data.countdown;if(!c||c.endsAt!==expected)return {};return {countdown:{seconds:c.seconds,remainingMs:countdownRemaining(c,now)}};}
+export function resumeCountdown(data:Data,now=Date.now()):Partial<Data>{const c=data.countdown;if(!c||c.endsAt!==undefined||c.remainingMs<=0)return {};return {countdown:{...c,endsAt:now+c.remainingMs}};}
+export function completeCountdown(data:Data,expected:number,now=Date.now()):Partial<Data>{const c=data.countdown;if(!c||c.endsAt!==expected||countdownRemaining(c,now)>0)return {};return {countdown:{seconds:c.seconds,remainingMs:0}};}
+export function rulerMinutes(start:number,dx:number){return Math.round(Math.max(0,Math.min(180,start-dx/8)));}

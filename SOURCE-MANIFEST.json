@@ -1,0 +1,3507 @@
+{
+  "version": "2.0.10",
+  "androidVersionCode": 902063,
+  "revision": "hotfix.3-visible-clock-hands",
+  "baseArchive": "Four-Seasons-Luke-WebView-2.0.10-hotfix2-source.zip",
+  "baseArchiveSha256": "5077565f16fe61a5df62d8dbc49b0ed466e1130a1dff05e3127c6002292eec9c",
+  "treeSha256": "895171d95317fd4142a97cff187a9138b95f179884209d82e6b837e70cfff388",
+  "treeAlgorithm": "SHA256 of sorted UTF-8 relative path + NUL + file SHA256 + LF",
+  "selfExcluded": true,
+  "files": [
+    {
+      "file": ".github/workflows/verify-webview210.yml",
+      "bytes": 577,
+      "sha256": "33f4fb833adcf960dd12dcf2ea42da0800863b3d115f307ecef4cefdacb591f0"
+    },
+    {
+      "file": ".gitignore",
+      "bytes": 871,
+      "sha256": "b6a31d9a24617a6258110e85ce33f218a77d93efd9a66fe6a01085b6ac1d3d64"
+    },
+    {
+      "file": ".openai/hosting.json",
+      "bytes": 91,
+      "sha256": "440e4a264f7496a6bc401d2dd6a0f6b6b07c53369a5f6c9e269d2a3c2a24a7e8"
+    },
+    {
+      "file": ".oxfmtrc.json",
+      "bytes": 260,
+      "sha256": "0962fdddb1840a06b5afb918ff3f2ff56bce346082651ec5c3567c01dd809f17"
+    },
+    {
+      "file": ".oxlintrc.json",
+      "bytes": 1370,
+      "sha256": "1a7aa1c7d83b05939e4e697eed9316224caea8958c4ad12837f8be740c13a47d"
+    },
+    {
+      "file": "BUILD-WebView-2.0.10.md",
+      "bytes": 2162,
+      "sha256": "1922ddc7172becc1d9360c7ff804d3a238727d6f2dae33d261cd8dff3dea13c4"
+    },
+    {
+      "file": "CHANGELOG.md",
+      "bytes": 15013,
+      "sha256": "343cb5c1cb142757c1428cf5346dc6798b2c704118a05954c38054a760486db7"
+    },
+    {
+      "file": "INSTALL-2.0.10.txt",
+      "bytes": 817,
+      "sha256": "09cccd7457b977a05591d4c7816b76c5d7631e0079d3422845f9e14b1a2d5139"
+    },
+    {
+      "file": "README.md",
+      "bytes": 1597,
+      "sha256": "537d896801088b51ae45a6ab910dc3a257aee9405559e33b948474ffb69a5df4"
+    },
+    {
+      "file": "app/ambience.css",
+      "bytes": 36988,
+      "sha256": "93a6118db98872e23dd824dd77b5882f9b7c8f007ed909d83a4e0d9613654ccf"
+    },
+    {
+      "file": "app/api/model/route.ts",
+      "bytes": 2335,
+      "sha256": "a53cea84a7dce014cacc37d38a1dee8dba52f07a516a3e897d51ef87e6a33d9b"
+    },
+    {
+      "file": "app/api/weather/route.ts",
+      "bytes": 1004,
+      "sha256": "d25a1f5d9c14a7fba6d90c8be7227dbe4c31ffdcb71fccef1ca3505926948a47"
+    },
+    {
+      "file": "app/artwork205.css",
+      "bytes": 936,
+      "sha256": "eb279f443b2069ab4f2aef443437704b553ced530bce5498f26efb906523afca"
+    },
+    {
+      "file": "app/clock-hotfix3.css",
+      "bytes": 14743,
+      "sha256": "8256e8c9e554fdb48c6a1e2b237c777ec21028919c401a905e511c32263233d5"
+    },
+    {
+      "file": "app/companion-polish.css",
+      "bytes": 6492,
+      "sha256": "1802db5071582765867f496c74610191c5308785b3fa467a4c20207a4ee97133"
+    },
+    {
+      "file": "app/detail-six.css",
+      "bytes": 1432,
+      "sha256": "2e1d22266b5b58615ccea0b7d20d7080ec9cf289c46573d8d597dd68545b4af2"
+    },
+    {
+      "file": "app/globals.css",
+      "bytes": 39756,
+      "sha256": "10c31f59fe2ec5c27e2e2b7254395fae7bcd2fb0a64f4126a0db4f268e37567b"
+    },
+    {
+      "file": "app/interaction-polish.css",
+      "bytes": 6581,
+      "sha256": "12153b540148c5323498fa37d0fd69a5b8801b0fcb394f884ec9c0f4304c2ac8"
+    },
+    {
+      "file": "app/interaction-refinement.css",
+      "bytes": 4365,
+      "sha256": "c84476481e6312189c3378d76f754efaecc6c00033b5a6d3bf83d9a3e1fcbcb9"
+    },
+    {
+      "file": "app/layout.tsx",
+      "bytes": 884,
+      "sha256": "b7ed1e068510dfe5e493f700799995fd1c47902089cb52c16289cd9426af8219"
+    },
+    {
+      "file": "app/luke-companion.css",
+      "bytes": 8020,
+      "sha256": "5553165126989390e7eae6b3077db215932c49f5aa9a66b5786c23cb2a9fa82c"
+    },
+    {
+      "file": "app/motion.css",
+      "bytes": 4456,
+      "sha256": "652f618f830585174e284b31057404b6acd988e85003db31a98de51a1994b3c7"
+    },
+    {
+      "file": "app/notes-polish.css",
+      "bytes": 7135,
+      "sha256": "cb0be7d788341c6fbef763233f13178644faaee4c0f74345252c974627d14e9b"
+    },
+    {
+      "file": "app/page.tsx",
+      "bytes": 39132,
+      "sha256": "03260d635d86cda7586da3665fe624913b31c1bac73c05aa6f0df5ad974c2c06"
+    },
+    {
+      "file": "app/recommendations.css",
+      "bytes": 8621,
+      "sha256": "d5d9eda4d1d0a93778d0cc293eff374922eb1233b521f76d0e0effafe358b993"
+    },
+    {
+      "file": "app/refinement205.css",
+      "bytes": 14027,
+      "sha256": "b3ca69f5cc1fe3d088d676936a94db81c72f343ef3e73cfd030fdba113fa907a"
+    },
+    {
+      "file": "app/settings-calendar.css",
+      "bytes": 7199,
+      "sha256": "add05037b3b98acb54aa4a8552283e9efab37bc0c387e2f2aae91d4692c61880"
+    },
+    {
+      "file": "app/startup-nav.css",
+      "bytes": 1218,
+      "sha256": "9da7c900160162afad706a5bf13d9f2b19a7856f72c9a501ffb4a6ecf55ade04"
+    },
+    {
+      "file": "app/startup-reveal.css",
+      "bytes": 4159,
+      "sha256": "c39d9d93b095548d46c1328268193c3a98edbf4b7222b3dc9c5223fdaf2f915f"
+    },
+    {
+      "file": "app/startup-splash.css",
+      "bytes": 7980,
+      "sha256": "4b2f9877bc1e89e528439df543a8ac5826a1efcdf0379fd2ff644ea437feb928"
+    },
+    {
+      "file": "app/theme.css",
+      "bytes": 2990,
+      "sha256": "640e797c67ad2ee252a1ca9ad899358521561a29a7b97df1ac09508490a5d950"
+    },
+    {
+      "file": "app/webview210.css",
+      "bytes": 44655,
+      "sha256": "802d9edcaaf2496576d8b531e23a2617f92c98661f28514c0c04dbeacc344108"
+    },
+    {
+      "file": "components/ambience.tsx",
+      "bytes": 6564,
+      "sha256": "42ffe267b55f6764e9745e0c4a3a947a8bb9eb72521ffd9c47a0330592662a93"
+    },
+    {
+      "file": "components/analog-clock.tsx",
+      "bytes": 4237,
+      "sha256": "6d09ec3869901c8abfd07fdb01a5de4e6d4c80e348762da020843c0984b38f7f"
+    },
+    {
+      "file": "components/app-disclaimer.tsx",
+      "bytes": 2136,
+      "sha256": "394188a3923a0a163021ca6cbd360e9966d877c64b251b096f319e0209fab16b"
+    },
+    {
+      "file": "components/appearance-polish.module.css",
+      "bytes": 3781,
+      "sha256": "94df2efc2001b714caed6ac2cde3266621b9d84dda1c672350015c0e526d32ae"
+    },
+    {
+      "file": "components/appearance-settings.tsx",
+      "bytes": 5994,
+      "sha256": "3715d9ea7e60c8e99709323211a8da39698780c01a836b0074d621c64e8c0a17"
+    },
+    {
+      "file": "components/backup-reminder.tsx",
+      "bytes": 1158,
+      "sha256": "6e3728d43eb94984c4828b127c4e65ecbcbfe8ac46655da8c2bf8e108b4b914e"
+    },
+    {
+      "file": "components/birthday-greeting.tsx",
+      "bytes": 5185,
+      "sha256": "72793b1b438624cd42fdc5cb139df0345bb259f47c438c5238f242832126ed1e"
+    },
+    {
+      "file": "components/build-info.tsx",
+      "bytes": 2372,
+      "sha256": "4d03571cd5775460f01bf4a8074f497f36e0960a8189a88c4475866272b41f53"
+    },
+    {
+      "file": "components/chat-appearance.tsx",
+      "bytes": 5482,
+      "sha256": "ae34da47cfdeb171b5e17cac81e53e6e453984c7417416b10870f886ecbcbccf"
+    },
+    {
+      "file": "components/chat-attachments.module.css",
+      "bytes": 2719,
+      "sha256": "50be949ea60130e98692c532a10446cbba695a25f4fb7a14218a481e42a92878"
+    },
+    {
+      "file": "components/chat-attachments.tsx",
+      "bytes": 5992,
+      "sha256": "23fa661703268260b9be9ae6d30059a86860257de2d92af8f5f306eae34cfc57"
+    },
+    {
+      "file": "components/chat-compat.css",
+      "bytes": 4020,
+      "sha256": "cacf5750df61215d9c045f215f9d265754ee7831212ac25c1e96e1a89761de9f"
+    },
+    {
+      "file": "components/chat-overlay-metrics.tsx",
+      "bytes": 584,
+      "sha256": "1327b28114304ac0e2263270b3b042664a975d12f1375dcf9009de42d71dac08"
+    },
+    {
+      "file": "components/connection-settings.tsx",
+      "bytes": 8901,
+      "sha256": "c712e7448e22d13c2926d811e698fbb3d7a4f3d8fdfb91de1a51e600745c8576"
+    },
+    {
+      "file": "components/connections.tsx",
+      "bytes": 5881,
+      "sha256": "ee8cbf4254c4b0a8a88726dfd5e1aa4f6765de97680313346d067743e11d349d"
+    },
+    {
+      "file": "components/conversation-hub.tsx",
+      "bytes": 4838,
+      "sha256": "9ef459b3dd62e60bf495fea99e304c30b923fdd0ea0d77b8084500ef242603ed"
+    },
+    {
+      "file": "components/conversation-memory-panel.tsx",
+      "bytes": 6740,
+      "sha256": "5d4954f648a3bbc574b4369b5f5b32d1a7951b5b7e56e908c94b60a1e5766da3"
+    },
+    {
+      "file": "components/conversation-memory.css",
+      "bytes": 2815,
+      "sha256": "4cb976ac45fc729009d44961fbca508133e7932694486c8f1f77f85dc1481c97"
+    },
+    {
+      "file": "components/countdown-ruler.tsx",
+      "bytes": 7692,
+      "sha256": "60a6d0b9e908e4826be27759f1c305b50db5da1b60ca4204d69cab819a48d346"
+    },
+    {
+      "file": "components/countdown.tsx",
+      "bytes": 3288,
+      "sha256": "34a0161fae6e9ada9e4e8b74d6630d617f103fbcef4716471e096b27a69ad243"
+    },
+    {
+      "file": "components/current-context.tsx",
+      "bytes": 1810,
+      "sha256": "3752872935dc3a6a562be093c1d0235cbdd74877005b98092f85b0eb188341e2"
+    },
+    {
+      "file": "components/daily-picks.tsx",
+      "bytes": 3560,
+      "sha256": "3bbd8c4f5df1509f7eca50f6e1bf9b742bc67fd0796c40ab9c227d79c5aea5b1"
+    },
+    {
+      "file": "components/date-field.tsx",
+      "bytes": 7894,
+      "sha256": "945cff9a1e963f2d3f91e4c2e930f8893ed8d89c074930147750c548d586686d"
+    },
+    {
+      "file": "components/error-boundary.tsx",
+      "bytes": 920,
+      "sha256": "a6d1f2c96f169bf2205d788bb2cb2873bfd465fb33c2e274415eb2257385a37f"
+    },
+    {
+      "file": "components/expandable-note.tsx",
+      "bytes": 964,
+      "sha256": "959ca2a58abbcc7e8a8a77c08834d8550670b52bbe61859ac594b5b9301d1a7b"
+    },
+    {
+      "file": "components/feedback-settings.tsx",
+      "bytes": 2045,
+      "sha256": "78259a46e14a54f688ade00d627e49164a541f01734137a87fa49b8d5aaafa79"
+    },
+    {
+      "file": "components/focus-keepsake.tsx",
+      "bytes": 1113,
+      "sha256": "6c069871b0fa0f93710026fa3457c72903c49263600b317c64d94413aaab897c"
+    },
+    {
+      "file": "components/focus-moment.tsx",
+      "bytes": 6546,
+      "sha256": "b37272bcb211b9377eb7a8c8647c94e8d54758a78f6ba2896076a82625545fea"
+    },
+    {
+      "file": "components/focus-statistics.tsx",
+      "bytes": 7191,
+      "sha256": "6624dbae71025111feec706296486ee810f2014ce4791027405747092fc10c30"
+    },
+    {
+      "file": "components/glass-preference.tsx",
+      "bytes": 1434,
+      "sha256": "871141df55d1327223ad7a2379b9997c142fa638fcccede13094e8d131645a97"
+    },
+    {
+      "file": "components/hero-gallery.tsx",
+      "bytes": 7306,
+      "sha256": "5535d07be25f2d9cec0eb71712846c467d82d9936bc305af4ec470714f90a490"
+    },
+    {
+      "file": "components/holiday-settings.tsx",
+      "bytes": 2944,
+      "sha256": "29c8d1c0aaa7e3c88656e15bad843ec2ebb8fae0a68749a5fbd6516511cbf9c7"
+    },
+    {
+      "file": "components/journal.tsx",
+      "bytes": 913,
+      "sha256": "3e305fe038939cc3972bc7d7af36e2f51553ce70018dcce830147afeb54baf16"
+    },
+    {
+      "file": "components/keyboard-layout.ts",
+      "bytes": 1422,
+      "sha256": "d580b8d6661c91ea342dd5a6aa966dba3530d772290e6f69ed3c4b1832ef14dc"
+    },
+    {
+      "file": "components/luke-companion.tsx",
+      "bytes": 6147,
+      "sha256": "e2b4072c465ad7472fa8784241d232467db42992daa465002a6be08b02d8a6a5"
+    },
+    {
+      "file": "components/luke-memory-settings.tsx",
+      "bytes": 2185,
+      "sha256": "400836150c5dc63b5b6bbef03fe194baea7000dc491ed33f5cc367573fd7853b"
+    },
+    {
+      "file": "components/memo-actions.tsx",
+      "bytes": 6271,
+      "sha256": "3fae5f816a6b3d33e0cffaba2585836ddec31a5320ba5c8087c46a4e8f27e1d7"
+    },
+    {
+      "file": "components/memo-board-refined.module.css",
+      "bytes": 4322,
+      "sha256": "be78c3b7788b306c4087053597ecbbeffc83080dabe3f8bcf2de16ae28c3912f"
+    },
+    {
+      "file": "components/memo-board.module.css",
+      "bytes": 19304,
+      "sha256": "06d5fb0c0f0f1efc92a88da04dc560ebb447e60b546e8d61ac11833df8c3a612"
+    },
+    {
+      "file": "components/memo-board.tsx",
+      "bytes": 22917,
+      "sha256": "fdc4412b0adf37544dd03b79e80344f4fe366d1cfe3d41ac1faffe27c8895125"
+    },
+    {
+      "file": "components/memo-details.module.css",
+      "bytes": 3716,
+      "sha256": "cde9528789ed0ca159e09bd335b4279c232503fe84f711e559e8d63e475bcc2e"
+    },
+    {
+      "file": "components/motion-presence.tsx",
+      "bytes": 3473,
+      "sha256": "e02dbeb68f7715f50c71510c1323aac09b6a037de4eb530b7eb06634ae6ae95d"
+    },
+    {
+      "file": "components/music-moment.tsx",
+      "bytes": 1779,
+      "sha256": "c131c504cd3ae6cdf140ebe7de39bca7b74e8559a60c68069c93ab06ff27f5ab"
+    },
+    {
+      "file": "components/photo-detail.tsx",
+      "bytes": 666,
+      "sha256": "2b6f4bf3f9e57abbda0ba48623447aae4d15c356827eea9041ca7b281175f87f"
+    },
+    {
+      "file": "components/plan-calendar.tsx",
+      "bytes": 3511,
+      "sha256": "713a78b6a0ba8a2b91c73bcdf1a04d01dfe1eb16907863b2839dc9fb98172021"
+    },
+    {
+      "file": "components/plans.tsx",
+      "bytes": 4515,
+      "sha256": "5518c3f3117b7233386dfc2fb44a24faf2f5328d00ce178fbec21ff4c867fcd0"
+    },
+    {
+      "file": "components/reading-moment.tsx",
+      "bytes": 6398,
+      "sha256": "1b5c25f6c14f3e77bec77e1566f92c3d4a1b54e555a5b98512ca2bef57d613dd"
+    },
+    {
+      "file": "components/recommendation-comment.tsx",
+      "bytes": 4060,
+      "sha256": "fa15e7d9c60c33fb690011baaa804f5faf4bbde4b9bd47c7010bcc55aab8ae46"
+    },
+    {
+      "file": "components/recommendation-preferences.tsx",
+      "bytes": 1899,
+      "sha256": "e37830380391c8f3ef218bba631b0165ec963e7a82cce7aab424e63115b5b343"
+    },
+    {
+      "file": "components/reminder-panel.tsx",
+      "bytes": 3141,
+      "sha256": "3893520846cc3a71b779692f59bcd776c287a99013940b01269fbd63e7c99190"
+    },
+    {
+      "file": "components/season-weather.tsx",
+      "bytes": 5851,
+      "sha256": "2b4bdb6c94afa444995dfa05a157ae2eb98f60fe0ae5205a5d2aec665c840985"
+    },
+    {
+      "file": "components/section-workspace.tsx",
+      "bytes": 2018,
+      "sha256": "72a49444bfdf45aa5f5c645b9d98ea809a0d832012ace40638c90e49075bb225"
+    },
+    {
+      "file": "components/settings-navigation.tsx",
+      "bytes": 7191,
+      "sha256": "6bf6920bf011351a9e388083d271a004486d56fe9cc813060732802826c177f3"
+    },
+    {
+      "file": "components/skills-manager.tsx",
+      "bytes": 8397,
+      "sha256": "7e84694ce0d06c4bcf64a24c13750f36d90a6d74f5f6ab0f9cc92d8755da7ff7"
+    },
+    {
+      "file": "components/song-listen.tsx",
+      "bytes": 4057,
+      "sha256": "a156a24e3d5b86720c172d42db90324e8f9e73ddf91c0d169fb866e4056598d1"
+    },
+    {
+      "file": "components/startup.tsx",
+      "bytes": 1703,
+      "sha256": "fb394fc30623ccf446a361b6e0b155aa2720b510a88890d9b84f806d584495bf"
+    },
+    {
+      "file": "components/study-dial.tsx",
+      "bytes": 2893,
+      "sha256": "f3c9b5bac6d8e8412e521b305c390452fd34fe92b63a2690131df739fecf9499"
+    },
+    {
+      "file": "components/study-records.tsx",
+      "bytes": 2275,
+      "sha256": "1cf2f95137fa462c9e60604f7fbb362d7242c85cfef88aeea31bf1c3f22b4f92"
+    },
+    {
+      "file": "components/subject-settings.tsx",
+      "bytes": 3117,
+      "sha256": "533f6568e6adddb793e54ac25081e26cfbea1aab81685de8657b8fcfcbeb9f71"
+    },
+    {
+      "file": "components/swipe-pages.tsx",
+      "bytes": 6130,
+      "sha256": "d946c622f1a996a771c7a1e8aca7aed1752a75e95343993f05d1e4fbd7292b44"
+    },
+    {
+      "file": "components/timer-polish.css",
+      "bytes": 2219,
+      "sha256": "c1154f352c7670433fba0f1feb139877e037f5f33c99958f528dfefadf79e721"
+    },
+    {
+      "file": "components/timer-workspace.tsx",
+      "bytes": 7625,
+      "sha256": "012e1e697985c41512f05c7bcb05a76684135ca5b2da41566baa802e6f8bf0a4"
+    },
+    {
+      "file": "components/topic-chat.module.css",
+      "bytes": 8457,
+      "sha256": "29a387dde72b21fa298631c508a08fd3ded9552695a841aa232df9e58fa9568c"
+    },
+    {
+      "file": "components/topic-chat.tsx",
+      "bytes": 19885,
+      "sha256": "1d7a603b397e1beb6b106a26444cbf0c86798f23ca7e8175319dad29798ae4ab"
+    },
+    {
+      "file": "components/ui/accordion.tsx",
+      "bytes": 2664,
+      "sha256": "33e1c60ba503f4eb36f9a8b1f68b236174b11656d8efea6bac65abddda2f9019"
+    },
+    {
+      "file": "components/ui/alert-dialog.tsx",
+      "bytes": 5301,
+      "sha256": "ed0f1fc432bca4c72f9dd8741ae2268a00d2d3429ff1149bf463c4271b13d8e9"
+    },
+    {
+      "file": "components/ui/alert.tsx",
+      "bytes": 2060,
+      "sha256": "e760c470414c9e617d7292094146d906352fee3b1526b790a611d4a118e79196"
+    },
+    {
+      "file": "components/ui/aspect-ratio.tsx",
+      "bytes": 406,
+      "sha256": "b7fb499905e441a0602392ce118828425ad059079060109694d01f9fac00ad20"
+    },
+    {
+      "file": "components/ui/attachment.tsx",
+      "bytes": 6132,
+      "sha256": "dcb9e899f1322158f016d75c400fa8cce9b797ea49bec65528bac686cee2ec5c"
+    },
+    {
+      "file": "components/ui/avatar.tsx",
+      "bytes": 3056,
+      "sha256": "342f32b683937b826cdff2999d5e3057836d459aa43eadb0c3538b818d195b9a"
+    },
+    {
+      "file": "components/ui/badge.tsx",
+      "bytes": 1934,
+      "sha256": "5706189b86e8670499fb33f37147dd6f65c39d59eef5211e34157f2952c35e32"
+    },
+    {
+      "file": "components/ui/breadcrumb.tsx",
+      "bytes": 2602,
+      "sha256": "b28b76d6f8d0feafbbeff2220cf83f9a6b03d8c81f0145b3af4c7d19933ab2c0"
+    },
+    {
+      "file": "components/ui/bubble.tsx",
+      "bytes": 4828,
+      "sha256": "dfb9f52ae3b89e4a419b336c3893ab6fb658fc324fb402759d878d54e3b2db5a"
+    },
+    {
+      "file": "components/ui/button-group.tsx",
+      "bytes": 2494,
+      "sha256": "79ad8fb6644a775cc49131c1aa737ca26cae6a563beec0fa52ef6e8d85202fab"
+    },
+    {
+      "file": "components/ui/button.tsx",
+      "bytes": 3247,
+      "sha256": "081d2a1cb4f3aec636a6894d9eff4e90d476d5db85b82d0399c1f4d18517112e"
+    },
+    {
+      "file": "components/ui/calendar.tsx",
+      "bytes": 8503,
+      "sha256": "e7bc682eff8f2215e6b0aab40d1afb7ee927c5f5bef348ccff207631b9261658"
+    },
+    {
+      "file": "components/ui/card.tsx",
+      "bytes": 2645,
+      "sha256": "625fce5e16577a45108a86d7afcd70b8931cb2032abe0d6a3faf1010f666d672"
+    },
+    {
+      "file": "components/ui/carousel.tsx",
+      "bytes": 5727,
+      "sha256": "7444126492d4e0b85b1270f0d83a0955350fa95b3d3fb7b88edc2a5c2b4e5d14"
+    },
+    {
+      "file": "components/ui/chart.tsx",
+      "bytes": 10581,
+      "sha256": "56ab0e0b41f0cc7902414e046ea4f710bdbf0b756028672ea8c7e5137a278f2b"
+    },
+    {
+      "file": "components/ui/checkbox.tsx",
+      "bytes": 1538,
+      "sha256": "56b2869e5478f38238e6a3d8aefabfbe8af565b38b2ffad06466487b3eacf154"
+    },
+    {
+      "file": "components/ui/collapsible.tsx",
+      "bytes": 664,
+      "sha256": "3fdf7ef1ca89c4d85de5ecbb25813d0f572003a53b021baf43c5f3523e48ec97"
+    },
+    {
+      "file": "components/ui/combobox.tsx",
+      "bytes": 9135,
+      "sha256": "282041e2e8c52cc12e7bbc717bbd3f8c9c5ba18e7fa75b97053bc79687e1181e"
+    },
+    {
+      "file": "components/ui/command.tsx",
+      "bytes": 5029,
+      "sha256": "9c1eae65aa105935a34c6b736f673b71a2ef939dde53dce29d986221edbf1f9f"
+    },
+    {
+      "file": "components/ui/context-menu.tsx",
+      "bytes": 8166,
+      "sha256": "05c3646b452f5e3b9eb952eeba3d90657606d2b0875cb77652cdb5eadba0eb5c"
+    },
+    {
+      "file": "components/ui/dialog.tsx",
+      "bytes": 3801,
+      "sha256": "3e8bcc07f53a8e44b23c464392359b03efe630e28b159930da2261d48f5d87f2"
+    },
+    {
+      "file": "components/ui/direction.tsx",
+      "bytes": 105,
+      "sha256": "2dea8a95accb1723db2454ccc858697d5b1f1454568cf4da5e8fcbd0cf7cc1ee"
+    },
+    {
+      "file": "components/ui/drawer.tsx",
+      "bytes": 11396,
+      "sha256": "b7ac53d0e5d1fed25fc3f2ac5f5a36e247ca684c677ac376829fa8a7c039b79e"
+    },
+    {
+      "file": "components/ui/dropdown-menu.tsx",
+      "bytes": 8809,
+      "sha256": "efc088f3d79f64cf96e222701ae23dcf385b53947b3cd57ffb7be6f5dadcbfe2"
+    },
+    {
+      "file": "components/ui/empty.tsx",
+      "bytes": 2415,
+      "sha256": "bf54bac4881b79f6a53f55e70c18640f58a058add88aed763c71be35c4f64f59"
+    },
+    {
+      "file": "components/ui/field.tsx",
+      "bytes": 6303,
+      "sha256": "79023ca89aae39f9cffa83a9483c9c672099b4547cc821486283db61c6ae9327"
+    },
+    {
+      "file": "components/ui/hover-card.tsx",
+      "bytes": 1863,
+      "sha256": "d8cb7270c5893213fc00b5f270f9bc461e2d7ce5b81f77b8778253a1aeda6a2c"
+    },
+    {
+      "file": "components/ui/input-group.tsx",
+      "bytes": 5289,
+      "sha256": "2e65ddecb4401220be374cc6cfc42344538266cafeb2e590b3c760c7ed6b490a"
+    },
+    {
+      "file": "components/ui/input-otp.tsx",
+      "bytes": 2558,
+      "sha256": "867f568259caac95f682d128d72e681b3fe7c31701a396eacc9284401d917a6a"
+    },
+    {
+      "file": "components/ui/input.tsx",
+      "bytes": 1046,
+      "sha256": "6763c86c34c1c07826386d376f5da8fe2e41585bff3615716d5da88915e088d8"
+    },
+    {
+      "file": "components/ui/item.tsx",
+      "bytes": 4888,
+      "sha256": "9c5e45e6c4aae5b9c4c1304e1f1208d32681ab616a6e0de9de6e0d6b22690592"
+    },
+    {
+      "file": "components/ui/kbd.tsx",
+      "bytes": 842,
+      "sha256": "bdfb38a4f7b9b604e196b5cee0d86f12311dae72946f0dbf5928c8ad0638178f"
+    },
+    {
+      "file": "components/ui/label.tsx",
+      "bytes": 524,
+      "sha256": "e4a6fb662c44a44c468d16d79d02b3a3e5bf7b77bd50aef1e586c4d9613df0f6"
+    },
+    {
+      "file": "components/ui/marker.tsx",
+      "bytes": 1962,
+      "sha256": "cd1e872384cf5001e48b4dc3cc2bb011eba9700561d41c83a89e872b60baf175"
+    },
+    {
+      "file": "components/ui/menubar.tsx",
+      "bytes": 8315,
+      "sha256": "a3715f8e8b78261f5784929c532e100759c58e831c91e842438730797bc9a124"
+    },
+    {
+      "file": "components/ui/message-scroller.tsx",
+      "bytes": 4070,
+      "sha256": "9512c586d1b0885cf3ae4f1c3dd4281cbdfec7428fe98ff48a66b4ba2a7319f4"
+    },
+    {
+      "file": "components/ui/message.tsx",
+      "bytes": 2246,
+      "sha256": "2fedcc64ed8563a44f6697615e77574d96f819fe6e5e2fa8a555e30f8ed6bbd7"
+    },
+    {
+      "file": "components/ui/native-select.tsx",
+      "bytes": 2133,
+      "sha256": "3aafb74b98c039dae4eb2c64c47ec6f5d61fdc888c057de47550346f702f434b"
+    },
+    {
+      "file": "components/ui/navigation-menu.tsx",
+      "bytes": 7436,
+      "sha256": "c8e64bf5241145b512ae18f1062da8275691edf927736496a3860bec76ad6fa1"
+    },
+    {
+      "file": "components/ui/pagination.tsx",
+      "bytes": 2928,
+      "sha256": "1f3c1713e8824cca7c3c0edacf9da7b0114bfda58640771b8fe0bc6179b370ce"
+    },
+    {
+      "file": "components/ui/popover.tsx",
+      "bytes": 2586,
+      "sha256": "7376624438588e2d64b6e0c5cdf82cbc5fd4530bbcf1f0235c5f3ee08d12e877"
+    },
+    {
+      "file": "components/ui/progress.tsx",
+      "bytes": 1751,
+      "sha256": "0d8ddec9731940e104b851cf3ac67d2fa8589b289824317a9e8f326e090ba65a"
+    },
+    {
+      "file": "components/ui/radio-group.tsx",
+      "bytes": 1843,
+      "sha256": "43f2d6c2f5bdd4a26c57d93e6f141be20472f9bb8777d9a0d61cd8a5e281a999"
+    },
+    {
+      "file": "components/ui/resizable.tsx",
+      "bytes": 1681,
+      "sha256": "ea7b85817d4dc70866e0bcf15264e7e1bd7e1893eb4404261fbc23a4d6ff9029"
+    },
+    {
+      "file": "components/ui/scroll-area.tsx",
+      "bytes": 1632,
+      "sha256": "730c4cc49f8f1b705eb1389cd32c774056a0a2a7a48a9b092cbe44c608be3a0b"
+    },
+    {
+      "file": "components/ui/select.tsx",
+      "bytes": 6700,
+      "sha256": "45489c502a21fdd5271481d64ad8f762181c9653d8d26bdc6f75450b78c3c852"
+    },
+    {
+      "file": "components/ui/separator.tsx",
+      "bytes": 551,
+      "sha256": "92ad5065f03d7edc98f367e729f3ec84ece1d99ee8cd0d3a8137f266d4ab3d8a"
+    },
+    {
+      "file": "components/ui/sheet.tsx",
+      "bytes": 4446,
+      "sha256": "adb432b6f9d7a4733caa45ba8bf510a8a7ff0f6d0dd3aa1f013959fb61268234"
+    },
+    {
+      "file": "components/ui/sidebar.tsx",
+      "bytes": 21779,
+      "sha256": "aa3322ca63f098aa1d2abf750f9d097da07362fce25939357f2cefc9b6a03988"
+    },
+    {
+      "file": "components/ui/skeleton.tsx",
+      "bytes": 278,
+      "sha256": "4c342102b2bbf5bd8c04fa151fe5c13c42faee2f9587a3586c27322020ca35d1"
+    },
+    {
+      "file": "components/ui/slider.tsx",
+      "bytes": 1879,
+      "sha256": "af657e73d672f4dd205f19abf151d21a172cf36abfdca49fd7014a20e12367a9"
+    },
+    {
+      "file": "components/ui/spinner.tsx",
+      "bytes": 360,
+      "sha256": "8ddbb330e5564a1f53026da36c2322ed4b027687e91a88f63348ab10f26ae0cb"
+    },
+    {
+      "file": "components/ui/switch.tsx",
+      "bytes": 1818,
+      "sha256": "04b085443a1c6a72d408e6eb7dd45df881ca27814415b81b39f614806b52c8fc"
+    },
+    {
+      "file": "components/ui/table.tsx",
+      "bytes": 2418,
+      "sha256": "88f2ba7877eea7f34a5da18b7fa096eb2c7bed602677ce54f5494b494c5afc2e"
+    },
+    {
+      "file": "components/ui/tabs.tsx",
+      "bytes": 3510,
+      "sha256": "dd914d769bc223b5d5ea56839a7752e534eb475f8d2897d5675606c368bbca1f"
+    },
+    {
+      "file": "components/ui/textarea.tsx",
+      "bytes": 847,
+      "sha256": "7ae7f0f5d907be24658652c771fee1685193102bf3200aafbf578d144d379fbf"
+    },
+    {
+      "file": "components/ui/toast.tsx",
+      "bytes": 7353,
+      "sha256": "9126b09f47f0b117bf748cf19aaa4987a1f72d0813d10bfc4b4b0128e6439e48"
+    },
+    {
+      "file": "components/ui/toggle-group.tsx",
+      "bytes": 3201,
+      "sha256": "9b006523be0fe3230cd75f7adf78a501829d594fd3506c56c55bb38211ff1850"
+    },
+    {
+      "file": "components/ui/toggle.tsx",
+      "bytes": 1770,
+      "sha256": "6bf41d6f6ffe602c3e28274a82ac029e6ee1331ba3c670a6d814048e1823cc28"
+    },
+    {
+      "file": "components/ui/tooltip.tsx",
+      "bytes": 2855,
+      "sha256": "b86e51969931c3d62e88d0bdacd1cd8219105dc6d6b6a588a80011bf92e987cd"
+    },
+    {
+      "file": "components/use-topic-viewport.ts",
+      "bytes": 1805,
+      "sha256": "0f1bd3268b9874eed7a22933c89fd1bf1689bfb8d870943f6b1da2c349b247e9"
+    },
+    {
+      "file": "components/week-review.tsx",
+      "bytes": 1663,
+      "sha256": "2b281e51931df3c100dc1b34922ec896e7fc857a878c889875bb3bf5ec2bc469"
+    },
+    {
+      "file": "components.json",
+      "bytes": 516,
+      "sha256": "9928283696d86836422959a2c520df83a718d31ffbcab533a14ca8dca2c8d475"
+    },
+    {
+      "file": "data/holidays/2023.json",
+      "bytes": 4391,
+      "sha256": "bea9f3e9d39b33bf0d2e4b04ab3f3edaeeb28c7c576a9efcff6f763ea1ae52c1"
+    },
+    {
+      "file": "data/holidays/2024.json",
+      "bytes": 4506,
+      "sha256": "a1abda6884a98aa770a1b2a676bd4e69e73bee9d8e4c7e97d82c5d2e480e7661"
+    },
+    {
+      "file": "data/holidays/2025.json",
+      "bytes": 4272,
+      "sha256": "33e3023d3af27e158d31196a3cc5096aa089ecd5cd33280fb0b92cd9c9d180c9"
+    },
+    {
+      "file": "data/holidays/2026.json",
+      "bytes": 4843,
+      "sha256": "0dcfd8004351e132ce15e8444de4df123265b3f490f7e2f8346631122cb5b709"
+    },
+    {
+      "file": "data/holidays/provenance.json",
+      "bytes": 1102,
+      "sha256": "1af213c0b212e1cf3047fc32d4b4a467da88e58196a003f6d8c889730141f6a0"
+    },
+    {
+      "file": "data/luke/daily.ts",
+      "bytes": 3809,
+      "sha256": "514d94d0b0e720c7a7f6a379b0ee9520fcabf1fbc976e4b14d47d36a84346ecb"
+    },
+    {
+      "file": "data/luke/experience.ts",
+      "bytes": 13599,
+      "sha256": "502b349a83dcb15bcddf60da04097b63f1d7ef0a8953078d8a7a9df3376ec8e2"
+    },
+    {
+      "file": "data/luke/memory-v2.ts",
+      "bytes": 12379,
+      "sha256": "434ef2956dc390362c621d4221a2dfee711967eee75cb458c76903068b4424dc"
+    },
+    {
+      "file": "data/luke/personality.ts",
+      "bytes": 7454,
+      "sha256": "2d85bcf7b508a06407f40a4d098d0efa018b92b91b9ad63b25d3fd8db12a4281"
+    },
+    {
+      "file": "data/luke/profile.ts",
+      "bytes": 3092,
+      "sha256": "d5e2144e20905ca66856ab1cb3388b8cb9e1a3eb273fd24d73f10d353aca7bf7"
+    },
+    {
+      "file": "data/luke/relationship.ts",
+      "bytes": 3743,
+      "sha256": "5d35103dd7348ddc6af672f2a2a74c3a4779e672b2e73e85b585e46ee330f7a6"
+    },
+    {
+      "file": "data/luke/skill.ts",
+      "bytes": 3973,
+      "sha256": "64c5a779cfd2d2c28eee032b339e19dc4dff513b0d1ab4bab0407bb8c0a4b813"
+    },
+    {
+      "file": "docs/CHARACTER_AND_API.md",
+      "bytes": 1662,
+      "sha256": "9c0cfef6131cef423fa1cb7f9edf058f71b0e1be5add9ca6c00d40ecedf282ea"
+    },
+    {
+      "file": "docs/DELIVERY_POLICY.md",
+      "bytes": 1044,
+      "sha256": "20c73447a19b7446641720ed6ebdc572e09ec2e7c04c9db538b5ee5dbc284a89"
+    },
+    {
+      "file": "docs/DETAIL-HOTFIX2.md",
+      "bytes": 7078,
+      "sha256": "3645224fbd332d213104cb2bca4cbbd127ab2487abed44a52e32e387a38efde9"
+    },
+    {
+      "file": "docs/ROUNDED_STARTUP.md",
+      "bytes": 2972,
+      "sha256": "7d498b3e15cc84748fb3a9b9a937f632d2963585ca2d32eb53342609357161b4"
+    },
+    {
+      "file": "docs/V2_0_1_DETAIL_PREVIEW.md",
+      "bytes": 4032,
+      "sha256": "c6903b52a1e4f20814d20dbd507d04da06d313c0526890816ef5d70cf5c3918b"
+    },
+    {
+      "file": "docs/V2_0_1_PREVIEW_1.md",
+      "bytes": 3048,
+      "sha256": "4b5bc1463b0f233f5e836957ade78444ff17649c5ad7b2db515d51cd5760639d"
+    },
+    {
+      "file": "docs/V2_0_1_PREVIEW_2.md",
+      "bytes": 3967,
+      "sha256": "76b31e8783f488379ea0b91f8d2c1e357e31ca8c51e2d74ab8ae39a375c169bc"
+    },
+    {
+      "file": "docs/VERIFICATION.md",
+      "bytes": 3721,
+      "sha256": "ec220e06b7dad62c75935debe0feff0ef50b5f340f02832b35f5f9e44218b4ab"
+    },
+    {
+      "file": "docs/WEATHER-TIMER-HOTFIX1.md",
+      "bytes": 5626,
+      "sha256": "6a89ddff21a6e291ca0d34f9d83379b482521c79abe1c0536d04c88c658f9bd1"
+    },
+    {
+      "file": "docs/WEBVIEW-2.0.10-DELIVERY.md",
+      "bytes": 10343,
+      "sha256": "8697259b99d4b4e01fac8aa0bd117724d08aff1b8bf81e4c98c83eef1c3ca5f4"
+    },
+    {
+      "file": "docs/history/functional210-INSTALL-2.0.10.txt",
+      "bytes": 964,
+      "sha256": "7aac13e594a8664f4828123b37de215ceac68d28f181161bdf2576d3cca8a6ae"
+    },
+    {
+      "file": "docs/history/functional210-README.md",
+      "bytes": 3318,
+      "sha256": "f0f943dfccbc4f205cbeb3e81394aa2d3ba67ff6777aff7e8dae1e1e813bbce6"
+    },
+    {
+      "file": "docs/licenses/fflate-LICENSE.txt",
+      "bytes": 1069,
+      "sha256": "805f6cb28bb8b6d3a0badd83c93bccd9671fa01a3b4b92b7042b0743325ac243"
+    },
+    {
+      "file": "docs/licenses/motion-LICENSE.txt",
+      "bytes": 1100,
+      "sha256": "1bf0dc3f7727723e5a032ed12164a47cf92c05204cb1a3485f123c24e2833ed1"
+    },
+    {
+      "file": "docs/releases/2.0.1-preview.2-motion-followup.md",
+      "bytes": 1836,
+      "sha256": "258f1657e9fffe5fbd7b5d1ca31afd17636a8354790fe33c3955aedda8d8e1f6"
+    },
+    {
+      "file": "docs/releases/2.0.1-preview.3-handoff.md",
+      "bytes": 1245,
+      "sha256": "bb0330ecfc927dae34cf5f2ec4ddb9123f3a11eaabeb00fb96257126cb06e9c7"
+    },
+    {
+      "file": "docs/releases/2.0.1-preview.3-layout-followup.md",
+      "bytes": 863,
+      "sha256": "f44a8d5d5ec34b7a83c6d9ea29be2e11a7b5719cda0af7974a4e361e2912972c"
+    },
+    {
+      "file": "docs/releases/2.0.1-preview.3-render-preparation.md",
+      "bytes": 849,
+      "sha256": "8473fc332ac7442ac33771c518e3c456024520395a0ecea3c4b923c6b3aaa10a"
+    },
+    {
+      "file": "docs/releases/2.0.1-preview.3-renderer-recovery.md",
+      "bytes": 1719,
+      "sha256": "7dbd998916912b07c0027d5bd47e6c00a481282b8d7be51c1c9680211e4a60b4"
+    },
+    {
+      "file": "docs/releases/2.0.1-preview.3-scroll-dismissal.md",
+      "bytes": 1298,
+      "sha256": "4f3ebb6446dd040e9f30fdf246105ad383e2c2a439147a8c189e04f2a26ab9ed"
+    },
+    {
+      "file": "docs/releases/2.0.1-preview.3-seasonal-feedback.md",
+      "bytes": 2446,
+      "sha256": "472b8266c954b076dc8f802ff0da22c430df5dd355e6dcc35fcc9fa2ac776c8c"
+    },
+    {
+      "file": "docs/releases/2.0.1-preview.4.md",
+      "bytes": 3496,
+      "sha256": "8f889689a504bec46eec58797d0fba4249041598c9e7555d5a1baa03456dfdb4"
+    },
+    {
+      "file": "docs/releases/2.0.1-preview.6-details.md",
+      "bytes": 2767,
+      "sha256": "03ce92646239403540d5b846edd79c867b814d481ced7734f8a2678007098fff"
+    },
+    {
+      "file": "docs/releases/2.0.2-settings-calendar.md",
+      "bytes": 1592,
+      "sha256": "69e267aa56c41d018e90755c20086a24dddac2db31bad6456ecacf3cadb0db11"
+    },
+    {
+      "file": "docs/releases/2.0.3-focus-checks.md",
+      "bytes": 948,
+      "sha256": "213a612b357cbccc7cde78de3cf26e5c3fc73279cd8bf20a261c4e2a8cbe4c9d"
+    },
+    {
+      "file": "docs/releases/2.0.3-interactions.md",
+      "bytes": 2583,
+      "sha256": "0ef13b1804180bb91af768afe74d48be0db129f04d40a24baae1cb47034d0073"
+    },
+    {
+      "file": "docs/releases/2.0.4-timer-memory-validation.md",
+      "bytes": 2057,
+      "sha256": "6d5a8990a2b6885888c99e5fb292b8e4fa37b46b47c9f24abbd9db0794224213"
+    },
+    {
+      "file": "docs/releases/2.0.4-timer-memory.md",
+      "bytes": 2482,
+      "sha256": "030ea1cbc359f2d3a69c1ac7a3e86fb110f17c3673a9f8d832e0fb92d20d41ad"
+    },
+    {
+      "file": "docs/releases/WebView-hotfix3.md",
+      "bytes": 6987,
+      "sha256": "fb3daa3a70bbec6bce0165b8756b6232ba35f99bc6dd681ae029a0000d65202f"
+    },
+    {
+      "file": "docs/releases/android-1.9.0.md",
+      "bytes": 2268,
+      "sha256": "d80df1798ce20dd70c3aea4a8475ee7d4a2fd97a648f894c5118d62fe2b04cc9"
+    },
+    {
+      "file": "docs/releases/android-1.9.1.md",
+      "bytes": 3015,
+      "sha256": "0c70f923cc665fa90dd9a91d27b676df5ce534971e014ddeec8fa9ab515c6ba7"
+    },
+    {
+      "file": "docs/releases/android-1.9.2.md",
+      "bytes": 1539,
+      "sha256": "a8dbbfdd4650a8d82291499ca75c13f92655c5200a9260b67516f70a42f9f63b"
+    },
+    {
+      "file": "docs/releases/android-1.9.4.md",
+      "bytes": 1391,
+      "sha256": "32e9f2792f5eb1e97917b2f981628d5b7c2a04342ac759f1cddd5c05beb93861"
+    },
+    {
+      "file": "docs/releases/android-1.9.5.md",
+      "bytes": 1368,
+      "sha256": "b6b782addab8f80b16ca6f9d8cb1128fcfcbf786ea75ba986c39e37584baae6e"
+    },
+    {
+      "file": "docs/releases/android-2.0.5-current-delivery.md",
+      "bytes": 9687,
+      "sha256": "0e41b00320c0e12dee46e1aea12921dac6a62b8648f288300a4ef40eb6a38189"
+    },
+    {
+      "file": "docs/user-cutout-assets210.json",
+      "bytes": 1512,
+      "sha256": "faed39e9109da35a0ce5bb1522b5995723f56a17d5e76e9bce9f974204c49271"
+    },
+    {
+      "file": "hooks/use-clock-activity.ts",
+      "bytes": 1871,
+      "sha256": "85f8a1a319f0e162b3dbeb9b4b1ad0f4e6ba4f11e07a9a8ea0f9e85f8887a450"
+    },
+    {
+      "file": "hooks/use-conversation-memory.ts",
+      "bytes": 5888,
+      "sha256": "274e260b46e811744c7343e4f6e5703e7061cab2c384871b08620d4552c2882b"
+    },
+    {
+      "file": "hooks/use-display-preferences.ts",
+      "bytes": 1554,
+      "sha256": "4b39af7378349514bae43f5d464dcd79e73d1c3220468bd20cea8731b1d21599"
+    },
+    {
+      "file": "hooks/use-holidays.ts",
+      "bytes": 1733,
+      "sha256": "16ecf61b021df67d6786fbb1a1a1e6c4c734ee539eb7f4604de007d58cba556c"
+    },
+    {
+      "file": "hooks/use-memo-persistence.ts",
+      "bytes": 1883,
+      "sha256": "52de9aba5fe1f8ad8b541b2a8b9003c3b30d9dfd8c38125c56d0dfa8f738f3cf"
+    },
+    {
+      "file": "hooks/use-memo-press.ts",
+      "bytes": 3094,
+      "sha256": "be0f98fb65961b381f00cbb1653ce8d04e0f265555fbc25d45953aa488c7efc7"
+    },
+    {
+      "file": "hooks/use-mobile.ts",
+      "bytes": 585,
+      "sha256": "82bff42ff087bd5dc90a5d17609cc428b8688de92d1333073a839af5ad3c9cbd"
+    },
+    {
+      "file": "hooks/use-page-swipe.ts",
+      "bytes": 1971,
+      "sha256": "959c166eca460dc77df904c589edff825db5318e5fe01491bd0163afb699a203"
+    },
+    {
+      "file": "hooks/use-pointer-lifecycle.ts",
+      "bytes": 1941,
+      "sha256": "0222673faea29f04b604812d21319668917e8298cd60acf10c4ceeaf65b2aac8"
+    },
+    {
+      "file": "hooks/use-reduced-motion.ts",
+      "bytes": 746,
+      "sha256": "c4d1646115f66bf2ee2a733184e732359a3836f79d4f972142f4ec21e276e6c4"
+    },
+    {
+      "file": "hooks/use-settings-draft.ts",
+      "bytes": 1623,
+      "sha256": "101c59426240eed91b3f513588f8f01e578ced9e06e955946086167d39ed0e53"
+    },
+    {
+      "file": "hooks/use-visible-motion.ts",
+      "bytes": 1729,
+      "sha256": "25784e41e6d86fff97d0f95f03e70c9d6f614b26d9017fd3d419e43b71c403fc"
+    },
+    {
+      "file": "lib/agent/memory/store.ts",
+      "bytes": 5879,
+      "sha256": "7f31dc7bf859a7e41cbf5573eb3e9b2d159e46d92ca61d0cf95322fb08a15c69"
+    },
+    {
+      "file": "lib/agent/memory/types.ts",
+      "bytes": 555,
+      "sha256": "f8bb06329e9608068f788cd5cdf4157402092d4b2bef193d5c2a8a396a5a68d5"
+    },
+    {
+      "file": "lib/agent/persona/constitution.ts",
+      "bytes": 856,
+      "sha256": "76596dcd51fcaf0c44a43ae1d72e85ae19103a021e00206679113e104fa25735"
+    },
+    {
+      "file": "lib/agent/persona/persona-builder.ts",
+      "bytes": 1047,
+      "sha256": "4fff2a08b528be4e00fe52e213841a43e024b5c69b69d4a7dfdc1d7447c54f8a"
+    },
+    {
+      "file": "lib/agent/persona/situations.ts",
+      "bytes": 1292,
+      "sha256": "a7cb8206cb32179a8b8fbaf45a3620f0a4a5637db6d5e3c46894abaa2b1b7953"
+    },
+    {
+      "file": "lib/agent/persona/style.ts",
+      "bytes": 964,
+      "sha256": "a7642d044642ee50d0ceb38eb14838d8f6323735067d249a255df55ab0864f29"
+    },
+    {
+      "file": "lib/ambience.ts",
+      "bytes": 2248,
+      "sha256": "446f1d43c475b3e09e483e96f78a9ecc0a7ee14e6007964c86d33df9ac40e16e"
+    },
+    {
+      "file": "lib/analog-time.ts",
+      "bytes": 2447,
+      "sha256": "0d3ae293910213a474f840406c6f6f0cbf5643e3c16b11afc94211a945fdfa14"
+    },
+    {
+      "file": "lib/chat-background.ts",
+      "bytes": 5246,
+      "sha256": "caafb95efd3c0b8979ca294e777e802ae13a1fc3fae45b5a70e50e710a516581"
+    },
+    {
+      "file": "lib/chat-sessions.ts",
+      "bytes": 4661,
+      "sha256": "0680b1a2248b86f8a2d9e7b4fc9ba26f463022ee15b78c85e169b6a97555d12c"
+    },
+    {
+      "file": "lib/chat-skills.ts",
+      "bytes": 17188,
+      "sha256": "0fe837fbaab496243643c4cf330e05b8bba1cd8f21bfc6fb69480445b7e55f20"
+    },
+    {
+      "file": "lib/china-holidays.ts",
+      "bytes": 567,
+      "sha256": "eb58c92c34b213fdbe7c2c880d970d8b8fe620dca776bbe57a0580f2c23d2cf1"
+    },
+    {
+      "file": "lib/companion.ts",
+      "bytes": 10315,
+      "sha256": "9067d97dfb261055d84c00b06472bc9e73f47e2c68306ed74b0f665f95861ab8"
+    },
+    {
+      "file": "lib/countdown.ts",
+      "bytes": 1445,
+      "sha256": "f9db1d1c0aaa6ed04aa88cd012156b479321a7f555e84c69feab746545cae049"
+    },
+    {
+      "file": "lib/daily-picks.ts",
+      "bytes": 5957,
+      "sha256": "6dd6a432c21cb7b38b3011dab06dbc695397439662a550620017b443f47dbf8e"
+    },
+    {
+      "file": "lib/daily.ts",
+      "bytes": 7016,
+      "sha256": "dcf9b753f6aa1011d8379d2f41143bbd3a122fc215c08a5699050bd030e9d364"
+    },
+    {
+      "file": "lib/date-interaction.ts",
+      "bytes": 1726,
+      "sha256": "101ffd579bb6a63694644d8b7b198d317b866801892d1cb087f669b45b824753"
+    },
+    {
+      "file": "lib/default-dates.ts",
+      "bytes": 70,
+      "sha256": "e49cece97dbcaac0ff1bb45654ae8441e77d25bb89cbe36967d846d4b66d5789"
+    },
+    {
+      "file": "lib/default-model.ts",
+      "bytes": 1240,
+      "sha256": "9de131d1101ea50f74c8f63f0772a1461d6187919ea96fb6811ced71a064c8d1"
+    },
+    {
+      "file": "lib/display-preferences.ts",
+      "bytes": 5197,
+      "sha256": "6e9fa7005a51d19e4ec1d734bc521c2acf00c2ea7a7bf698cb59610c4e2f4848"
+    },
+    {
+      "file": "lib/durable-store.ts",
+      "bytes": 9501,
+      "sha256": "d35aa1293f8bc00a658bef4c95e898069759fa016c71377a2a27a3e0ebbb9c84"
+    },
+    {
+      "file": "lib/fast-typing.ts",
+      "bytes": 2605,
+      "sha256": "38ba11aba1e17ffb061dbaac31934d4a431be320d2ca9b77b514b6b8c816e319"
+    },
+    {
+      "file": "lib/focus-stats.ts",
+      "bytes": 1451,
+      "sha256": "b00c671fee696e7d0e056f71da056b95e77b8716ce38c8a0de7cdc679ef40900"
+    },
+    {
+      "file": "lib/focus.ts",
+      "bytes": 1602,
+      "sha256": "f748752f3fa7ac9a4b7beb8e8f070aeb1589436caa7a8f11e3a8336443a58bbd"
+    },
+    {
+      "file": "lib/full-backup.ts",
+      "bytes": 5361,
+      "sha256": "4b6686907f6486119083a5748e0e0aa46f5626a9ef41e85eddb129c00c5fa6f2"
+    },
+    {
+      "file": "lib/gallery-state.ts",
+      "bytes": 536,
+      "sha256": "e86fb3750b98b7bc043da77696b788acbd5c7c153cea1195273674d93594a596"
+    },
+    {
+      "file": "lib/holiday-data.ts",
+      "bytes": 3322,
+      "sha256": "b8a7de8f966342e2cae6e2dee1fa6473b6fac28abecf9431a7f3b5c8bf9a0667"
+    },
+    {
+      "file": "lib/holiday-repository.ts",
+      "bytes": 7794,
+      "sha256": "0979c48f07751e09131e4191a1c7cc488b6eecd19324ef1e48c44faaf428f3b8"
+    },
+    {
+      "file": "lib/home-copy.ts",
+      "bytes": 10008,
+      "sha256": "43a7f4d1087c6724f78cffaeaf54fe68838f04718efe09fa5f2c53f07bab5cc2"
+    },
+    {
+      "file": "lib/interaction-feedback.ts",
+      "bytes": 3621,
+      "sha256": "2e08a8417d440f79fa7e645234f29b4524843c45b1038e695b884651be142422"
+    },
+    {
+      "file": "lib/location.ts",
+      "bytes": 3840,
+      "sha256": "908b83aa6a04de61676973db32d19689eb8311c242bdfb23f4c440d0e1186853"
+    },
+    {
+      "file": "lib/long-press.ts",
+      "bytes": 1122,
+      "sha256": "97ef7f8daf6ed86d32f93d9659f49724aea6bd11b43760da49c60d6410bfd50a"
+    },
+    {
+      "file": "lib/luke-companion.ts",
+      "bytes": 2521,
+      "sha256": "b5f29fdb27df8267b5a5bfb990c500eba499edfc5be81e796f3949207fdeae65"
+    },
+    {
+      "file": "lib/luke-knowledge.ts",
+      "bytes": 11243,
+      "sha256": "1aa27a8d4f413aa1bea25eaa3b58b92ea82fa1876c760be2e7d86453128addc9"
+    },
+    {
+      "file": "lib/luke-memory-v2.ts",
+      "bytes": 6067,
+      "sha256": "9c906f5333dbf701e0406479de475c84eca80753dab2698892f061e9a0a94f59"
+    },
+    {
+      "file": "lib/memo-format.ts",
+      "bytes": 861,
+      "sha256": "c11f21dc7de8a49cd1741dd16ba783828efae77a8de65d38187a98832c654783"
+    },
+    {
+      "file": "lib/memo-navigation.ts",
+      "bytes": 379,
+      "sha256": "9bdf8ec9b851a56e385463ddda506188ee3e13587583e0ac6274f3c8608829df"
+    },
+    {
+      "file": "lib/memory-archive.ts",
+      "bytes": 13247,
+      "sha256": "13b6cb8124d84d95f8cc76a3a90fced99123a087d53e329e86bd35153e1fb505"
+    },
+    {
+      "file": "lib/memos.ts",
+      "bytes": 6066,
+      "sha256": "23af01812ba4c0db4d2c0545fcd9e7e4e3a7ac6582ec9a4b6cd7ff94617588c0"
+    },
+    {
+      "file": "lib/mobile.ts",
+      "bytes": 5192,
+      "sha256": "2dbf274b9c1e850cd6029ad2c67c52ad9167d82d7c68cafb44dfccdeff0bdf41"
+    },
+    {
+      "file": "lib/model.ts",
+      "bytes": 15714,
+      "sha256": "ed62d32c8bca7ab0e74bb0a8a345132a7ecea615177d552d06bce39adf35a4f5"
+    },
+    {
+      "file": "lib/motion.ts",
+      "bytes": 1711,
+      "sha256": "7bd88769247e255e42dff5bc80743c72e1febd1fe0a2b7a656212d3c2f3c7792"
+    },
+    {
+      "file": "lib/music.ts",
+      "bytes": 1424,
+      "sha256": "d3d0c64d19159a7ef8fc1a091f5221e4c4783fb396462ae3f5bd8c3104cf31eb"
+    },
+    {
+      "file": "lib/native-actions.ts",
+      "bytes": 1348,
+      "sha256": "1bdc1ce59afd39831d817260722a9e5c369f4fe6d03f8b5729bc90e3e2aaf5d7"
+    },
+    {
+      "file": "lib/photo-transition.ts",
+      "bytes": 1114,
+      "sha256": "128901716a0d9b93c9b682bb7f0f6621590ddb4ee778614dcc22eecad128835e"
+    },
+    {
+      "file": "lib/recommendation-favorites.ts",
+      "bytes": 946,
+      "sha256": "613f74ebc3c500ab8fcd98ae4afbf72aea20317768857732c289b92522b45dba"
+    },
+    {
+      "file": "lib/recommendation-history.ts",
+      "bytes": 4985,
+      "sha256": "f961cd56e74fad0c3fd31ca2b3d6ada84c1f1767d6da29758681a48c5ee61e44"
+    },
+    {
+      "file": "lib/recommendation-preferences.ts",
+      "bytes": 1590,
+      "sha256": "0b2c8c7fd4ec4359ffd098eef9a182334ff439c2b295c0e54aba7fdc4d3c1501"
+    },
+    {
+      "file": "lib/release-info.ts",
+      "bytes": 1150,
+      "sha256": "93c5aaa2e8b42efc9bce355465270fafb864f535f028f6a081774544f9c625dd"
+    },
+    {
+      "file": "lib/season-albums.ts",
+      "bytes": 825,
+      "sha256": "bf388a0c319e40ac0b11b87763b697d3685bafa56451caec69365c5a65748cce"
+    },
+    {
+      "file": "lib/server.ts",
+      "bytes": 568,
+      "sha256": "717b7dc4b1a8fbd8cbdb6dd7d7a3ae4c0f8b58fe44d6c2e9214b43d1916692ce"
+    },
+    {
+      "file": "lib/song-listen.ts",
+      "bytes": 3785,
+      "sha256": "9c11ad225eaa10b2a59a4aa5ef6e2414ffd86ba2b9608ef808bdd8314d41bdba"
+    },
+    {
+      "file": "lib/stream.ts",
+      "bytes": 1637,
+      "sha256": "522e979ff09663db288c73c6075d2c5ebd6c065b4355d2808d3f5c97d17726ad"
+    },
+    {
+      "file": "lib/study-subjects.ts",
+      "bytes": 2118,
+      "sha256": "175300ea40ad10c651e856a86a9d994de88fee42d618cae01aa9d003bfd1a044"
+    },
+    {
+      "file": "lib/study.ts",
+      "bytes": 1469,
+      "sha256": "2b5bf4585a271411d1eabcf9626da34a1ba868b6c370ec4dc3ea318b7867f52c"
+    },
+    {
+      "file": "lib/topic-chat-session.ts",
+      "bytes": 5343,
+      "sha256": "f2f79f17ec792492c0c769c53be4ffbba6e47014b0e435f973a6cc561532ede1"
+    },
+    {
+      "file": "lib/topic-chat.ts",
+      "bytes": 1486,
+      "sha256": "e59a1a5a994a067672a4523cd89b19c0118072eed2a83e71874203ee2fd79ca7"
+    },
+    {
+      "file": "lib/topic-viewport.ts",
+      "bytes": 907,
+      "sha256": "83aba82523417b6798abfb478043e17e062bb223f32ea09f315ff002d2e7a0d1"
+    },
+    {
+      "file": "lib/transient-form.ts",
+      "bytes": 912,
+      "sha256": "cf38c5feae3f91a4d068167621f55d8db0912e23bda50c2ec5999f3f049373dd"
+    },
+    {
+      "file": "lib/use-local-data.ts",
+      "bytes": 4583,
+      "sha256": "14a50196aed3c71422e3bfdac0cf867174d9e574d47f927f1c434beba2bff10a"
+    },
+    {
+      "file": "lib/use-page-tool.ts",
+      "bytes": 1809,
+      "sha256": "4c6b3fabe4c99aefdc1f2ca77905cf24e4894bad793091db4598d9ac8e1e6969"
+    },
+    {
+      "file": "lib/utils.ts",
+      "bytes": 169,
+      "sha256": "9304a861c8673bee09e0f12de31773abbde503b02e59dfd74763ddec2e37cf05"
+    },
+    {
+      "file": "lib/weather-cache.ts",
+      "bytes": 3971,
+      "sha256": "bb6a55838bd5610e0df4787611d084ce97bb73568b5b8128ddc6c963d24fb404"
+    },
+    {
+      "file": "lib/weather.ts",
+      "bytes": 6128,
+      "sha256": "fe627e91a75f558d162839bb7c562c0051eaf01a84642bb1b69485d811af6cde"
+    },
+    {
+      "file": "luke_character_focus_crawler.py",
+      "bytes": 14065,
+      "sha256": "2b0b266f85233905c8af51be67af36b97a7674707d46d3824bf78d349a14a155"
+    },
+    {
+      "file": "luke_character_focus_extract.py",
+      "bytes": 16006,
+      "sha256": "851f79896559ee54459ad790bf362f7d802ae274d7c2341758db756607993495"
+    },
+    {
+      "file": "luke_character_focus_seed_review.md",
+      "bytes": 6657,
+      "sha256": "0f36d1f46f8c6998c30387ce40672b65001239379a801c95c69d7a0e6a7c91ba"
+    },
+    {
+      "file": "luke_character_focus_seed_urls.txt",
+      "bytes": 3828,
+      "sha256": "94de25219cf01eeeb52dbf4ba7bea1cf6bf59bfeb92af3124d1d380eba26f98b"
+    },
+    {
+      "file": "luke_source_crawl_all_list.md",
+      "bytes": 36545,
+      "sha256": "c211b431854d85108aa88f6dd65ea0e5444c869ec46fb4cdb4799fa558b333ea"
+    },
+    {
+      "file": "luke_source_crawl_jp_runs_20260911_194443/luke_failed.jsonl",
+      "bytes": 688,
+      "sha256": "6f9447977748597c0acaf5424bd815ce3475ac56f0533a64f0ec340e2caa8a0a"
+    },
+    {
+      "file": "luke_source_crawl_jp_runs_20260911_194443/luke_raw_records.jsonl",
+      "bytes": 1310945,
+      "sha256": "82a48946bb6ed52b749917a378572697485b6f4fa43d3933cbd08c14ab02067a"
+    },
+    {
+      "file": "luke_source_crawl_runs/luke_raw_records.jsonl",
+      "bytes": 74762,
+      "sha256": "6c79a58795bba1f1d3ca966338e7fd3efcfa7882b064bdfa92f21f2623c7c372"
+    },
+    {
+      "file": "luke_source_crawl_runs_20260911_193914/luke_raw_records.jsonl",
+      "bytes": 780522,
+      "sha256": "da18336ab384a4b1e9e03dac6e9bff7c56bc22a13bd19d4a123b6bbc7af7cfee"
+    },
+    {
+      "file": "luke_source_crawl_runs_full/luke_raw_records.jsonl",
+      "bytes": 784669,
+      "sha256": "f42c1f4cf83bb0e8f8e835fcf31f815a1c8bbea9ad5f7e11796405bf0eea7e58"
+    },
+    {
+      "file": "luke_source_crawl_xiaoyin_only.md",
+      "bytes": 14273,
+      "sha256": "df9e54b06ed7bffaf45c4d1b0d29a19edef2bbb5fc5747a5170da754ece4de4c"
+    },
+    {
+      "file": "luke_source_crawl_xiaoyin_target_20260911_194940/luke_raw_records.jsonl",
+      "bytes": 475899,
+      "sha256": "57e0840b15c36abbd635f613389536e8d29fbd732377059d8ab02cacc11f41ac"
+    },
+    {
+      "file": "luke_source_crawler.py",
+      "bytes": 11058,
+      "sha256": "7809cd8fdc6576d31de14b3f26e300da1ad137eb5ad0780851058b34fa45f2e3"
+    },
+    {
+      "file": "luke_source_xiaoyin_target_list.md",
+      "bytes": 10093,
+      "sha256": "d4f8e55c44230bc43a98106b35f75ff36a1fedf95908c2b4f5bd13eca779ad69"
+    },
+    {
+      "file": "luke_source_xiaoyin_unique.md",
+      "bytes": 3590,
+      "sha256": "ed67bead67b7b7db7d920ad1c68730c15b1962afedc2f8104adf1b3fd1732da2"
+    },
+    {
+      "file": "luke_source_xiaoyin_urls.txt",
+      "bytes": 2972,
+      "sha256": "46606c2fb8ecb11a7e681a806b146180bc79cc4c4be43e4f1a37c0eaeb726e6d"
+    },
+    {
+      "file": "mobile/README.md",
+      "bytes": 36288,
+      "sha256": "f7332139dd400028d0574bf8c78c39301bd9c9a8f3d1c5bb7a00c20988b549fe"
+    },
+    {
+      "file": "mobile/android/AndroidManifest.xml",
+      "bytes": 1540,
+      "sha256": "ee0fb8d48f9636c3ef24165d27e0bcd9419ff29dbfbaca0a910f97032c9d63e6"
+    },
+    {
+      "file": "mobile/android/MainActivity.java",
+      "bytes": 48166,
+      "sha256": "16b2cbcc8a1c902b89cc5fcf160beba797357856a2b34b399c5cdda230c2ef5d"
+    },
+    {
+      "file": "mobile/android/res/animator/luke_launch_halo.xml",
+      "bytes": 565,
+      "sha256": "05b0cd81331c2cdabb1e6e68af62dc930c0f8d87283bd33e7fd4a46fba3b0bd7"
+    },
+    {
+      "file": "mobile/android/res/animator/luke_launch_settle.xml",
+      "bytes": 779,
+      "sha256": "e3d43ad1f22e4ffa1ed2639ed8644a9c846c6e9fc2cb0cdc118c9a60a9bce0a8"
+    },
+    {
+      "file": "mobile/android/res/drawable/icon.xml",
+      "bytes": 587,
+      "sha256": "e2ccac3657730ee12fc9a15e479e668e7e2650acf2020d87bc9845f198fd641c"
+    },
+    {
+      "file": "mobile/android/res/drawable/luke_launch_animated.xml",
+      "bytes": 356,
+      "sha256": "d70efc7656cf4d62059d50f5ddd93302cd7279c4f5f5d621c4341bc726b8da64"
+    },
+    {
+      "file": "mobile/android/res/drawable/luke_launch_autumn_animated.xml",
+      "bytes": 351,
+      "sha256": "9b049895703b5fb0fd41669e5fdeff72a723bcf48d6c7c6e008eb3d949839e65"
+    },
+    {
+      "file": "mobile/android/res/drawable/luke_launch_autumn_mark.xml",
+      "bytes": 2325,
+      "sha256": "332503a0a2752e324e68ebec3a2e15d8f5d780301137e8983abf9ebdf20f0661"
+    },
+    {
+      "file": "mobile/android/res/drawable/luke_launch_mark.xml",
+      "bytes": 2340,
+      "sha256": "907f7ad84fed1a7156d97fb260e8d2d313376f908650b9736ece8e09bc2f26a3"
+    },
+    {
+      "file": "mobile/android/res/drawable/luke_launch_seasonal_window.xml",
+      "bytes": 357,
+      "sha256": "0e74a8e7b58204ed02bf0d504589735fda6df8d618b17a3fb73347ed2a4c5355"
+    },
+    {
+      "file": "mobile/android/res/drawable/luke_launch_spring_animated.xml",
+      "bytes": 351,
+      "sha256": "6a2edcb6abca8d4a8c6b5cd2d86522102ba6e78fa5e447d3a0a890a597f8dbed"
+    },
+    {
+      "file": "mobile/android/res/drawable/luke_launch_spring_mark.xml",
+      "bytes": 2351,
+      "sha256": "e4487b60b7fad4a653357219bc98524284487196f62167976ecc04e67fc5b579"
+    },
+    {
+      "file": "mobile/android/res/drawable/luke_launch_summer_animated.xml",
+      "bytes": 351,
+      "sha256": "a66ac31b2017e2cff68f2a33dd10da9b90b51f4b8c9fa96a8ebfc5bae231cd9e"
+    },
+    {
+      "file": "mobile/android/res/drawable/luke_launch_summer_mark.xml",
+      "bytes": 2431,
+      "sha256": "96610b59eb45da9b52eaaff8151c958ff869556c1b498fc93ce505f0d7738d7d"
+    },
+    {
+      "file": "mobile/android/res/drawable/luke_launch_window.xml",
+      "bytes": 324,
+      "sha256": "3c9aba44e6e608c77254494d394abe4025245aa5a697e974600c1d08e22ce7d6"
+    },
+    {
+      "file": "mobile/android/res/drawable/luke_launch_winter_animated.xml",
+      "bytes": 351,
+      "sha256": "39df5edad0af4d5803a22fc98003a97dcf8a67a21bbd82b96289c0105c652e0f"
+    },
+    {
+      "file": "mobile/android/res/drawable/luke_launch_winter_mark.xml",
+      "bytes": 2456,
+      "sha256": "6cd1c5395dcdaa0773782903fc87d31226a2c813a4ecfe7d203d91428c86c3ce"
+    },
+    {
+      "file": "mobile/android/res/interpolator/luke_launch_ease.xml",
+      "bytes": 312,
+      "sha256": "0569c48a5ac13a3f41e1a0b588dda4adcc8e0529d39c34c517a0e20feafcd50e"
+    },
+    {
+      "file": "mobile/android/res/values/launch.xml",
+      "bytes": 640,
+      "sha256": "15c507a6fa3552df97caa7fa13b95ab92db9d294ef87c735f778774397b19cc6"
+    },
+    {
+      "file": "mobile/android/res/values/luke_launch_seasons.xml",
+      "bytes": 9962,
+      "sha256": "0e705b78fd292074cee6e90e41dac5902853e05ee423a4d4c47f6d1519b24b7c"
+    },
+    {
+      "file": "mobile/android/res/values/styles.xml",
+      "bytes": 788,
+      "sha256": "8b63f91fd64bdd313a83d59d200ce7b9ccae2896931ee9879164b53cdb2ae46d"
+    },
+    {
+      "file": "mobile/android/res/values-night/launch.xml",
+      "bytes": 641,
+      "sha256": "9c3c1d99771e9942b55e031b804ea7b60198150b80d17fa3b4746fbb0bcc5e6d"
+    },
+    {
+      "file": "mobile/android/res/values-v31/luke_launch_seasons.xml",
+      "bytes": 585,
+      "sha256": "0019bee111367eaac884ed2b93b4576ef57c5074465a3606b1c2f5bab6cb0d55"
+    },
+    {
+      "file": "mobile/android/res/values-v31/styles.xml",
+      "bytes": 479,
+      "sha256": "84a609e03ec6a86c91d6ffc7bc960e850fa13ace970e421f3169b55b1d00468a"
+    },
+    {
+      "file": "mobile/build-apk.ps1",
+      "bytes": 247,
+      "sha256": "575ae727e95baaabe9253e2f9546bba53dee212ca22e6d33ba55010c114edab8"
+    },
+    {
+      "file": "mobile/build-local.mjs",
+      "bytes": 8303,
+      "sha256": "acb5efe16f3d39e9d4e3bf09156a4b2571f1d4024d9f07e9b9b65638914c277f"
+    },
+    {
+      "file": "mobile/build-local.ps1",
+      "bytes": 137,
+      "sha256": "50d55c3d496343cb8280f20aabdd92af400621ec2d181a63b22532ab7a4fa586"
+    },
+    {
+      "file": "mobile/build-local.sh",
+      "bytes": 146,
+      "sha256": "2f5da932c9f524915c233f48b272886658498b6cdd47b1e5187d76b6d004f74c"
+    },
+    {
+      "file": "mobile/index.html",
+      "bytes": 632,
+      "sha256": "0f732508e3bf3ba15338a084155211bf92de255d8fa229251fc67583b544345f"
+    },
+    {
+      "file": "mobile/main.tsx",
+      "bytes": 767,
+      "sha256": "25fc735b1e6ca4c982aa3c26c05ada963ad897e245c545a277272d06689c6c93"
+    },
+    {
+      "file": "mobile/vite.config.mts",
+      "bytes": 2662,
+      "sha256": "72901dabd899c9916988c5f3ea01efd340cf58cc25c1935665c58922036d4850"
+    },
+    {
+      "file": "next.config.ts",
+      "bytes": 104,
+      "sha256": "d063bebef3a4878ae82f9f9547c2c9675b8b6945ab23702932dcb63a011a9fc9"
+    },
+    {
+      "file": "package-lock.json",
+      "bytes": 349516,
+      "sha256": "5622c2ec51c0b555c1c57d8f7ceb0e2e09e3bf1033065595dbca178189cd2758"
+    },
+    {
+      "file": "package.json",
+      "bytes": 2282,
+      "sha256": "ca88501c5b121e6dfcbb576562a6bcf6f72206833e084aefadb673d878f622cc"
+    },
+    {
+      "file": "public/favicon.svg",
+      "bytes": 317,
+      "sha256": "cab72dc53a5536ccc96a0ec2eb2d9fb31624021ab069bddeba616375888ec042"
+    },
+    {
+      "file": "public/icon.svg",
+      "bytes": 317,
+      "sha256": "cab72dc53a5536ccc96a0ec2eb2d9fb31624021ab069bddeba616375888ec042"
+    },
+    {
+      "file": "public/images/chat-skins/hearts.webp",
+      "bytes": 2312,
+      "sha256": "dfe80c0c6055cc5f0b2742dfd7c92d03bdc3c972d8d5f7cf6bb416806728a179"
+    },
+    {
+      "file": "public/images/chat-skins/sunflower.webp",
+      "bytes": 4166,
+      "sha256": "f5f66133edbe5df68a90a0d8e513630f9fd949a235771a2cb263da431d2e7dc0"
+    },
+    {
+      "file": "public/images/chat-skins/tea.webp",
+      "bytes": 4582,
+      "sha256": "4e447301167b8196bf05e2f5c0d89f76788dd663554201d2937ddb54fd3a05bf"
+    },
+    {
+      "file": "public/images/companions/cat.webp",
+      "bytes": 2722,
+      "sha256": "95cfdc9ed25ff0a8637f4d6cffe08e20510168d4827cf75235dbd479efb062e4"
+    },
+    {
+      "file": "public/images/companions/dog.webp",
+      "bytes": 2202,
+      "sha256": "50853188d64fb04d8a166e7901d5904293310c8ad6281f8b2396db8d3d09beb1"
+    },
+    {
+      "file": "public/images/companions/toast.webp",
+      "bytes": 4116,
+      "sha256": "9cfc88da9e350b260f592fc0266cbe366deba74ac2d4ac535132d4d9fe265eda"
+    },
+    {
+      "file": "public/images/details210/feather-pen.webp",
+      "bytes": 62132,
+      "sha256": "b46eaf5954fbf6f51d16f845724bf9955cf73d6b375ac408dc48c9dcbc6269c2"
+    },
+    {
+      "file": "public/images/details210/flower-bookmark.webp",
+      "bytes": 68606,
+      "sha256": "ec5fab001236d1822696b58585fe32f9c86eb645943ff3af4074a2cbc70ade0d"
+    },
+    {
+      "file": "public/images/details210/orange-camera.webp",
+      "bytes": 61332,
+      "sha256": "b838cfe72e88df379d14d4f29180107b42f1bada3453cde73ce38f3d09846398"
+    },
+    {
+      "file": "public/images/luke-blossom.jpg",
+      "bytes": 1758287,
+      "sha256": "8313cd4238a2fb34bba442f09d472211d6042c4d0f19658a3bdde5d77b9e01b8"
+    },
+    {
+      "file": "public/images/luke-blossom.webp",
+      "bytes": 783948,
+      "sha256": "4b08af6ca2cf8b11461cc9b785879d377063c4314a9e853000792749844cebaa"
+    },
+    {
+      "file": "public/images/luke-camera.jpg",
+      "bytes": 1806928,
+      "sha256": "c827ae4b3756f1096524e74b1eda88faa4b77b514cccdedd8c61afab8f06650f"
+    },
+    {
+      "file": "public/images/luke-camera.webp",
+      "bytes": 812708,
+      "sha256": "914f85634ab14068ddda72073852a5afd903dea05cb781a7eeb64b6a1b02424b"
+    },
+    {
+      "file": "public/images/luke-nap.png",
+      "bytes": 5932237,
+      "sha256": "9d812b4662d4dce0833c8026155918938224cf6210553615032867062db02685"
+    },
+    {
+      "file": "public/images/luke-nap.webp",
+      "bytes": 462702,
+      "sha256": "0d282c867f76cbb34de71baf2c4270ba8d44499f3370a4a903492d616b8bd725"
+    },
+    {
+      "file": "public/images/luke-sunset.jpg",
+      "bytes": 1524880,
+      "sha256": "aedaf2ff2d89e582db795830e79a2dd3d85b5ad9db32bbea12532fb5ad46151a"
+    },
+    {
+      "file": "public/images/luke-sunset.webp",
+      "bytes": 695964,
+      "sha256": "51636759e39d8a5c4b5b10c7026724faed7cfc22664357646503cf4072293129"
+    },
+    {
+      "file": "public/images/luke-today.webp",
+      "bytes": 3258,
+      "sha256": "e8b5eb31d5569baef4be0b4636f66160c338cb42e3d5551cabe13146daca8954"
+    },
+    {
+      "file": "public/images/seasons/autumn-1.png",
+      "bytes": 1258293,
+      "sha256": "77e9369a0da17afe3c00d18f12593fae155a6e2d3e07f2e2e4642add0ee12761"
+    },
+    {
+      "file": "public/images/seasons/autumn-1.webp",
+      "bytes": 146002,
+      "sha256": "15bd952c5b275d81026eb3ede58f0543841284f10a3953fe25e2d4773f2f0d40"
+    },
+    {
+      "file": "public/images/seasons/autumn-2.png",
+      "bytes": 3198776,
+      "sha256": "a521da36342a212d63ad28f03402310fc1db62921b676d005b19d2dd770bf473"
+    },
+    {
+      "file": "public/images/seasons/autumn-2.webp",
+      "bytes": 374716,
+      "sha256": "28f8fbd636bf81573eaa8d98290d3e9254fa689a931ad36cb5a8fc724356d543"
+    },
+    {
+      "file": "public/images/seasons/autumn-3.png",
+      "bytes": 1148904,
+      "sha256": "aaa96c7bcc276d45f7303c02f6c443202f1412f9143ec91cdad8102502819761"
+    },
+    {
+      "file": "public/images/seasons/autumn-3.webp",
+      "bytes": 114724,
+      "sha256": "f513f87f45e24df41574562fa070adba98a4022d997c18edc858089158e9e2ae"
+    },
+    {
+      "file": "public/images/seasons/autumn.png",
+      "bytes": 5552983,
+      "sha256": "2bbe87e17647b990c8009428b508255dc7d82372b427c852c02fc1d2ef2c3e06"
+    },
+    {
+      "file": "public/images/seasons/autumn.webp",
+      "bytes": 531838,
+      "sha256": "685a2c5c9dd2590873259e0a81e7f4f56698bfd27cfae0b986423fbf90843e29"
+    },
+    {
+      "file": "public/images/seasons/spring-1.png",
+      "bytes": 1312406,
+      "sha256": "20f0c9d6e4081dff9af38a736c3b7a0d9f4b47c86aedd5d7f374ca976b6a63a9"
+    },
+    {
+      "file": "public/images/seasons/spring-1.webp",
+      "bytes": 164988,
+      "sha256": "6748e85755842f34daccc4fcdce27fcc1304053cbed8e163c357d8a9aff72872"
+    },
+    {
+      "file": "public/images/seasons/spring-2.png",
+      "bytes": 1408599,
+      "sha256": "ff29f2d850c345a506dfabc8a9193c6a185fb52862dd0f5b8468cc328048bb4b"
+    },
+    {
+      "file": "public/images/seasons/spring-2.webp",
+      "bytes": 169706,
+      "sha256": "8d2faed2dff329c063069d92d6fd8cc4283e6cd8b554a21988f398aa9d56d603"
+    },
+    {
+      "file": "public/images/seasons/spring-3.png",
+      "bytes": 1263267,
+      "sha256": "5ec8903783b1df491fd846fac6c310bdc0826855f8598c3263722d3676b41a4c"
+    },
+    {
+      "file": "public/images/seasons/spring-3.webp",
+      "bytes": 149134,
+      "sha256": "630e1888208acc3fe1fda8e277496b51dee0f6e5312bf531df6ae9595e3910cb"
+    },
+    {
+      "file": "public/images/seasons/spring-4.png",
+      "bytes": 1286752,
+      "sha256": "1533789f54f58579330a943a799d3e42b7e913b2ee93528055ea8f9ca92ab7c4"
+    },
+    {
+      "file": "public/images/seasons/spring-4.webp",
+      "bytes": 148562,
+      "sha256": "536ef6124391e6c3fc1b251aa85c579a8b2b66c0bc5714ada3826dec9ccc0ba4"
+    },
+    {
+      "file": "public/images/seasons/spring.png",
+      "bytes": 5067389,
+      "sha256": "1987119847ebf38247f8d6551e39cadb04bed6a865db43959581316499ec4487"
+    },
+    {
+      "file": "public/images/seasons/spring.webp",
+      "bytes": 386586,
+      "sha256": "750aa57941b5b9e1e105f43106ec5e8b261b35ca90c538b8135f4c90b1fa3889"
+    },
+    {
+      "file": "public/images/seasons/summer-1.png",
+      "bytes": 1329448,
+      "sha256": "73c9511492101c08ab0bc7792e8b7bc27b610f89a64bc5baf4acb2db41df1e49"
+    },
+    {
+      "file": "public/images/seasons/summer-1.webp",
+      "bytes": 167192,
+      "sha256": "a623cc81e02082cd8ad2121480b71e522c3b891be081af1f8271426d34b46655"
+    },
+    {
+      "file": "public/images/seasons/summer-2.png",
+      "bytes": 9839051,
+      "sha256": "9200af42ef3856230149592859c27c7b0c7be882cd4a896404da2dbc8ba468c9"
+    },
+    {
+      "file": "public/images/seasons/summer-2.webp",
+      "bytes": 788198,
+      "sha256": "191ad75547352f9e41d01d91afe48c780a7f8babc6c30167dd160d528d757421"
+    },
+    {
+      "file": "public/images/seasons/summer-3.png",
+      "bytes": 913445,
+      "sha256": "d1ec8305982a5c1ca32dd4e4bbd18ab59d8fc1d318216e639c5ac99713136333"
+    },
+    {
+      "file": "public/images/seasons/summer-3.webp",
+      "bytes": 85776,
+      "sha256": "08ad46e82dca213db771edfd3fef208ab42af6a93e5b282a6984957c110499d8"
+    },
+    {
+      "file": "public/images/seasons/summer-4.png",
+      "bytes": 3231543,
+      "sha256": "24963bc3fb85ae509bb3109800dc5f63d4a1f67093d76d8378a2cc68436de5c5"
+    },
+    {
+      "file": "public/images/seasons/summer-4.webp",
+      "bytes": 411426,
+      "sha256": "036c93b1a5b1c6d6448e9a5f551b8e3f7fe5ad0fccde260097666df9d9ddc52d"
+    },
+    {
+      "file": "public/images/seasons/summer.png",
+      "bytes": 8279179,
+      "sha256": "8965b4110d1a663181f752ed8f3552ca0617f4ffc8fb07b207a418487f1d4b53"
+    },
+    {
+      "file": "public/images/seasons/summer.webp",
+      "bytes": 694292,
+      "sha256": "72ad7f2068e5984363c362a36baaa910f8797d853813b80ceb8997db57957929"
+    },
+    {
+      "file": "public/images/seasons/winter-1.png",
+      "bytes": 2874668,
+      "sha256": "8362ffd1fd33f4825982d1ab8d7224bba2ce5df44183ef78b39f9e743095d047"
+    },
+    {
+      "file": "public/images/seasons/winter-1.webp",
+      "bytes": 417228,
+      "sha256": "aef39ba4565ceaac9d72f4ee616cd9d94ed2ed403d41231009ca80470894334c"
+    },
+    {
+      "file": "public/images/seasons/winter-2.png",
+      "bytes": 1831080,
+      "sha256": "d44a5d17867e3db33b362ecf91ce1fb4c51dba786f195ea2f5dbe84cfef1e6b0"
+    },
+    {
+      "file": "public/images/seasons/winter-2.webp",
+      "bytes": 176828,
+      "sha256": "6ebd674ab87a1ae4da0a85168e3c786b5d8d3d7a448c65c6dd12a1685817cf34"
+    },
+    {
+      "file": "public/images/seasons/winter-3.png",
+      "bytes": 1073391,
+      "sha256": "b05d9669b82fb52ef22e596d96fffc219d4ed965ec550373cd4cd3f08c4b8478"
+    },
+    {
+      "file": "public/images/seasons/winter-3.webp",
+      "bytes": 108418,
+      "sha256": "8341f0f2dba2f2b11eced8c6f00cc2ac6b0abb8d199d3e83db1283f2abaf931d"
+    },
+    {
+      "file": "public/images/seasons/winter-4.png",
+      "bytes": 1144150,
+      "sha256": "6174ba7423615e68f90b1b6fd275655ad5741f69126eea0ab23db5b4f6ac0a5b"
+    },
+    {
+      "file": "public/images/seasons/winter-4.webp",
+      "bytes": 137564,
+      "sha256": "61c4aa61d776c64533d7fe227a2ed56f4f7bdb36791b3297da16eb729a858234"
+    },
+    {
+      "file": "public/images/seasons/winter-5.png",
+      "bytes": 1320111,
+      "sha256": "049caf2204cce9720670f0734334004dd53569fbe3907d9c68501bac6e8f8fec"
+    },
+    {
+      "file": "public/images/seasons/winter-5.webp",
+      "bytes": 159884,
+      "sha256": "885fa61821da6f4c67924293a0377b24c87b8c3148028572bde6bcd505077f4f"
+    },
+    {
+      "file": "public/images/seasons/winter.png",
+      "bytes": 7785351,
+      "sha256": "d5dcaee10e2d893cc4ae3e5f01803d2113852e5f78c938b5e97d46774a4ddf22"
+    },
+    {
+      "file": "public/images/seasons/winter.webp",
+      "bytes": 804590,
+      "sha256": "15a7607ea5c28c1a96a2db010dfa1aba481d8dab5519ff3ca232ca9322939463"
+    },
+    {
+      "file": "public/licenses/fflate.txt",
+      "bytes": 1069,
+      "sha256": "805f6cb28bb8b6d3a0badd83c93bccd9671fa01a3b4b92b7042b0743325ac243"
+    },
+    {
+      "file": "public/licenses/holiday-cn.txt",
+      "bytes": 1068,
+      "sha256": "234e246330285b6589ff2be2381d4ae71fac39b11b1882fd1f6bda6d6f46c4c6"
+    },
+    {
+      "file": "public/licenses/motion.txt",
+      "bytes": 1100,
+      "sha256": "1bf0dc3f7727723e5a032ed12164a47cf92c05204cb1a3485f123c24e2833ed1"
+    },
+    {
+      "file": "public/luke.png",
+      "bytes": 985704,
+      "sha256": "06c7b95e761af447ec2c0b043feccf9967c32246675bda87388d1aa05f68a33b"
+    },
+    {
+      "file": "public/manifest.webmanifest",
+      "bytes": 258,
+      "sha256": "9a097f1d74dbc1b9ebc2bb819712b5653d9cbcb895a8194b6cee61e4d76b8cb0"
+    },
+    {
+      "file": "scripts/checks/android-observer/AndroidManifest.xml",
+      "bytes": 529,
+      "sha256": "df5fcef59d1711747fa7e31b8058cc53e345c1c35bbd5d4f6412b31c98ebf9c0"
+    },
+    {
+      "file": "scripts/checks/android-observer/Observer.java",
+      "bytes": 4324,
+      "sha256": "d96ac3027c2251928d25d8c7cc70f4295b4a4b3cc7de2e1da2103ccbfa5dcccf"
+    },
+    {
+      "file": "scripts/checks/android_observer.py",
+      "bytes": 5330,
+      "sha256": "595f39d0c32773333bddeb11eba2ef8680f687c1dd7224556f4ef589796a36db"
+    },
+    {
+      "file": "scripts/checks/browser-clock-hotfix3.py",
+      "bytes": 19521,
+      "sha256": "dd36e63aa11dc3227326ddabbbe80460e734a80e01aa5ce78768679c42c29452"
+    },
+    {
+      "file": "scripts/checks/browser-detail-hotfix2.py",
+      "bytes": 16551,
+      "sha256": "2bfebc8d46a2827c21e9b22e096edf3e3581fc1e8ccf2a3790bbc9ca76701e40"
+    },
+    {
+      "file": "scripts/checks/browser-functional210.py",
+      "bytes": 20773,
+      "sha256": "827f0c082be9354fad7c0585b53938ab812d79992f80648d36129f3a5ccc13a7"
+    },
+    {
+      "file": "scripts/checks/browser-layout210.py",
+      "bytes": 9280,
+      "sha256": "62281163b6bd9ab15c015586d62a9f2c3e6ea4b644ccf5ba147ed6eb19c24581"
+    },
+    {
+      "file": "scripts/checks/browser-memory210.py",
+      "bytes": 6129,
+      "sha256": "2d6416af839c9f216633b5b59dff92e724439703a1cd327d3d84f087551416a4"
+    },
+    {
+      "file": "scripts/checks/browser-weather-timer-hotfix.py",
+      "bytes": 19127,
+      "sha256": "542952cab2a95487b3d64398ceeb86f5af694052fb84b60b450f0cc9cd3d8333"
+    },
+    {
+      "file": "scripts/checks/browser205.py",
+      "bytes": 20652,
+      "sha256": "63effcb0d1abef229f3ad95930a0c060b4a2c9e6b59f33bbb7f32eafee4f299e"
+    },
+    {
+      "file": "scripts/checks/build-harness205.mjs",
+      "bytes": 356,
+      "sha256": "fa5a915d2e4204eecbaf0e842e51c01c9c10816be43dc33cec32bbe27420972d"
+    },
+    {
+      "file": "scripts/checks/build-hotfix2-harness.mjs",
+      "bytes": 539,
+      "sha256": "535b08e16ad8b4f8a7e59c8763e6c5b4c043569f336365b661bb7a7e3706d910"
+    },
+    {
+      "file": "scripts/checks/chat-compat-browser.py",
+      "bytes": 9981,
+      "sha256": "1c3ff209551683bdae2a7284c1b97cc08a6c7e441b36767339ac0cf0ba062f8f"
+    },
+    {
+      "file": "scripts/checks/chat-compat.test.mjs",
+      "bytes": 6238,
+      "sha256": "5a131de419b33bf208d3be9b1077ebc05896dd4bfdc279938641a8031d4f1d91"
+    },
+    {
+      "file": "scripts/checks/check-add-book-ui.mjs",
+      "bytes": 3355,
+      "sha256": "5c1408e05a936ca8f554867fe2cba037c0580e174fe9122b884c9425484c0170"
+    },
+    {
+      "file": "scripts/checks/check-ambience.mjs",
+      "bytes": 971,
+      "sha256": "2caf8818f4179d8a329858410abc33296a43e256b9b21d8b74f25a2ea46ff4aa"
+    },
+    {
+      "file": "scripts/checks/check-birthday-dialog.mjs",
+      "bytes": 840,
+      "sha256": "cf12db5218ef5f296288d7deb841579d78f04b7f20c3e6a4754b49a078416c1d"
+    },
+    {
+      "file": "scripts/checks/check-built-in-model.mjs",
+      "bytes": 4128,
+      "sha256": "d5f19d0f6f43676e83d69f60ff349f1f74bf7e1b23ea1680a19f82e902c5ad98"
+    },
+    {
+      "file": "scripts/checks/check-chat-experience.mjs",
+      "bytes": 6219,
+      "sha256": "1d185171e73524de558468594b55c437d581f12c8434e0ea51fc62e5ca3f9898"
+    },
+    {
+      "file": "scripts/checks/check-daily-recommendations.mjs",
+      "bytes": 2950,
+      "sha256": "cced9044a6abc78677c9190a43d7e10ca6f8c4741c5eb6ad0c822d43b3568c31"
+    },
+    {
+      "file": "scripts/checks/check-daily.mjs",
+      "bytes": 3287,
+      "sha256": "67ca5c6a75d43ccfe12d2568b6ccc42abc93ab964765bed58952d75c9a1bd632"
+    },
+    {
+      "file": "scripts/checks/check-date-haptic.mjs",
+      "bytes": 3632,
+      "sha256": "c28810c1dd87f15d9ef5af801e78ac82e37a048c3acdf37e47eedd8098c6030f"
+    },
+    {
+      "file": "scripts/checks/check-detail-polish.mjs",
+      "bytes": 3306,
+      "sha256": "63b8f119dc11ccfa0241cb783f85c2a32b3ad3f24ca7abd62199a296f60ec7ce"
+    },
+    {
+      "file": "scripts/checks/check-extras.mjs",
+      "bytes": 1835,
+      "sha256": "8d6c7bb6c4eb14c5323994361decccbed1e9de0b41ac2eb6aa7fe7a17f9a002e"
+    },
+    {
+      "file": "scripts/checks/check-focus-dashboard.mjs",
+      "bytes": 2584,
+      "sha256": "b84944aabd7c199f317009c1069662391d9cac024308d456be31503ce6ddecff"
+    },
+    {
+      "file": "scripts/checks/check-gallery-swipe.mjs",
+      "bytes": 4545,
+      "sha256": "112bc4566829d0f6a5c63683fe3657eafefcecb8c35ae7906a152309cad9cbd1"
+    },
+    {
+      "file": "scripts/checks/check-home-copy.mjs",
+      "bytes": 1415,
+      "sha256": "3474489f929d36a863e396803350633b1545abe4c5fb6e16087890e1dcfa1133"
+    },
+    {
+      "file": "scripts/checks/check-independent-appearance.mjs",
+      "bytes": 900,
+      "sha256": "4ee042a86f58c7b57b6dd10cf4acca12a3b5f452cdb4f0149914e0424995e397"
+    },
+    {
+      "file": "scripts/checks/check-independent-recommendations.mjs",
+      "bytes": 2234,
+      "sha256": "1851b59c3592ee396282140b03dec6cf58cf0943f7fe2cdbf5f71022c27023e5"
+    },
+    {
+      "file": "scripts/checks/check-integrations.mjs",
+      "bytes": 4891,
+      "sha256": "9b8c82dbd1afa8dfc6ac068fc201eb2ae14febb1832e336c9eacb381282e0d05"
+    },
+    {
+      "file": "scripts/checks/check-journal.mjs",
+      "bytes": 1020,
+      "sha256": "6d91bf55f9b7c9456e4c90d557d3db606eef8e329b67851e1a8cb0bda7013e15"
+    },
+    {
+      "file": "scripts/checks/check-live-context.mjs",
+      "bytes": 1947,
+      "sha256": "fe83d6b6051b1d64f32196ae6b85a623cebec9f127015fc3eb3b952335ce8ccd"
+    },
+    {
+      "file": "scripts/checks/check-luke-knowledge.mjs",
+      "bytes": 2088,
+      "sha256": "81220e99423cd5085513ee5b83746be5226e21d608eccc5a12ba435eb1ea80fb"
+    },
+    {
+      "file": "scripts/checks/check-luke-memory-v2.mjs",
+      "bytes": 1783,
+      "sha256": "20ebbffdfb1f2ab74becc7886099967ece65edbe75edc1441835d5f0912ad52f"
+    },
+    {
+      "file": "scripts/checks/check-memo-navigation.mjs",
+      "bytes": 826,
+      "sha256": "0d00f24a397e8f1a444583363f0225fbc689c8fbb31404bb39277054d9155cf6"
+    },
+    {
+      "file": "scripts/checks/check-mobile.mjs",
+      "bytes": 1991,
+      "sha256": "95691d949f10464c0fdfd0f034c06446c6e368b87f706c121e5e9c373f010549"
+    },
+    {
+      "file": "scripts/checks/check-model-fallback.mjs",
+      "bytes": 2768,
+      "sha256": "53a1eb5ec4e20c186c091638a4c1c7959c2fb348768d1282fefc8c5db7d6d8d3"
+    },
+    {
+      "file": "scripts/checks/check-motion-ui.mjs",
+      "bytes": 4796,
+      "sha256": "3fe5c20070807e1f5b7982d6776d060bebe8209fc6c16928ff6eca4215b8caa2"
+    },
+    {
+      "file": "scripts/checks/check-music.mjs",
+      "bytes": 935,
+      "sha256": "120455391b5139ce008e2d6c5fa6a18ce85b43f2e22a8768f6c53ccdfa49d8e8"
+    },
+    {
+      "file": "scripts/checks/check-name-edges.mjs",
+      "bytes": 3824,
+      "sha256": "564058522095ef1957b8811fae448352be187e9ceb1158378569c22fc7a53214"
+    },
+    {
+      "file": "scripts/checks/check-navigation-ui.mjs",
+      "bytes": 3644,
+      "sha256": "bec510643e7c4857db046848198c60934c26ee6e4b56a15832ac65b26eb94ed7"
+    },
+    {
+      "file": "scripts/checks/check-night-toolbar.mjs",
+      "bytes": 3136,
+      "sha256": "af62e0583557b4834222303eb45314b36107c4caf27feb938527220c3c20e32e"
+    },
+    {
+      "file": "scripts/checks/check-persona-live.mjs",
+      "bytes": 1134,
+      "sha256": "25ca69dd824e5841acfe2b9c4a137d4249ef22af38c004475cf9e5d523f360cb"
+    },
+    {
+      "file": "scripts/checks/check-personal-extras-ui.mjs",
+      "bytes": 7435,
+      "sha256": "89f9d0a3e71ceaf8eac36d6374bbd1ec0ced332f7bcb7f45bb3203787a0cfefc"
+    },
+    {
+      "file": "scripts/checks/check-personal-extras.mjs",
+      "bytes": 1894,
+      "sha256": "6a0669907234826e8a9030c639288d1d5a399ebdb21e9c8e622a2d82bce079e4"
+    },
+    {
+      "file": "scripts/checks/check-photo-transition.mjs",
+      "bytes": 1483,
+      "sha256": "1b6375fb9d06f03495161aa3827933e962435cf34b163fb9e216102daac735dd"
+    },
+    {
+      "file": "scripts/checks/check-pomodoro.mjs",
+      "bytes": 1618,
+      "sha256": "2af27e9f2625613d3bc51663595de9a2a90fa97172531993598c98208e2a5cbb"
+    },
+    {
+      "file": "scripts/checks/check-reading-ui.mjs",
+      "bytes": 3980,
+      "sha256": "e0fbcb3d71641ea8b564e7c249a3f7515c9353c6f11617061f292a360535a685"
+    },
+    {
+      "file": "scripts/checks/check-rounded-startup.py",
+      "bytes": 3475,
+      "sha256": "9413bbbb0a12cf8e7f5880beb6f98cff8af631be0acc3a3ecf658d85a3b40033"
+    },
+    {
+      "file": "scripts/checks/check-season-performance.mjs",
+      "bytes": 35760,
+      "sha256": "f679e6f4a96f49a7850f0642770a2ec16ed5e69acfa161ad84d01d50407a0f61"
+    },
+    {
+      "file": "scripts/checks/check-seasons.mjs",
+      "bytes": 1355,
+      "sha256": "b830fe1367d449db9645996baaaae7f9f31b47976d59da147902550af3c4e53b"
+    },
+    {
+      "file": "scripts/checks/check-settings.mjs",
+      "bytes": 1605,
+      "sha256": "ddbafd6426f6d1027d20961cdf4e127ac5fe2d5eab6c9a5acf659a1b5b5f5c6a"
+    },
+    {
+      "file": "scripts/checks/check-startup-notes-theme.mjs",
+      "bytes": 6077,
+      "sha256": "804ec653ca131ceaf2edc8aa48b7be79884f5881f7e3b68a11e34cd553c9cf68"
+    },
+    {
+      "file": "scripts/checks/check-stream.mjs",
+      "bytes": 2066,
+      "sha256": "3d2d6c5493a2bcea3d6e336091e0668d3ccd5a6c00626406796d46811c9b538d"
+    },
+    {
+      "file": "scripts/checks/check-study.mjs",
+      "bytes": 1772,
+      "sha256": "b82be4a2ae39694ee3649fe01f6729a576487ed33ba777f34038e2ef965b7725"
+    },
+    {
+      "file": "scripts/checks/check-touch-focus-ui.mjs",
+      "bytes": 4029,
+      "sha256": "1b476f0a740d7bf76774dfb5d297e27b49939c0d3dac0598358cc8cd0574dbdd"
+    },
+    {
+      "file": "scripts/checks/check-ui-tuning.mjs",
+      "bytes": 3337,
+      "sha256": "51911494308400c2395f1ccaef34bb23de07ded5e4ede1e0247883a127be5ff7"
+    },
+    {
+      "file": "scripts/checks/check.mjs",
+      "bytes": 1032,
+      "sha256": "348c100dfe31b6593e218446c77c752eb7154bd52107a207911c8f74e7abf3e9"
+    },
+    {
+      "file": "scripts/checks/clock-hotfix3.test.mjs",
+      "bytes": 6468,
+      "sha256": "d1a064f650bca7dcc9c594b1d2a247a7eb11e32e0bddebdc61e14c6c9164c163"
+    },
+    {
+      "file": "scripts/checks/companion-theme.test.mjs",
+      "bytes": 3876,
+      "sha256": "86fd2db58a728173a03be3fe3c5ae3ce20d4ce9726a3ea5b9e90a2e920786093"
+    },
+    {
+      "file": "scripts/checks/companion_theme_browser.py",
+      "bytes": 7727,
+      "sha256": "5a544723628d7fa1a42939a22e089328eb48c42c18471355e421410fdd2d05cb"
+    },
+    {
+      "file": "scripts/checks/delivery210.test.mjs",
+      "bytes": 2384,
+      "sha256": "51d5a157b155e41fd76ab3c9b1ecccd86289ad87af2aed0cf0256dff1a220e1b"
+    },
+    {
+      "file": "scripts/checks/delivery5.test.mjs",
+      "bytes": 2111,
+      "sha256": "61f3af77b329b165020c87194ba5a3daf2a4d432cfb3d1ad2f69c7f0c685eee8"
+    },
+    {
+      "file": "scripts/checks/detail-hotfix2.test.mjs",
+      "bytes": 5666,
+      "sha256": "1cf4cc1740c9d3379fc86c45f3d427018b7aff83befdb78da8db30b6244c21f9"
+    },
+    {
+      "file": "scripts/checks/detail-round2.test.mjs",
+      "bytes": 6609,
+      "sha256": "a922432aa7cc42ed1ef7cb8e8b2eb57155144515a0a96d936545b360a64ad7bb"
+    },
+    {
+      "file": "scripts/checks/detail-six.test.mjs",
+      "bytes": 2793,
+      "sha256": "9310b7b3ef4c0b011b827cf558c5213f891bae73cca71d03a2873a7f824b57b4"
+    },
+    {
+      "file": "scripts/checks/diagnose-detail-hotfix2.py",
+      "bytes": 1638,
+      "sha256": "e267442702d4d2efd921ef3b6db75c427a6ea640e9e0c93a056eb5c2e765487d"
+    },
+    {
+      "file": "scripts/checks/fetch-motion-apk.py",
+      "bytes": 1851,
+      "sha256": "8b840d5fb628c3bf8d00d9555e5fd6ecc3b83cee740b5cc815f92a3a6cc36180"
+    },
+    {
+      "file": "scripts/checks/functional210.test.mjs",
+      "bytes": 14923,
+      "sha256": "9fd6126bb14d75a0012f5709757fb2436ce38dbb0d0ebadd38793184956b9128"
+    },
+    {
+      "file": "scripts/checks/handoff.test.mjs",
+      "bytes": 1583,
+      "sha256": "9a2bb45e1d246cc4320198cf5c143acc440fcadf3cc312a1dafbc266d3c3a0b5"
+    },
+    {
+      "file": "scripts/checks/harness205.ts",
+      "bytes": 345,
+      "sha256": "82801e87c651435ed9598a5e3a83a8c1afbf4260ddb73b99cc033b5ff3a619be"
+    },
+    {
+      "file": "scripts/checks/holiday-functional210.test.mjs",
+      "bytes": 7918,
+      "sha256": "09a5b33ed61e40dbf76eef0ad5c8c2809a8da9f1c58230bbd8527172604e8112"
+    },
+    {
+      "file": "scripts/checks/hotfix2-fixtures/durable.ts",
+      "bytes": 1028,
+      "sha256": "d0fbc0276c25a11ccb2a2313f53dad1242a2bbee4de43dd37e7bfc6a3decb980"
+    },
+    {
+      "file": "scripts/checks/hotfix2-fixtures/restore-harness.tsx",
+      "bytes": 841,
+      "sha256": "e2d457d9b281abd5240f5e3999c8e612334f76f3a6019dd6840b1a729972dec4"
+    },
+    {
+      "file": "scripts/checks/interaction203.test.mjs",
+      "bytes": 4033,
+      "sha256": "37a2a853c30be9e02fa30a279796080e26ea713a3799fb93e84b11c5991a74c4"
+    },
+    {
+      "file": "scripts/checks/interaction203_browser.py",
+      "bytes": 10671,
+      "sha256": "6ce8259d1dcdcad13202a57a76aa8f5310d7cec14c1a6d77ccfeab5d8e5324d3"
+    },
+    {
+      "file": "scripts/checks/memo_focus_browser.py",
+      "bytes": 2557,
+      "sha256": "e3c8838b5fa3d23f5d5a1fb39ce59124be3338ed0eee7d038bba350f2a9a1f78"
+    },
+    {
+      "file": "scripts/checks/memo_polish_browser.py",
+      "bytes": 5080,
+      "sha256": "4e3b6ad169b4b025eeee207b9fe319e6d77d2ddb6d88754bd992481cefe7c1d9"
+    },
+    {
+      "file": "scripts/checks/memory-timer204.test.mjs",
+      "bytes": 7214,
+      "sha256": "0312507c69b53b113da45e01614dc48464e782e47957c279f969053a8b2abd10"
+    },
+    {
+      "file": "scripts/checks/memory_bridge_fixture.py",
+      "bytes": 1533,
+      "sha256": "e3f5d97071233e0a8580e5ea980fd7a3f5f18c9dbb86b5e707a6c5009a501e44"
+    },
+    {
+      "file": "scripts/checks/motion.test.mjs",
+      "bytes": 8556,
+      "sha256": "622cfd0ab46b2033b1a7980e13e9875533a84e94f96e9ffd41649a931c5914b0"
+    },
+    {
+      "file": "scripts/checks/motion_accessibility.py",
+      "bytes": 3330,
+      "sha256": "b8acf49d630eb059d1e0cf6438ad67113fc4137f09bfb6d998a58e4f6555059f"
+    },
+    {
+      "file": "scripts/checks/motion_android.py",
+      "bytes": 13075,
+      "sha256": "79758120aeb7a9c52c009651771cee805c17320e0a448faa92d00d0201d0b679"
+    },
+    {
+      "file": "scripts/checks/motion_browser.py",
+      "bytes": 12695,
+      "sha256": "cfcebd382cecd468154c8f9ab004d158cdedd8c83c3052aab3eb3197d70579f7"
+    },
+    {
+      "file": "scripts/checks/motion_device_environment.py",
+      "bytes": 3081,
+      "sha256": "1928f008d18015e79b7df62a77a88c9d77371006d6054268a9d0900f5caad9c3"
+    },
+    {
+      "file": "scripts/checks/motion_observation.py",
+      "bytes": 2955,
+      "sha256": "4b045ad56181f0ff07a78da079cf53ea6377dfa6a3e3d25195568788cb0b826d"
+    },
+    {
+      "file": "scripts/checks/motion_secondary_dialogs.py",
+      "bytes": 3876,
+      "sha256": "900452a900a6693d14d549abdaadcfb69321a15ec9c671069d7e602389f9220b"
+    },
+    {
+      "file": "scripts/checks/polish205.test.mjs",
+      "bytes": 8781,
+      "sha256": "2225f2424912cea9893be03e9657ab18e33b949cfc02dfcdfba55d7ae0504cad"
+    },
+    {
+      "file": "scripts/checks/prepare-emulator-webview.py",
+      "bytes": 1798,
+      "sha256": "5573a0bcfbfecaf246dfb908f2a649848191a92a3bee9550f56a77f9ae093d48"
+    },
+    {
+      "file": "scripts/checks/renderer_recovery.py",
+      "bytes": 3543,
+      "sha256": "329f139497d83a3d236573047965d55bb4cc0ff364011fdd6b2d0a40194887ef"
+    },
+    {
+      "file": "scripts/checks/runtime210.py",
+      "bytes": 7792,
+      "sha256": "c3b0ea39b497b0fd4a05fb5a032c3d209aeefb8d21e81d00c22d68c8b513c0fb"
+    },
+    {
+      "file": "scripts/checks/scoped_android_log.py",
+      "bytes": 499,
+      "sha256": "2d2cae495d9aeb5ca5f22f88133f1dbb7c8d265479f639a46e8f2887561f6420"
+    },
+    {
+      "file": "scripts/checks/scoped_android_log_test.py",
+      "bytes": 919,
+      "sha256": "c22688fe3594a17cdfbd1d59e9f2340553f9ddb7a98c0918772ae62250b28365"
+    },
+    {
+      "file": "scripts/checks/seasonal-polish.test.mjs",
+      "bytes": 6818,
+      "sha256": "2025a2f97d4bd9cb1d473c072ff15b20f2948de27c7aab3a87ac638fb4946434"
+    },
+    {
+      "file": "scripts/checks/seasonal_android.py",
+      "bytes": 3871,
+      "sha256": "fd6b4bcf2e026ef814e42f87324fa703721db0d4d6875ece3a4bac21b904ffe4"
+    },
+    {
+      "file": "scripts/checks/seasonal_browser.py",
+      "bytes": 5872,
+      "sha256": "09037f6dcc2b74ad759093ba202eb3447a9b922101804db1c55f73b50112dad6"
+    },
+    {
+      "file": "scripts/checks/seasonal_layout.py",
+      "bytes": 4711,
+      "sha256": "dbb81cafb2700e17b93974994259d5b875baae0fe3b129538527f09306b3b2b2"
+    },
+    {
+      "file": "scripts/checks/secure-model-defaults.test.mjs",
+      "bytes": 1623,
+      "sha256": "f3330a6880c55cad89faf617cf31765c26a12a6b4305f9a41fc00fe9a201ca96"
+    },
+    {
+      "file": "scripts/checks/settings-calendar.test.mjs",
+      "bytes": 2758,
+      "sha256": "a7dc0fc260c03178339cad87f9b1e2fa6c9bca744b4fafdf2c3d9f50768e3826"
+    },
+    {
+      "file": "scripts/checks/settings_calendar_browser.py",
+      "bytes": 10602,
+      "sha256": "d0b194119dcf2fba0fd9803e53cb3b66eb87311c7260f86ef947fcdd37de0822"
+    },
+    {
+      "file": "scripts/checks/splash_pixels.py",
+      "bytes": 1828,
+      "sha256": "cb113d3b11dcc1e73eee737f0866536abe11f02305dc124b77e3a11bcecca61e"
+    },
+    {
+      "file": "scripts/checks/test_motion_observation.py",
+      "bytes": 3175,
+      "sha256": "d283a955448f9584475204cf54286ea0d11deb39c53df22f3b3422fbd92c9a1c"
+    },
+    {
+      "file": "scripts/checks/timer_memory204_browser.py",
+      "bytes": 11453,
+      "sha256": "b9fbf0ea77bced658e5f72bc7c1205970265b78c62b6c0cc2bd063febe5ed025"
+    },
+    {
+      "file": "scripts/checks/topic-chat-polish.test.mjs",
+      "bytes": 7556,
+      "sha256": "77156441acc31af579b4aaf6ad1b7a3edb8abb576c1e782183c8d79830898eb7"
+    },
+    {
+      "file": "scripts/checks/weather-timer-hotfix.test.mjs",
+      "bytes": 3054,
+      "sha256": "456c6a0e641c71d288f0a502b3e4a2c42a7fc4b0c14a7c9f79539d9aedcaaa5f"
+    },
+    {
+      "file": "scripts/review/build205.sh",
+      "bytes": 4322,
+      "sha256": "127b7bab21a9799eef6e9b2a2d8dee10e18b6814956fe20ef76b732593ff015e"
+    },
+    {
+      "file": "scripts/review/layout205.md",
+      "bytes": 694,
+      "sha256": "64eb55cf84add07c74b8c61fa9c25a234588425e69eccdc6c38de23645cad1ac"
+    },
+    {
+      "file": "scripts/review/live-weather205.py",
+      "bytes": 1758,
+      "sha256": "91ea17e7d600df9b80903b56e4b13ee3d7554be4534c2fbd2629951986665d13"
+    },
+    {
+      "file": "scripts/review/native205.py",
+      "bytes": 4247,
+      "sha256": "9fee79cfe21b6e557cd1630c74495e2fed9ffcbf85c8be1520515b3f60347489"
+    },
+    {
+      "file": "scripts/review/prepare205.py",
+      "bytes": 2470,
+      "sha256": "983b4706d53efbef97c5a5c22e64364a1e36b403aaf43b59a8179641d3bcf7bb"
+    },
+    {
+      "file": "scripts/updates/patch-chat-page.mjs",
+      "bytes": 1827,
+      "sha256": "a7dc4ade12e7a7c1c29c93a5d0186e4717f8a3be09502881fc88d67d42e54771"
+    },
+    {
+      "file": "tsconfig.json",
+      "bytes": 783,
+      "sha256": "d786050f85f25104fda8973a02149df0d37fd0be0d7510aecbd82b386b5ad654"
+    },
+    {
+      "file": "verification/clock-hotfix3/README.md",
+      "bytes": 747,
+      "sha256": "a4b6204b03c950894dc295c4e41b10da5e6e7acbe6f470adb47e578f6843dc45"
+    },
+    {
+      "file": "verification/clock-hotfix3/logs/build.log",
+      "bytes": 874,
+      "sha256": "e3cbc3d98ea4c1c243d8ffe5e3df9cdd61018cec3f65156866bcc54f4dff82a3"
+    },
+    {
+      "file": "verification/clock-hotfix3/logs/chat-compat.log",
+      "bytes": 4746,
+      "sha256": "2728ef43a99533d26990959813e1dd9dd100e115dab9811485c558a0f6776049"
+    },
+    {
+      "file": "verification/clock-hotfix3/logs/clock-hotfix3.log",
+      "bytes": 2446,
+      "sha256": "dc117311fbbf86951d6093ebb547f8fd62eb7ac6d5e1d4191d2c37d44c578c76"
+    },
+    {
+      "file": "verification/clock-hotfix3/logs/detail-hotfix2.log",
+      "bytes": 2353,
+      "sha256": "ee067084c081bfd0d7214e57f39f5a8d9fb8be686aba8d4da632553a3f573d34"
+    },
+    {
+      "file": "verification/clock-hotfix3/logs/functional210.log",
+      "bytes": 2836,
+      "sha256": "3fd188ad39fc25ea0c43cf19d406239dde0b2dd5bce4d1a35262ad700ae84692"
+    },
+    {
+      "file": "verification/clock-hotfix3/logs/harness.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "verification/clock-hotfix3/logs/layout210.log",
+      "bytes": 1169,
+      "sha256": "985cbeac38b552d9a216fe4e2fa715995c356428d36607f488f4508d26f53db9"
+    },
+    {
+      "file": "verification/clock-hotfix3/logs/memory210.log",
+      "bytes": 558,
+      "sha256": "90dcf8b9336e02d1b9fa456aede25bdbf328a45e1d156bb2118ac537e612124b"
+    },
+    {
+      "file": "verification/clock-hotfix3/logs/types.log",
+      "bytes": 52,
+      "sha256": "b5437da3de5607982b457eec15665bbd2e3ff4116cae167705283dbab34a2519"
+    },
+    {
+      "file": "verification/clock-hotfix3/logs/unit.log",
+      "bytes": 91108,
+      "sha256": "43d8138d324e955bbdc94f01edccb878af92b4078bc6afb5c19e2a8b21d845c6"
+    },
+    {
+      "file": "verification/clock-hotfix3/logs/weather-timer-hotfix.log",
+      "bytes": 2513,
+      "sha256": "a360717720b62f7cb47bbc56f8db1d41172f500f4683da0e165140ae6b05c570"
+    },
+    {
+      "file": "verification/clock-hotfix3/reports/apk-alignment.txt",
+      "bytes": 3863,
+      "sha256": "c4f7d9db1d390b8a8275ec4d7944fc982ba327f92b602bb59293c6cafa441c43"
+    },
+    {
+      "file": "verification/clock-hotfix3/reports/apk-manifest.txt",
+      "bytes": 1333,
+      "sha256": "0f9093dcc185941d4b3cb07e90d691e915408317d9d16124ff0aa7094d998c2b"
+    },
+    {
+      "file": "verification/clock-hotfix3/reports/apk-signature.txt",
+      "bytes": 970,
+      "sha256": "2bc167a8ae169ac5d3b79ea391fad7f60dac0a584519e1f1c9381d7d5833db49"
+    },
+    {
+      "file": "verification/clock-hotfix3/reports/apk-verified.json",
+      "bytes": 7804,
+      "sha256": "0aece77ae03ed1e5ddcdd644107dff7d25ed20cfc06035351ba9b334686daae0"
+    },
+    {
+      "file": "verification/clock-hotfix3/reports/baseline-reproduction.json",
+      "bytes": 2573,
+      "sha256": "ecb7bc14fabc7aba750561b08823db2b99254b70a55ac57fe05cff087e9882ad"
+    },
+    {
+      "file": "verification/clock-hotfix3/reports/chat-compat.json",
+      "bytes": 3464,
+      "sha256": "09006d92e5d9e9b7452b7c277154d5cb5e5ad9ed4f60b9748f5e0b332be12e8f"
+    },
+    {
+      "file": "verification/clock-hotfix3/reports/clock-hotfix3.json",
+      "bytes": 30329,
+      "sha256": "9970c41608bcf2fc03a1e91ebc95b1d1443e73fd0c512f8e17e4c6ed60714d4b"
+    },
+    {
+      "file": "verification/clock-hotfix3/reports/detail-hotfix2.json",
+      "bytes": 4438,
+      "sha256": "492a62f703f1b098b46213a7fa3fcdf02d4d6648d1e397d390f948796d68b6a4"
+    },
+    {
+      "file": "verification/clock-hotfix3/reports/focus-layout-matrix.json",
+      "bytes": 40530,
+      "sha256": "3b24597c351acd66f7b11c73ddca3ebf05ab35264b18b9b87b07e6ce03bdc4c3"
+    },
+    {
+      "file": "verification/clock-hotfix3/reports/focus-sweep-frames.json",
+      "bytes": 12208,
+      "sha256": "8eeee4c652ba0b8223a52324e9a32b44d938511991af145616910a7fd56c516a"
+    },
+    {
+      "file": "verification/clock-hotfix3/reports/full-orbit.json",
+      "bytes": 19211,
+      "sha256": "4e80d490bdbdaaf136eb6e993d653e8e7e6e5a132669ed4857aada76b5ed0e43"
+    },
+    {
+      "file": "verification/clock-hotfix3/reports/functional210.json",
+      "bytes": 6008,
+      "sha256": "fd90d3565a1b746c144a6fd833ae32c2cf6490b3484db378f853ced2fea6ff22"
+    },
+    {
+      "file": "verification/clock-hotfix3/reports/layout210.json",
+      "bytes": 4978,
+      "sha256": "1f0b9b9974a3ca11f34999d5b5e6977e6cbe823da68aac220b940f4259265f7a"
+    },
+    {
+      "file": "verification/clock-hotfix3/reports/memory210.json",
+      "bytes": 1231,
+      "sha256": "93bcff84588599a5a992f61f722ac341f7e8b31ca78c35afc25828b348915cf7"
+    },
+    {
+      "file": "verification/clock-hotfix3/reports/native-build.log",
+      "bytes": 9678,
+      "sha256": "e29d92464e0a61b908a3821fc9816e2c9e7de83b570c9f8060d791f9c4a53e63"
+    },
+    {
+      "file": "verification/clock-hotfix3/reports/recording-info.json",
+      "bytes": 269,
+      "sha256": "9188b7b932ad243f49503a4291a00f67ff620ba169fec2529137804885b87bd8"
+    },
+    {
+      "file": "verification/clock-hotfix3/reports/reminder-layout-matrix.json",
+      "bytes": 2586,
+      "sha256": "52f40c23d43113d9968718b0afc35d918c78090a480ef8e9b7c5bed579282811"
+    },
+    {
+      "file": "verification/clock-hotfix3/reports/season-hand-pixels.json",
+      "bytes": 1704,
+      "sha256": "1f7f7509d22adfd6ad80200bd723615050dc2c31c463bb416ce7fd15c8644a7b"
+    },
+    {
+      "file": "verification/clock-hotfix3/reports/source-comparison.json",
+      "bytes": 3854,
+      "sha256": "d176c6af2d030fd0db05e1a19fc73ba569f89e80d1c8162aa932bef347fb3740"
+    },
+    {
+      "file": "verification/clock-hotfix3/reports/statistics-calendar-layout.json",
+      "bytes": 1470,
+      "sha256": "21a095b759d0a6067ccca4ccb09f330e4e5206ae8dbb7e4a98a0321b3401b4bb"
+    },
+    {
+      "file": "verification/clock-hotfix3/reports/timer-touch-matrix.json",
+      "bytes": 5978,
+      "sha256": "15b6aca6c7fcbc3fa80b7c594b4c4b123bf9b3a5f3639fa843916bce384b29dd"
+    },
+    {
+      "file": "verification/clock-hotfix3/reports/weather-matrix.json",
+      "bytes": 98594,
+      "sha256": "0f8ce2a81e570a01ee707fd9840bf46314c4e601b3ecd9e5d5adae32991edcdf"
+    },
+    {
+      "file": "verification/clock-hotfix3/reports/weather-timer-hotfix.json",
+      "bytes": 24250,
+      "sha256": "0ceff3e0394d6e0546065ae2cff0805594803712177031170875d2e359280969"
+    },
+    {
+      "file": "verification/clock-hotfix3/screenshots/focus-final.png",
+      "bytes": 77206,
+      "sha256": "b164210c3996b24e903d46f99842f024da2acfce784c0dc60087de5dc1243042"
+    },
+    {
+      "file": "verification/clock-hotfix3/screenshots/focus-live.gif",
+      "bytes": 241029,
+      "sha256": "43fae99f0aadffa94b54c2249d45e5fb004e2b71c00688f04792a4d8d4c750e2"
+    },
+    {
+      "file": "verification/clock-hotfix3/screenshots/focus-small-maximum.png",
+      "bytes": 57478,
+      "sha256": "7e0714280be35cbb5b00f6bdf5797569c576ef52640d809b1044b228f3f4f5d7"
+    },
+    {
+      "file": "verification/clock-hotfix3/screenshots/pomodoro.png",
+      "bytes": 67910,
+      "sha256": "a7035a58d26a066828ce31c4a621be0fe5a6ea3c33baf60617624e601e1f68f4"
+    },
+    {
+      "file": "verification/clock-hotfix3/screenshots/reminder-idle.png",
+      "bytes": 72706,
+      "sha256": "47af691872dadb0b048cec415d4ddbb81ab7383a96497a6e2672b0860915afb8"
+    },
+    {
+      "file": "verification/clock-hotfix3/screenshots/reminder-live.gif",
+      "bytes": 1184241,
+      "sha256": "9e29bccc6c8fd174123d079d0d0df37b67f8f6c23d3f997deffdcbc4503dbdf1"
+    },
+    {
+      "file": "verification/clock-hotfix3/screenshots/reminder-night.png",
+      "bytes": 73901,
+      "sha256": "d24fa0f17568e3ed3652d6b8306f1cff1261d09ed2b4a5cd7443ff828e1f9596"
+    },
+    {
+      "file": "verification/clock-hotfix3/screenshots/reminder-running.png",
+      "bytes": 69932,
+      "sha256": "1b53346be6cdf25ae47f7f3884fc002ff72d88e0a6f0820219660c2d85a5479c"
+    },
+    {
+      "file": "verification/clock-hotfix3/summary.json",
+      "bytes": 3445,
+      "sha256": "9d064dd7ef080712a56df676a6cb4571ff440c39d46ed398cfc1d1b29725d851"
+    },
+    {
+      "file": "verification/detail-hotfix2/README.md",
+      "bytes": 327,
+      "sha256": "fe6ba8d5b798af9284de5602d061a9610c9dbb4abadb311bfcb7ec23374f7afa"
+    },
+    {
+      "file": "verification/detail-hotfix2/environment/served-attempt.json",
+      "bytes": 286,
+      "sha256": "94f3f252281be72b799e00e4502974de9a67b359ceb277759b5146df6d95173e"
+    },
+    {
+      "file": "verification/detail-hotfix2/logs/apk-alignment.txt",
+      "bytes": 3818,
+      "sha256": "20b754f58081d543af660747911accd51adcc7f6b278163cd43f70663803a20d"
+    },
+    {
+      "file": "verification/detail-hotfix2/logs/apk-manifest.txt",
+      "bytes": 1333,
+      "sha256": "74f510f94785980345670816abf725cd1298fe33b0c602e5fa82df0c8f98a330"
+    },
+    {
+      "file": "verification/detail-hotfix2/logs/apk-signature.txt",
+      "bytes": 965,
+      "sha256": "55697ce297a6bc7c02f7bdaadea0e887e5fb3c59fc70109ec58154ec72740610"
+    },
+    {
+      "file": "verification/detail-hotfix2/logs/baseline-reproductions.log",
+      "bytes": 105,
+      "sha256": "aeca534ef6b312c9e4bbe2957ffae78b66f74b31bbec867f481354f65fba50bd"
+    },
+    {
+      "file": "verification/detail-hotfix2/logs/browser-detail-hotfix2.log",
+      "bytes": 2353,
+      "sha256": "ee067084c081bfd0d7214e57f39f5a8d9fb8be686aba8d4da632553a3f573d34"
+    },
+    {
+      "file": "verification/detail-hotfix2/logs/browser-functional210.log",
+      "bytes": 2836,
+      "sha256": "3fd188ad39fc25ea0c43cf19d406239dde0b2dd5bce4d1a35262ad700ae84692"
+    },
+    {
+      "file": "verification/detail-hotfix2/logs/browser-layout210.log",
+      "bytes": 1169,
+      "sha256": "985cbeac38b552d9a216fe4e2fa715995c356428d36607f488f4508d26f53db9"
+    },
+    {
+      "file": "verification/detail-hotfix2/logs/browser-memory210.log",
+      "bytes": 558,
+      "sha256": "90dcf8b9336e02d1b9fa456aede25bdbf328a45e1d156bb2118ac537e612124b"
+    },
+    {
+      "file": "verification/detail-hotfix2/logs/browser-weather-timer-hotfix.log",
+      "bytes": 2499,
+      "sha256": "201045d2fa1dc5e48810f1db9e29ded2bd7ab7b1ea9f2f7a5e95b430c7ca58d4"
+    },
+    {
+      "file": "verification/detail-hotfix2/logs/chat-compat-browser.log",
+      "bytes": 4746,
+      "sha256": "2728ef43a99533d26990959813e1dd9dd100e115dab9811485c558a0f6776049"
+    },
+    {
+      "file": "verification/detail-hotfix2/logs/mobile-build.log",
+      "bytes": 874,
+      "sha256": "08167d9eb601c1cc705d5fdbb452209c7295bda463297fd609eec300f734df66"
+    },
+    {
+      "file": "verification/detail-hotfix2/logs/native-build.log",
+      "bytes": 9441,
+      "sha256": "b7583a70f3e7f14d11933c418546668d1673d810a0436e3d2150b3e7cce82b92"
+    },
+    {
+      "file": "verification/detail-hotfix2/logs/types.log",
+      "bytes": 52,
+      "sha256": "b5437da3de5607982b457eec15665bbd2e3ff4116cae167705283dbab34a2519"
+    },
+    {
+      "file": "verification/detail-hotfix2/logs/unit.log",
+      "bytes": 83868,
+      "sha256": "a743d3420789fda5d5711d9c90188308c94739b12d0bfebfcfb0f9c17d7c4d94"
+    },
+    {
+      "file": "verification/detail-hotfix2/reports/apk-summary.json",
+      "bytes": 554,
+      "sha256": "bf8204582d97c497710c445d9ffbb53f37e6940fed4ed4a374881350ab26c6c1"
+    },
+    {
+      "file": "verification/detail-hotfix2/reports/browser-detail-hotfix2.json",
+      "bytes": 4438,
+      "sha256": "492a62f703f1b098b46213a7fa3fcdf02d4d6648d1e397d390f948796d68b6a4"
+    },
+    {
+      "file": "verification/detail-hotfix2/reports/browser-functional210.json",
+      "bytes": 6008,
+      "sha256": "fd90d3565a1b746c144a6fd833ae32c2cf6490b3484db378f853ced2fea6ff22"
+    },
+    {
+      "file": "verification/detail-hotfix2/reports/browser-layout210.json",
+      "bytes": 4978,
+      "sha256": "1f0b9b9974a3ca11f34999d5b5e6977e6cbe823da68aac220b940f4259265f7a"
+    },
+    {
+      "file": "verification/detail-hotfix2/reports/browser-memory210.json",
+      "bytes": 1231,
+      "sha256": "93bcff84588599a5a992f61f722ac341f7e8b31ca78c35afc25828b348915cf7"
+    },
+    {
+      "file": "verification/detail-hotfix2/reports/browser-weather-timer-hotfix.json",
+      "bytes": 24172,
+      "sha256": "6bee3d7a27db7220b9abcbde01eefc4ea59c343edfefa3e2c7a1e6fb34105481"
+    },
+    {
+      "file": "verification/detail-hotfix2/reports/chat-compat-browser.json",
+      "bytes": 3464,
+      "sha256": "09006d92e5d9e9b7452b7c277154d5cb5e5ad9ed4f60b9748f5e0b332be12e8f"
+    },
+    {
+      "file": "verification/detail-hotfix2/reports/full-orbit.json",
+      "bytes": 18739,
+      "sha256": "21457d543e40dde6e1109b202b74b4463825b3ae0eddbe9208ce42458a31d721"
+    },
+    {
+      "file": "verification/detail-hotfix2/reports/layout-matrix.json",
+      "bytes": 22315,
+      "sha256": "1161963b0776de1404c05418a001c90c0dc3557853db56a5d57200559a9950b0"
+    },
+    {
+      "file": "verification/detail-hotfix2/reports/matrix.json",
+      "bytes": 935,
+      "sha256": "6f313e77eb10d1e39106d8a83b0d5b8b7fd8eace8c5f324950e20241405ee4cd"
+    },
+    {
+      "file": "verification/detail-hotfix2/reports/needle-first-seconds.json",
+      "bytes": 14132,
+      "sha256": "839922283fd8f148a2df7a3805a78946baeb5b0693b6d4e5a627907d826a1ac6"
+    },
+    {
+      "file": "verification/detail-hotfix2/reports/packaged-web-assets.json",
+      "bytes": 6661,
+      "sha256": "7a336336b863b555f0cff62970848e29f18f2bcb3419d7c42303a781be079d02"
+    },
+    {
+      "file": "verification/detail-hotfix2/reports/source-comparison.json",
+      "bytes": 4308,
+      "sha256": "f80931351007ef6032165247f0c2dee43ec8d941f8f8acbec32bc93faa696ef8"
+    },
+    {
+      "file": "verification/detail-hotfix2/reports/timer-touch-matrix.json",
+      "bytes": 5978,
+      "sha256": "15b6aca6c7fcbc3fa80b7c594b4c4b123bf9b3a5f3639fa843916bce384b29dd"
+    },
+    {
+      "file": "verification/detail-hotfix2/reports/weather-matrix.json",
+      "bytes": 98594,
+      "sha256": "0f8ce2a81e570a01ee707fd9840bf46314c4e601b3ecd9e5d5adae32991edcdf"
+    },
+    {
+      "file": "verification/detail-hotfix2/screenshots/chat.png",
+      "bytes": 209107,
+      "sha256": "91fe5cceee7119814d4e1c277dcbdb3528e805863ecdb3d176e360b312417e0d"
+    },
+    {
+      "file": "verification/detail-hotfix2/screenshots/reminder.png",
+      "bytes": 71586,
+      "sha256": "04a59bbcbb53e8f95b00851fc877c9eb3bbeb03c63cd5d8f5a0f7df3525da63d"
+    },
+    {
+      "file": "verification/detail-hotfix2/screenshots/timer-running.png",
+      "bytes": 106160,
+      "sha256": "3589fd647061bce634ae68b6073665a55701fe562d9fa54bd64f5f327ba67923"
+    },
+    {
+      "file": "verification/detail-hotfix2/screenshots/weather-partial-data.png",
+      "bytes": 105232,
+      "sha256": "a838873e99b12ac5377965359788d364f28781dd2d126634db0877468c260bde"
+    },
+    {
+      "file": "verification/detail-hotfix2/screenshots/weather.png",
+      "bytes": 114988,
+      "sha256": "b22a4036e3a694ff63a0a23fff89cd635c68f4d2ac4f155066677fcba8799a22"
+    },
+    {
+      "file": "verification/detail-hotfix2/summary.json",
+      "bytes": 1978,
+      "sha256": "8a8b94269599065c7b21af00e2166f504b9b624aa27bbb6bcd2eec0c85cf0f36"
+    },
+    {
+      "file": "verification/weather-timer-hotfix1/baseline/deck-baseline.log",
+      "bytes": 11268,
+      "sha256": "2748a0daf8d3b2f26ca4a5747f4659f0260b43533130dad9fc20b7e1204adac4"
+    },
+    {
+      "file": "verification/weather-timer-hotfix1/baseline/original-apk-needle-defect.json",
+      "bytes": 447,
+      "sha256": "1d65cb30bc5e9d13ee5cdf8032063108ef3c9e596b38ff135b4d36ffaf2ef0f5"
+    },
+    {
+      "file": "verification/weather-timer-hotfix1/baseline/original-apk-needle-defect.png",
+      "bytes": 110798,
+      "sha256": "1a59e195487b96e7da7be4efd174b9e4d58ada36a0fbeb2a1a26ee8265d638b2"
+    },
+    {
+      "file": "verification/weather-timer-hotfix1/baseline/serve-probe.log",
+      "bytes": 2055,
+      "sha256": "cc2fe409db6d00db4d3a0ff1f6a2536c9f5378b59cdb99f0a9baf86ce72895b4"
+    },
+    {
+      "file": "verification/weather-timer-hotfix1/logs/build-final.log",
+      "bytes": 874,
+      "sha256": "75e919647bf7d5501e856f6400d468db44d9f8d880b68cd21375f75240011b1f"
+    },
+    {
+      "file": "verification/weather-timer-hotfix1/logs/final-compat.log",
+      "bytes": 4746,
+      "sha256": "2728ef43a99533d26990959813e1dd9dd100e115dab9811485c558a0f6776049"
+    },
+    {
+      "file": "verification/weather-timer-hotfix1/logs/final-functional.log",
+      "bytes": 2836,
+      "sha256": "3fd188ad39fc25ea0c43cf19d406239dde0b2dd5bce4d1a35262ad700ae84692"
+    },
+    {
+      "file": "verification/weather-timer-hotfix1/logs/final-hotfix.log",
+      "bytes": 2499,
+      "sha256": "201045d2fa1dc5e48810f1db9e29ded2bd7ab7b1ea9f2f7a5e95b430c7ca58d4"
+    },
+    {
+      "file": "verification/weather-timer-hotfix1/logs/final-layout.log",
+      "bytes": 1169,
+      "sha256": "985cbeac38b552d9a216fe4e2fa715995c356428d36607f488f4508d26f53db9"
+    },
+    {
+      "file": "verification/weather-timer-hotfix1/logs/final-memory.log",
+      "bytes": 558,
+      "sha256": "90dcf8b9336e02d1b9fa456aede25bdbf328a45e1d156bb2118ac537e612124b"
+    },
+    {
+      "file": "verification/weather-timer-hotfix1/logs/types-final.log",
+      "bytes": 52,
+      "sha256": "b5437da3de5607982b457eec15665bbd2e3ff4116cae167705283dbab34a2519"
+    },
+    {
+      "file": "verification/weather-timer-hotfix1/logs/unit-final.log",
+      "bytes": 78959,
+      "sha256": "de580cce90c8a47557b17b69060e4a044908c630c877d59e55038d34bac47c62"
+    },
+    {
+      "file": "verification/weather-timer-hotfix1/reports/apk-alignment.txt",
+      "bytes": 3806,
+      "sha256": "5b0abbd70f878f7249e10bf0eee1afbfa4e8b167c81e328ccd93c374837b0214"
+    },
+    {
+      "file": "verification/weather-timer-hotfix1/reports/apk-apk-summary.json",
+      "bytes": 859,
+      "sha256": "59245e02fc2e6ac1bbf43d306f9844b55d418bb8dd9a853e8b7d22a5fc996285"
+    },
+    {
+      "file": "verification/weather-timer-hotfix1/reports/apk-build.log",
+      "bytes": 9522,
+      "sha256": "29eafd009bf9b7d7c528f174db6c6b87f29364e635404a666d126f45b9ac4bd0"
+    },
+    {
+      "file": "verification/weather-timer-hotfix1/reports/apk-manifest.txt",
+      "bytes": 1331,
+      "sha256": "c31d2a4273134bda70fba6830d4c740da912d34db65f31debd39780866e7971d"
+    },
+    {
+      "file": "verification/weather-timer-hotfix1/reports/apk-original-signature.txt",
+      "bytes": 316,
+      "sha256": "fdb564f89219fabec0e9f377ca66d04af995ff683c66dd92e1d87f839568f85e"
+    },
+    {
+      "file": "verification/weather-timer-hotfix1/reports/apk-signature.txt",
+      "bytes": 953,
+      "sha256": "7c0d6a908275458ed5539555c8c710356089ef88cb3ca219d21032ab66b14797"
+    },
+    {
+      "file": "verification/weather-timer-hotfix1/reports/apk-web-assets.json",
+      "bytes": 6660,
+      "sha256": "69cebbb73503ba1c57d9574585b250bb4659a815b66eadf5ea954861885ffc32"
+    },
+    {
+      "file": "verification/weather-timer-hotfix1/reports/chat-compat.json",
+      "bytes": 3464,
+      "sha256": "09006d92e5d9e9b7452b7c277154d5cb5e5ad9ed4f60b9748f5e0b332be12e8f"
+    },
+    {
+      "file": "verification/weather-timer-hotfix1/reports/full-orbit.json",
+      "bytes": 18875,
+      "sha256": "b890704098c83d2e6574d94eda335c4e21975e5560b741d75330f83fb4e78a85"
+    },
+    {
+      "file": "verification/weather-timer-hotfix1/reports/functional.json",
+      "bytes": 6008,
+      "sha256": "fd90d3565a1b746c144a6fd833ae32c2cf6490b3484db378f853ced2fea6ff22"
+    },
+    {
+      "file": "verification/weather-timer-hotfix1/reports/input-preservation.json",
+      "bytes": 5918,
+      "sha256": "40fe44593de3cb2f60f12e7c2e9483e906e1bc871e3ceae79a4331c5a613526b"
+    },
+    {
+      "file": "verification/weather-timer-hotfix1/reports/layout.json",
+      "bytes": 4978,
+      "sha256": "1f0b9b9974a3ca11f34999d5b5e6977e6cbe823da68aac220b940f4259265f7a"
+    },
+    {
+      "file": "verification/weather-timer-hotfix1/reports/memory.json",
+      "bytes": 1231,
+      "sha256": "93bcff84588599a5a992f61f722ac341f7e8b31ca78c35afc25828b348915cf7"
+    },
+    {
+      "file": "verification/weather-timer-hotfix1/reports/motion-recording.json",
+      "bytes": 1111,
+      "sha256": "b9d431159c1b6eb902dc2704ecb6b2551d8e3499b672a9397509ec77d438d9cb"
+    },
+    {
+      "file": "verification/weather-timer-hotfix1/reports/needle-first-seconds.json",
+      "bytes": 14113,
+      "sha256": "fd0ff0590e030eeabb5e32ba5b744956c02824f5aab84f76ee7e076594826173"
+    },
+    {
+      "file": "verification/weather-timer-hotfix1/reports/timer-touch-matrix.json",
+      "bytes": 5978,
+      "sha256": "15b6aca6c7fcbc3fa80b7c594b4c4b123bf9b3a5f3639fa843916bce384b29dd"
+    },
+    {
+      "file": "verification/weather-timer-hotfix1/reports/weather-matrix.json",
+      "bytes": 98594,
+      "sha256": "fe02684c91c1f293484938ec44dc5717e4deb81103d292a093ae9090f0f910e6"
+    },
+    {
+      "file": "verification/weather-timer-hotfix1/reports/weather-timer-hotfix.json",
+      "bytes": 24128,
+      "sha256": "6a7ae3b879b5efd458d3be63a3fd6cf765227bbf3611b8f9095e0672641443ee"
+    },
+    {
+      "file": "verification/weather-timer-hotfix1/screenshots/timer-recording.gif",
+      "bytes": 1833647,
+      "sha256": "f0173ec6cbade43af3f14f44aa9c65d5f5d6eef7f47d02b6fc5c7760afed6d9b"
+    },
+    {
+      "file": "verification/weather-timer-hotfix1/screenshots/timer-running.png",
+      "bytes": 106243,
+      "sha256": "cd56cf2db4b7ed51fa56225abc5092f6812b32f054cade9d93fa0775563052dd"
+    },
+    {
+      "file": "verification/weather-timer-hotfix1/screenshots/weather-default.png",
+      "bytes": 115158,
+      "sha256": "aee73b7d305e6a4c9553141c10dea9d1b5ab72d5624f7a15145b1858bb63aa69"
+    },
+    {
+      "file": "verification/weather-timer-hotfix1/screenshots/weather-small-large-type.png",
+      "bytes": 101542,
+      "sha256": "8d18818fb8a0c478676fc63819413ae3047235de69f1e43885fba6f924350aba"
+    },
+    {
+      "file": "verification/weather-timer-hotfix1/summary.json",
+      "bytes": 1400,
+      "sha256": "15052f0548bc3a69475006380afa088ed42666449f604f3fe628bda5a6695b91"
+    },
+    {
+      "file": "verification/webview210-functional/logs/build-help.txt",
+      "bytes": 641,
+      "sha256": "593f57b74485a780c8446a805e20ccec4e1a7142e13ec7db16240e423976c642"
+    },
+    {
+      "file": "verification/webview210-functional/logs/compat-browser.log",
+      "bytes": 4746,
+      "sha256": "2728ef43a99533d26990959813e1dd9dd100e115dab9811485c558a0f6776049"
+    },
+    {
+      "file": "verification/webview210-functional/logs/functional-browser.log",
+      "bytes": 2836,
+      "sha256": "3fd188ad39fc25ea0c43cf19d406239dde0b2dd5bce4d1a35262ad700ae84692"
+    },
+    {
+      "file": "verification/webview210-functional/logs/layout-browser.log",
+      "bytes": 1169,
+      "sha256": "985cbeac38b552d9a216fe4e2fa715995c356428d36607f488f4508d26f53db9"
+    },
+    {
+      "file": "verification/webview210-functional/logs/memory-browser.log",
+      "bytes": 558,
+      "sha256": "90dcf8b9336e02d1b9fa456aede25bdbf328a45e1d156bb2118ac537e612124b"
+    },
+    {
+      "file": "verification/webview210-functional/logs/mobile-build.log",
+      "bytes": 874,
+      "sha256": "5e273d355d591e0608a9d20f13923840487b70cbab0fb20ecf4e412446a96215"
+    },
+    {
+      "file": "verification/webview210-functional/logs/native-build.log",
+      "bytes": 9520,
+      "sha256": "b5601ff57936072f2aff1ed12a8b2af52c62592ff80dc771354307620734da53"
+    },
+    {
+      "file": "verification/webview210-functional/logs/types.log",
+      "bytes": 52,
+      "sha256": "b5437da3de5607982b457eec15665bbd2e3ff4116cae167705283dbab34a2519"
+    },
+    {
+      "file": "verification/webview210-functional/logs/unit.tap",
+      "bytes": 76893,
+      "sha256": "3af1f5b7e204390db7599c133507490971c72484f4f427ef1daaa59c1e013dca"
+    },
+    {
+      "file": "verification/webview210-functional/reports/alignment.txt",
+      "bytes": 3840,
+      "sha256": "622284757076dcb35ba3702f5da0c452311f01cd483d8e136bf274da5b2b6087"
+    },
+    {
+      "file": "verification/webview210-functional/reports/apk-summary.json",
+      "bytes": 7775,
+      "sha256": "cd8c20000831056ea46b6207ef1baf003fba3d4327614d9398798540716f27fe"
+    },
+    {
+      "file": "verification/webview210-functional/reports/baseline-comparison.json",
+      "bytes": 3684,
+      "sha256": "333c8694d39731ae6bfbfc8eb114a751e4ba429264d9237efd409dae6edd2998"
+    },
+    {
+      "file": "verification/webview210-functional/reports/chat-compat.json",
+      "bytes": 3464,
+      "sha256": "09006d92e5d9e9b7452b7c277154d5cb5e5ad9ed4f60b9748f5e0b332be12e8f"
+    },
+    {
+      "file": "verification/webview210-functional/reports/functional.json",
+      "bytes": 6008,
+      "sha256": "fd90d3565a1b746c144a6fd833ae32c2cf6490b3484db378f853ced2fea6ff22"
+    },
+    {
+      "file": "verification/webview210-functional/reports/layout-matrix.json",
+      "bytes": 22315,
+      "sha256": "1161963b0776de1404c05418a001c90c0dc3557853db56a5d57200559a9950b0"
+    },
+    {
+      "file": "verification/webview210-functional/reports/layout.json",
+      "bytes": 4978,
+      "sha256": "1f0b9b9974a3ca11f34999d5b5e6977e6cbe823da68aac220b940f4259265f7a"
+    },
+    {
+      "file": "verification/webview210-functional/reports/manifest.txt",
+      "bytes": 1325,
+      "sha256": "de9b3890b91aaec715bd264b6395d6c70ae678b47fc0ff6a8d5f1a75b983940e"
+    },
+    {
+      "file": "verification/webview210-functional/reports/memory.json",
+      "bytes": 1231,
+      "sha256": "93bcff84588599a5a992f61f722ac341f7e8b31ca78c35afc25828b348915cf7"
+    },
+    {
+      "file": "verification/webview210-functional/reports/signature.txt",
+      "bytes": 963,
+      "sha256": "17734f7280185d1ec1fecad520903e09ff14956cb4c18a369a7cb5acfa3c177d"
+    },
+    {
+      "file": "verification/webview210-functional/screenshots/chat.png",
+      "bytes": 208130,
+      "sha256": "f3f18c8ef2214ef83dac5936ce468e9dfb0453adfc3a8c61c7cc3700b4657fc0"
+    },
+    {
+      "file": "verification/webview210-functional/screenshots/conversations.png",
+      "bytes": 77676,
+      "sha256": "6eaec756c0c1a9261f95679000f08fd4a045225eaf85ec4b5d441f3f3c25c15d"
+    },
+    {
+      "file": "verification/webview210-functional/screenshots/countdown.png",
+      "bytes": 71950,
+      "sha256": "b17fb1fd688edda6581b657c1f251c6543847186d0005c7316866ee56e96ba24"
+    },
+    {
+      "file": "verification/webview210-functional/screenshots/home.png",
+      "bytes": 318547,
+      "sha256": "d053c801b14c44d70e765c6530c5d7b7b4ce87c818debbec4eaa80006d383563"
+    },
+    {
+      "file": "verification/webview210-functional/screenshots/memo-conflict.png",
+      "bytes": 23056,
+      "sha256": "f16280ec9ba8979fa1b4845d8632cbdbba5b948577ee252a1b5e666f1e2978a1"
+    },
+    {
+      "file": "verification/webview210-functional/screenshots/notes.png",
+      "bytes": 82549,
+      "sha256": "e15cb3477dfc2edb0c3e366d122406fbb5106069dabba7a82517d5b4e2b66cb4"
+    },
+    {
+      "file": "verification/webview210-functional/screenshots/skills.png",
+      "bytes": 48876,
+      "sha256": "5c247d11b18495ab6c32115f73c0766d2e95f8b3547e72d87839cfd03db431d8"
+    },
+    {
+      "file": "verification/webview210-functional/screenshots/timer-small-large-type.png",
+      "bytes": 67722,
+      "sha256": "bf32134e1b66886abaa03c34717a37619fbb12da18f84a6aaf9873211caedf2a"
+    },
+    {
+      "file": "verification/webview210-functional/screenshots/timer.png",
+      "bytes": 106837,
+      "sha256": "66362379c472108c7cac38c8415c067123510cef00eddd929424bf9a879642c3"
+    },
+    {
+      "file": "verification/webview210-functional/screenshots/weather-default.png",
+      "bytes": 116708,
+      "sha256": "1053a65e30609444ebc952c67face2a8ad5c4fd7c6c11347f4afb302a96a9bf3"
+    },
+    {
+      "file": "verification/webview210-functional/screenshots/weather.png",
+      "bytes": 115581,
+      "sha256": "5951736df3458b76132cdfb2842c0869450c32a41ba95fc8d8e231f8ad0b9ce8"
+    },
+    {
+      "file": "verification/webview210-functional/summary.json",
+      "bytes": 9649,
+      "sha256": "039715a6691cd93e55c7943116b933c7c4aaeb39eebc033d381646fca1de5b0c"
+    },
+    {
+      "file": "vite.config.ts",
+      "bytes": 1807,
+      "sha256": "3c028e727dde6c92022197ba7241a424ccd1e3d335f1f46cc9bbf91a8a3a968c"
+    },
+    {
+      "file": "夏彦/冬天/17c78a0a8de9ebfb20e6a2638bdbc45b.png",
+      "bytes": 2874668,
+      "sha256": "8362ffd1fd33f4825982d1ab8d7224bba2ce5df44183ef78b39f9e743095d047"
+    },
+    {
+      "file": "夏彦/冬天/2233b73fc4dacab9caed117025e16b27.png",
+      "bytes": 7785351,
+      "sha256": "d5dcaee10e2d893cc4ae3e5f01803d2113852e5f78c938b5e97d46774a4ddf22"
+    },
+    {
+      "file": "夏彦/冬天/54b92202f7f24bbd3eebeb79a5bf8cc7.png",
+      "bytes": 1831080,
+      "sha256": "d44a5d17867e3db33b362ecf91ce1fb4c51dba786f195ea2f5dbe84cfef1e6b0"
+    },
+    {
+      "file": "夏彦/冬天/6051bc4906c60dc9b005767a411b8c00.png",
+      "bytes": 5404127,
+      "sha256": "33c96dc58e8fc34570a27036961d0520f6f5ad0cf5c0bf4087ac31396805768d"
+    },
+    {
+      "file": "夏彦/冬天/6223dc2710686b8491b5fc7535458088.png",
+      "bytes": 1073391,
+      "sha256": "b05d9669b82fb52ef22e596d96fffc219d4ed965ec550373cd4cd3f08c4b8478"
+    },
+    {
+      "file": "夏彦/冬天/6cd3e5102e49bf1c2b4ae0fecf154c5c.png",
+      "bytes": 3973518,
+      "sha256": "3177555330d377d159fed0dab7cdc254c3385b43dba4d8a2c53793fb3a5741fc"
+    },
+    {
+      "file": "夏彦/冬天/7e58cf070c9608e798d8de226d489a56.png",
+      "bytes": 1144150,
+      "sha256": "6174ba7423615e68f90b1b6fd275655ad5741f69126eea0ab23db5b4f6ac0a5b"
+    },
+    {
+      "file": "夏彦/冬天/87c44b9e4860fccf0457911c9d0cca35.png",
+      "bytes": 4687955,
+      "sha256": "0aefd582e4298f7bd3b7595071ece6869afbe8b45faec934520e402eb6eef286"
+    },
+    {
+      "file": "夏彦/冬天/abdcb4b333a521ce3ff81e2245c7c740.png",
+      "bytes": 1320111,
+      "sha256": "049caf2204cce9720670f0734334004dd53569fbe3907d9c68501bac6e8f8fec"
+    },
+    {
+      "file": "夏彦/冬天/fe07ca0fa7237b80d88a783a5dbd662f.png",
+      "bytes": 2935527,
+      "sha256": "86bcb0c221ccfec3918a6835d564b5899a419c864f486ef87218679595ed8918"
+    },
+    {
+      "file": "夏彦/夏天/08fbe14a8a75b000c4372b2a40c504ac.png",
+      "bytes": 1329448,
+      "sha256": "73c9511492101c08ab0bc7792e8b7bc27b610f89a64bc5baf4acb2db41df1e49"
+    },
+    {
+      "file": "夏彦/夏天/0f194a6b30aa68c3ce2236331ff4020f.png",
+      "bytes": 1611908,
+      "sha256": "80d0d5351ec6af4f423953e65412c7cc782acb7fd0978fe8b62086a15dc565de"
+    },
+    {
+      "file": "夏彦/夏天/11f46014ae7fb551f9b13c237d02eac5.png",
+      "bytes": 9839051,
+      "sha256": "9200af42ef3856230149592859c27c7b0c7be882cd4a896404da2dbc8ba468c9"
+    },
+    {
+      "file": "夏彦/夏天/1b612731fd396105a32037d6e6fd4859.png",
+      "bytes": 913445,
+      "sha256": "d1ec8305982a5c1ca32dd4e4bbd18ab59d8fc1d318216e639c5ac99713136333"
+    },
+    {
+      "file": "夏彦/夏天/22cc5b78fcebb47ad66dbc0e47ecd059.jpg",
+      "bytes": 745293,
+      "sha256": "923bbabd01237b6e9d444cf5218677fcf5b9f93daaaa2a5fc0ccf41ce4d52f95"
+    },
+    {
+      "file": "夏彦/夏天/37aa2a6ed8ef3914e06786b48fdfa192.jpg",
+      "bytes": 627523,
+      "sha256": "6b6e4f5aaf42c1e98a3c6e5ffa5018b9b214af72efc7fe506c2bb04c50535e7c"
+    },
+    {
+      "file": "夏彦/夏天/45ebeff687aa38ca76890ae8ffe7ac75.png",
+      "bytes": 8279179,
+      "sha256": "8965b4110d1a663181f752ed8f3552ca0617f4ffc8fb07b207a418487f1d4b53"
+    },
+    {
+      "file": "夏彦/夏天/653a1ce73765f303480b67c5c0a055fc.jpg",
+      "bytes": 1713018,
+      "sha256": "7bc0bb4cbb771e5b64a886dc4be083221178258fc4834be193d4c75574e38232"
+    },
+    {
+      "file": "夏彦/夏天/b085e29d8699636acc601da44267cf22.jpg",
+      "bytes": 2264368,
+      "sha256": "606335ec3d3f6741078a5f04f02940de8b0d00d6b67d3e7ca96e8add2f4cd603"
+    },
+    {
+      "file": "夏彦/夏天/d0e87c173c8acbec03927e30417adb40.png",
+      "bytes": 3231543,
+      "sha256": "24963bc3fb85ae509bb3109800dc5f63d4a1f67093d76d8378a2cc68436de5c5"
+    },
+    {
+      "file": "夏彦/夏天/eebb5d95d1fde31ab23867c5762e34bf.jpg",
+      "bytes": 655971,
+      "sha256": "ec57be14925aa55b95b4607e6fbaba9b4c1f5d6790a4eeb2341bfdff73898691"
+    },
+    {
+      "file": "夏彦/春天/0890d4f921f06bbf68f1687fd207988d.png",
+      "bytes": 1073648,
+      "sha256": "16a76fc700fdb4fad959153cd2b0f908448704c03efb9131995b8531365aeee8"
+    },
+    {
+      "file": "夏彦/春天/11012efb856b87476c513234c1cf9dc9.png",
+      "bytes": 1312406,
+      "sha256": "20f0c9d6e4081dff9af38a736c3b7a0d9f4b47c86aedd5d7f374ca976b6a63a9"
+    },
+    {
+      "file": "夏彦/春天/207f21d97a7a9a890c940c53b6489fea.png",
+      "bytes": 1408599,
+      "sha256": "ff29f2d850c345a506dfabc8a9193c6a185fb52862dd0f5b8468cc328048bb4b"
+    },
+    {
+      "file": "夏彦/春天/2b95f37685ecf1a22f90d6ea8fb934df.png",
+      "bytes": 1412020,
+      "sha256": "9531598b8fb1333a6d40fb7de29aea7a704f107cf23df17734fbd4e243e9834c"
+    },
+    {
+      "file": "夏彦/春天/6814e222c79744623e784eccc046ea3c.jpg",
+      "bytes": 763001,
+      "sha256": "ee8c2bdae91b15c6c01971dbf140cfa72edbecface6bccb061c97ddc462fa77f"
+    },
+    {
+      "file": "夏彦/春天/6b57a8b117a2fe10e050b1ab3ad9e2a1.png",
+      "bytes": 5067389,
+      "sha256": "1987119847ebf38247f8d6551e39cadb04bed6a865db43959581316499ec4487"
+    },
+    {
+      "file": "夏彦/春天/8d0c1a0964576ba6ada24d871003f349.png",
+      "bytes": 8139840,
+      "sha256": "ea165b7d3a1ae9a5b4273877f88dba8aeb9111240ca7e7d258fd3947348753f1"
+    },
+    {
+      "file": "夏彦/春天/9b80062f59d6ac57a253088c8c9cafbb.png",
+      "bytes": 1263267,
+      "sha256": "5ec8903783b1df491fd846fac6c310bdc0826855f8598c3263722d3676b41a4c"
+    },
+    {
+      "file": "夏彦/春天/db14e261fc7ec019e76f7be6b9295481.png",
+      "bytes": 5932237,
+      "sha256": "9d812b4662d4dce0833c8026155918938224cf6210553615032867062db02685"
+    },
+    {
+      "file": "夏彦/春天/e43a0b8f74b08d974676b20c9a679fdb.png",
+      "bytes": 1286752,
+      "sha256": "1533789f54f58579330a943a799d3e42b7e913b2ee93528055ea8f9ca92ab7c4"
+    },
+    {
+      "file": "夏彦/晚上/d8b354d1dc4e51fa48083a53a2420515.png",
+      "bytes": 1126260,
+      "sha256": "e07a74a9c9a0a90ef478f8efa108a01aa0d1198cecc63c860faa840b7fabfdc4"
+    },
+    {
+      "file": "夏彦/秋天/164ed110c6a3403316e997becec9dce4.png",
+      "bytes": 1258293,
+      "sha256": "77e9369a0da17afe3c00d18f12593fae155a6e2d3e07f2e2e4642add0ee12761"
+    },
+    {
+      "file": "夏彦/秋天/2409805c895a670fa3af58af0302296b.png",
+      "bytes": 6487980,
+      "sha256": "cf81fca217615b4b9b12945a6e4113695f4ca80ad6cfb3a840a95e2c305fd7b8"
+    },
+    {
+      "file": "夏彦/秋天/6db2629b6cb97e0112550dc737bc259a.png",
+      "bytes": 3198776,
+      "sha256": "a521da36342a212d63ad28f03402310fc1db62921b676d005b19d2dd770bf473"
+    },
+    {
+      "file": "夏彦/秋天/75455c0799cdb693119d80a6e44db29d.png",
+      "bytes": 5552983,
+      "sha256": "2bbe87e17647b990c8009428b508255dc7d82372b427c852c02fc1d2ef2c3e06"
+    },
+    {
+      "file": "夏彦/秋天/be2e8d4802f358e34dea3fa685693c9a.png",
+      "bytes": 5594083,
+      "sha256": "f0f966423a68547a5a59e69772f66c71db067d4df3bc6001d6f9682073b4ebc4"
+    },
+    {
+      "file": "夏彦/秋天/cd1ac33583cd0d639d362dbe88a5f6dd.png",
+      "bytes": 3000076,
+      "sha256": "3f29d4ef5781907bba2e52a201d1914e6a9b76910f1d472afe00d3e17b2da6b9"
+    },
+    {
+      "file": "夏彦/秋天/ef8ece128b58fa4c34eb0a374aa18f73.png",
+      "bytes": 1148904,
+      "sha256": "aaa96c7bcc276d45f7303c02f6c443202f1412f9143ec91cdad8102502819761"
+    },
+    {
+      "file": "夏彦/秋天/f310c6e1238e28d567a74d9e281c823b.png",
+      "bytes": 5542478,
+      "sha256": "c89d5492409fb890e935247850c34359171706dea6beee24508dae5e2153c717"
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+[
+  {
+    "sourceArchive": "图标夏彦.zip",
+    "sourceFile": "ChatGPT Image 2026年9月15日 22_31_46 (5).png",
+    "sourceSha256": "0c1d943c7c167d02bca67ce0678dd6f610dbb20a25218750cf15992665c53505",
+    "output": "public/images/details210/feather-pen.webp",
+    "outputSha256": "b46eaf5954fbf6f51d16f845724bf9955cf73d6b375ac408dc48c9dcbc6269c2",
+    "operation": "Crop transparent outer padding and proportionally downsize; no added background",
+    "dimensions": [
+      381,
+      384
+    ]
+  },
+  {
+    "sourceArchive": "图标夏彦.zip",
+    "sourceFile": "ChatGPT Image 2026年9月15日 22_30_38 (8).png",
+    "sourceSha256": "dcdf51eef21b4af03bbe6c3911055332eb74f5f3bffbba3074cf4d46f43d6121",
+    "output": "public/images/details210/flower-bookmark.webp",
+    "outputSha256": "ec5fab001236d1822696b58585fe32f9c86eb645943ff3af4074a2cbc70ade0d",
+    "operation": "Crop transparent outer padding and proportionally downsize; no added background",
+    "dimensions": [
+      384,
+      371
+    ]
+  },
+  {
+    "sourceArchive": "图标夏彦.zip",
+    "sourceFile": "ChatGPT Image 2026年9月15日 22_30_31 (3).png",
+    "sourceSha256": "5ab1e3651e1cbbce306ecabc23af3e12acd4d2d37a50a6cea755ece3d4c32918",
+    "output": "public/images/details210/orange-camera.webp",
+    "outputSha256": "b838cfe72e88df379d14d4f29180107b42f1bada3453cde73ce38f3d09846398",
+    "operation": "Crop transparent outer padding and proportionally downsize; no added background",
+    "dimensions": [
+      376,
+      384
+    ]
+  }
+]

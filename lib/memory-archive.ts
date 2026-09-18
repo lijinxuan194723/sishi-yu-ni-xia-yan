@@ -88,9 +88,9 @@ const stops=new Set(['什么','那个','这个','之前','记得','我们','你�
 export function memoryTerms(query:string):string[]{const text=normalize(query).slice(-1200),terms=new Set<string>(text.match(/[a-z\d][a-z\d_-]{1,40}/g)??[]);for(const part of text.match(/[\u3400-\u9fff]+/g)??[])for(let i=0;i+1<part.length;i++)if(!stops.has(part.slice(i,i+2)))terms.add(part.slice(i,i+2));return [...terms].slice(-64);}
 const normalizedMessages=new WeakMap<ArchiveMessage,string>();
 function score(text:string,terms:string[]){const value=normalize(text);return terms.reduce((n,t)=>n+(value.includes(t)?(/[a-z\d]/.test(t)?2:1):0),0);}
-export function retrieveArchive(messages:readonly ArchiveMessage[],archive?:MemoryArchive){
+export function retrieveArchive(messages:readonly ArchiveMessage[],archive?:MemoryArchive,queryOverride?:string){
  const recent=recentWindow(messages),clean=reconciledArchive(messages,archive),muted=new Set(clean.mutedSources??[]);
- let query='';for(let i=messages.length-1;i>=0;i--)if(messages[i].who==='me'){query=messages[i].text;break;}const terms=memoryTerms(query);
+ let query='';for(let i=messages.length-1;i>=0;i--)if(messages[i].who==='me'){query=messages[i].text;break;}const terms=memoryTerms(queryOverride??query);
  const chapters=clean.chapters.map((c,i)=>({c,i,score:score(c.summary,terms)})).filter(x=>![...muted].some(i=>i>=x.c.from&&i<x.c.to)).filter(x=>x.score>0||x.i>=clean.chapters.length-2).sort((a,b)=>b.score-a.score||b.i-a.i).slice(0,3).sort((a,b)=>a.i-b.i).map(({c})=>({from:c.from,to:c.to,fromDate:messages[c.from]?.at,toDate:messages[c.to-1]?.at,summary:c.summary.slice(0,1400)}));
  const matches:{i:number;score:number}[]=[];
  for(let i=0;i<recent.start;i++){const m=messages[i];if(m.who!=='me'||m.source==='demo'||muted.has(i))continue;let text=normalizedMessages.get(m);if(text===undefined){text=normalize(m.text);normalizedMessages.set(m,text);}const value=terms.reduce((n,t)=>n+(text!.includes(t)?1:0),0);if(value)matches.push({i,score:value});}

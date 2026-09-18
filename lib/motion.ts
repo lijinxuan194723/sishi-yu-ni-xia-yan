@@ -1,6 +1,6 @@
 export const MOTION = Object.freeze({ enter: 320, exit: 240, photo: 520, easing: 'cubic-bezier(.4,0,.2,1)' });
 export function prefersReducedMotion() {
-  return typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  return (typeof document!=='undefined'&&document.documentElement?.dataset?.effects==='off') || (typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches);
 }
 /** Finish rather than strand a presence layer when the document becomes hidden. */
 export function settleAnimation(animation: Animation, signal?: AbortSignal): Promise<boolean> {

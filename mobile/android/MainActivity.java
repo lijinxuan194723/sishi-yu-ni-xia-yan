@@ -371,6 +371,6 @@ public class MainActivity extends Activity {
    }catch(Exception e){if(streaming)streamPart(id,0,"","",true);else deliver(id,0,"");}finally{requests.remove(id);if(c!=null)c.disconnect();}});
   }
   @JavascriptInterface public void cancel(String id){active.remove(id);HttpURLConnection c=requests.remove(id);if(c!=null)c.disconnect();}
-  @JavascriptInterface public void saveBackup(String name,String text){if(rendererGone||text==null||text.length()>60000000){toast("备份过大，暂时无法导出");return;}runOnUiThread(()->{if(exportText!=null){toast("请先完成当前导出");return;}exportText=text;try{Intent i=new Intent(Intent.ACTION_CREATE_DOCUMENT);i.addCategory(Intent.CATEGORY_OPENABLE);i.setType("application/json");i.putExtra(Intent.EXTRA_TITLE,name.replaceAll("[\\\\/:*?\"<>|]","_"));startActivityForResult(i,11);}catch(Exception e){exportText=null;toast("无法打开保存窗口");}});}
+  @JavascriptInterface public void saveBackup(String name,String text){if(rendererGone||text==null||text.length()>60000000){toast("备份过大，暂时无法导出");return;}runOnUiThread(()->{if(exportText!=null){toast("请先完成当前导出");return;}exportText=text;try{Intent i=new Intent(Intent.ACTION_CREATE_DOCUMENT);i.addCategory(Intent.CATEGORY_OPENABLE);i.setType(name.toLowerCase(java.util.Locale.ROOT).endsWith(".md")?"text/markdown":name.toLowerCase(java.util.Locale.ROOT).endsWith(".txt")?"text/plain":"application/json");i.putExtra(Intent.EXTRA_TITLE,name.replaceAll("[\\\\/:*?\"<>|]","_"));startActivityForResult(i,11);}catch(Exception e){exportText=null;toast("无法打开保存窗口");}});}
  }
 }

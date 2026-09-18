@@ -1,3 +1,5 @@
+import {SKILLS_KEY,parseSkillStore} from './chat-skills';
+import {SUBJECTS_KEY,parseStudySubjects} from './study-subjects';
 import {parseData,type Data} from './companion';
 import {replaceDurable,restorableSetting,STORE_MARKER,encodeSnapshot} from './durable-store';
 import {MEMO_STORAGE_KEY,parseMemoWorkspace} from './memos';
@@ -77,6 +79,8 @@ export function parseFullBackup(text:string):FullBackup{
  const main=storage[MAIN_STORAGE_KEY];
  if(!main)throw Error('完整备份缺少主数据');
  parseData(main);
+ if(storage[SKILLS_KEY])parseSkillStore(JSON.parse(storage[SKILLS_KEY]));
+ if(storage[SUBJECTS_KEY])parseStudySubjects(JSON.parse(storage[SUBJECTS_KEY]));
  if(storage[MEMO_STORAGE_KEY])parseMemoWorkspace(storage[MEMO_STORAGE_KEY]);
  return {...parsed,storage,excludedSensitiveKeys:Array.isArray(parsed.excludedSensitiveKeys)?parsed.excludedSensitiveKeys.filter((x):x is string=>typeof x==='string').slice(0,100):[]};
 }

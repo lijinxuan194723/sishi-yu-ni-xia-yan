@@ -1,0 +1,30 @@
+[
+  {
+    "year": 2023,
+    "upstreamGitBlobSha": "08811878cd16552760ce8abb90a1d80af4a03663",
+    "sha256": "bea9f3e9d39b33bf0d2e4b04ab3f3edaeeb28c7c576a9efcff6f763ea1ae52c1",
+    "paper": "http://www.gov.cn/zhengce/zhengceku/2022-12/08/content_5730844.htm",
+    "days": 34
+  },
+  {
+    "year": 2024,
+    "upstreamGitBlobSha": "c980225ab5814997ae9e94087f75d50110772f3c",
+    "sha256": "a1abda6884a98aa770a1b2a676bd4e69e73bee9d8e4c7e97d82c5d2e480e7661",
+    "paper": "https://www.gov.cn/zhengce/zhengceku/202310/content_6911528.htm",
+    "days": 36
+  },
+  {
+    "year": 2025,
+    "upstreamGitBlobSha": "9d9d33cc6e55fa425ebea1c6e93d97ed634f6fc5",
+    "sha256": "33e3023d3af27e158d31196a3cc5096aa089ecd5cd33280fb0b92cd9c9d180c9",
+    "paper": "https://www.gov.cn/zhengce/zhengceku/202411/content_6986383.htm",
+    "days": 33
+  },
+  {
+    "year": 2026,
+    "upstreamGitBlobSha": "08ba80f53505dd89f789bda287c7c964b0387f35",
+    "sha256": "0dcfd8004351e132ce15e8444de4df123265b3f490f7e2f8346631122cb5b709",
+    "paper": "https://www.gov.cn/zhengce/zhengceku/202511/content_7047091.htm",
+    "days": 39
+  }
+]

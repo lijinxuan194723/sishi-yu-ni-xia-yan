@@ -1,0 +1,10 @@
+export const SUBJECTS_KEY='luke-study-subjects-v206';
+export type StudySubjects={version:1;selected:string;items:{id:string;name:string}[]};
+export const emptySubjects=():StudySubjects=>({version:1,selected:'',items:[]});
+export function subjectName(value:string){return value.normalize('NFKC').replace(/\s+/g,' ').trim();}
+export function parseStudySubjects(value:unknown):StudySubjects{const p=value as StudySubjects;if(!p||p.version!==1||!Array.isArray(p.items)||p.items.length>100||typeof p.selected!=='string')throw Error('科目目录无法读取，未覆盖原数据。');const ids=new Set<string>(),names=new Set<string>();for(const s of p.items){if(!s||typeof s.id!=='string'||!s.id||s.id.length>100||typeof s.name!=='string'||!subjectName(s.name)||s.name.length>30||ids.has(s.id)||names.has(subjectName(s.name)))throw Error('科目名称或编号重复／无效。');ids.add(s.id);names.add(subjectName(s.name));}if(p.selected&&!ids.has(p.selected))throw Error('选中的科目不存在。');return {version:1,selected:p.selected,items:p.items.map(s=>({...s}))};}
+export function readStudySubjects(){return parseStudySubjects(JSON.parse(localStorage.getItem(SUBJECTS_KEY)??JSON.stringify(emptySubjects())));}
+export function saveStudySubjects(value:StudySubjects){const old=localStorage.getItem(SUBJECTS_KEY);if(old!==null)parseStudySubjects(JSON.parse(old));const next=parseStudySubjects(value);localStorage.setItem(SUBJECTS_KEY,JSON.stringify(next));window.dispatchEvent(new Event('luke-subjects-change'));return next;}
+export function addSubject(store:StudySubjects,name:string,id=crypto.randomUUID()):StudySubjects{const clean=subjectName(name);return parseStudySubjects({...store,selected:id,items:[...store.items,{id,name:clean}]});}
+export function renameSubject(store:StudySubjects,id:string,name:string){return parseStudySubjects({...store,items:store.items.map(s=>s.id===id?{...s,name:subjectName(name)}:s)});}
+export function removeSubject(store:StudySubjects,id:string){return parseStudySubjects({...store,selected:store.selected===id?'':store.selected,items:store.items.filter(s=>s.id!==id)});}

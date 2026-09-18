@@ -1,0 +1,154 @@
+/* hotfix.3 — visible central clock hands; display/state do not depend on decorative motion.
+   Local stylesheet deliberately last in both web and APK entry points. */
+:root{--clock-second-hf3:#ac4c27;--clock-minute-hf3:var(--scene-ink);--clock-hour-hf3:var(--season-accent)}
+:root[data-night=true]{--clock-second-hf3:#ffd08a;--clock-minute-hf3:var(--scene-ink);--clock-hour-hf3:var(--season-accent)}
+:root .analog-clock-hf3{position:relative;isolation:isolate;aspect-ratio:1;flex:none;max-width:100%;padding:0!important;margin:0!important;border:0!important;box-shadow:none!important;border-radius:50%;background:transparent!important;overflow:visible}
+:root .analog-clock-hf3::before,:root .analog-clock-hf3::after{display:none!important}
+:root .analog-clock-hf3>.analog-face-hf3{position:absolute;inset:0;display:block;width:100%;height:100%;overflow:visible;pointer-events:none}
+:root .clock-rim-hf3{fill:var(--season-soft);stroke:var(--scene-border);stroke-width:.9}
+:root .clock-bezel-hf3{fill:var(--scene-paper);stroke:color-mix(in srgb,var(--scene-ink) 22%,var(--scene-paper));stroke-width:.6}
+:root .clock-paper-hf3{fill:var(--scene-paper);stroke:var(--scene-border);stroke-width:.5}
+:root .analog-face-hf3 .major{stroke:var(--scene-muted);stroke-width:1.1;stroke-linecap:round}
+:root .analog-face-hf3 .minor{stroke:color-mix(in srgb,var(--scene-muted) 50%,var(--scene-paper));stroke-width:.65;stroke-linecap:round}
+:root .clock-label-hf3{font-family:system-ui,sans-serif;font-size:10px;font-weight:500;fill:var(--scene-muted);letter-spacing:.3px}
+:root .clock-signature-hf3{font-family:Georgia,serif;font-size:6px;letter-spacing:2px;fill:var(--scene-muted);opacity:.75}
+:root .clock-signature-mark-hf3{stroke:var(--scene-border);stroke-width:.75;fill:none;stroke-linecap:round}
+:root .clock-minute-hf3 path{fill:var(--clock-minute-hf3);stroke:var(--scene-paper);stroke-width:.6}
+:root .clock-hour-hf3 path{fill:var(--clock-hour-hf3);stroke:var(--scene-paper);stroke-width:.6}
+:root .clock-second-outline-hf3{stroke:var(--scene-paper);stroke-width:3.2;stroke-linecap:round;fill:none}
+:root .clock-second-hf3 .dial-pointer210{stroke:var(--clock-second-hf3);stroke-width:1.8;stroke-linecap:round;fill:none}
+:root .clock-counterweight-hf3{fill:var(--scene-paper);stroke:var(--clock-second-hf3);stroke-width:1.5}
+:root .clock-hub-base-hf3{fill:var(--clock-minute-hf3);stroke:var(--scene-paper);stroke-width:.8}
+:root .clock-hub-hf3{fill:var(--clock-second-hf3)}
+:root .analog-face-hf3 .dial-progress210{stroke:var(--season-accent);stroke-width:1.7;fill:none;opacity:.7}
+:root .clock-hand-hf3{transition:none!important;animation:none!important;transform-origin:0px 0px!important;transform-box:view-box}
+/* Center is deliberately reserved for hands. Digits and illustration sit BELOW,
+   so no angle can send a hand behind text or clip it out of the dial. */
+:root .study-workspace .study-timer{gap:10px;padding:16px}
+:root .dial-stage-hf3{display:flex;flex-direction:column;gap:10px;padding:0}
+:root .focus-readout-hf3{display:flex;flex-direction:column;gap:7px;align-items:center;justify-content:center;width:100%;min-width:0}
+:root .focus-readout-hf3>.focus-clock{font-size:clamp(25px,2.05rem,38px);font-weight:600;line-height:1.18;letter-spacing:.025em;font-variant-numeric:tabular-nums;white-space:nowrap;margin:0;padding:0!important}
+:root .focus-status-hf3{display:flex;gap:8px;align-items:center;justify-content:center;min-height:32px;max-width:100%}
+:root .focus-status-hf3>.focus-keepsake{width:30px;height:32px;flex:none;margin:0;padding:0}
+:root .focus-status-hf3 .focus-keepsake-pendant,:root .focus-status-hf3 .focus-keepsake img{width:28px;height:28px;background:none!important;border:0!important;border-radius:0!important;object-fit:contain}
+:root .focus-status-hf3 .focus-keepsake-thread{display:none}
+:root .focus-status-hf3 .focus-keepsake-pendant svg{width:11px;height:11px;right:-3px}
+:root .focus-status-hf3>span{display:flex;flex-direction:column;gap:1px;min-width:0}
+:root .focus-status-hf3 small{font-size:.6875rem;color:var(--scene-muted);line-height:1.5}
+:root .focus-status-hf3 .dial-peanut210{font-size:.625rem;line-height:1.5;color:var(--scene-muted);gap:4px}
+:root .study-select210{gap:8px}
+:root .study-select210 select{height:auto;min-height:44px;line-height:1.45;max-width:100%}
+:root .study-heading210{min-width:0;max-width:100%;gap:9px}
+:root .study-heading210 strong{overflow-wrap:anywhere}
+:root .study-heading210>img{width:32px;height:32px}
+/* The reminders page is two clear tasks, not two expanded, competing forms.
+   The app clock is live before starting; a countdown then owns the same hands. */
+:root .in-app-countdown210{display:flex;flex-direction:column;gap:12px;min-width:0}
+:root .in-app-countdown210>h2{display:flex;align-items:center;gap:8px;font-size:1rem;line-height:1.5;margin:0}
+:root .in-app-countdown210>h2>svg{flex:none}
+:root .countdown-display-hf3{display:grid;grid-template-columns:minmax(104px,.95fr) minmax(0,1fr);align-items:center;gap:16px;min-width:0}
+:root .countdown-display-hf3>.analog-clock-hf3{width:100%!important;height:auto!important;max-width:170px;justify-self:center;aspect-ratio:1}
+:root .countdown-readout-hf3{min-width:0;display:flex;flex-direction:column;align-items:center;gap:7px;text-align:center}
+:root .timer-phase-hf3{font-size:.6875rem;line-height:1.5;color:var(--scene-muted)}
+:root .countdown-readout-hf3 .countdown-value210{font-size:clamp(22px,2rem,34px);font-weight:550;line-height:1.2;letter-spacing:0;margin:0;padding:0;white-space:nowrap;font-variant-numeric:tabular-nums}
+:root .countdown-display-hf3[data-idle=true] .countdown-value210{font-size:clamp(16px,1.22rem,23px)}
+:root .countdown-readout-hf3>p{margin:0;font-size:.6875rem;line-height:1.6;color:var(--scene-muted);overflow-wrap:anywhere}
+:root .countdown-setting210{margin:0;display:flex;align-items:center;justify-content:space-between;gap:8px 12px;flex-wrap:wrap}
+:root .countdown-setting210>label{font-size:.75rem;gap:8px}
+:root .countdown-setting210>span{font-size:.6875rem;line-height:1.5;max-width:100%}
+:root .countdown-setting210 input{width:80px;max-width:100%;min-height:44px;line-height:1.5}
+:root .countdown-ruler210{flex:none;height:88px;margin:0;min-width:0;border-radius:14px}
+:root .countdown-actions210{display:flex;flex-wrap:wrap;gap:8px;margin:0;min-width:0}
+:root .countdown-actions210>button{flex:1 1 100px;display:flex;align-items:center;justify-content:center;min-height:44px;padding:9px 12px;line-height:1.5;font-size:.8125rem;white-space:normal}
+:root .countdown-actions210>button>svg{flex:none}
+:root .countdown-done-hf3{margin:0;padding:8px 12px;background:var(--season-soft);border-radius:12px;font-size:.8125rem;line-height:1.6}
+:root .reminder-system-hf3{border:1px solid var(--scene-border);border-radius:18px;background:var(--scene-paper);padding:8px 14px}
+:root .reminder-system-hf3>.expandable210>button{min-height:44px;width:100%;padding:6px 0;text-align:left;font-size:.8125rem;line-height:1.6}
+:root .reminder-system-hf3 .reminder-panel{border:0;padding:6px 0!important;box-shadow:none;border-radius:0;margin:0}
+:root .reminder-system-hf3 .reminder-panel>h2{display:none}
+:root .reminder-tabs{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+:root .reminder-tabs>button{display:flex;align-items:center;justify-content:center;gap:5px;flex:1 1 100px;min-height:44px;padding:8px 10px;font-size:.75rem;line-height:1.5;border-radius:12px}
+:root .reminder-tabs>button>svg{flex:none}
+:root .reminder-fields{display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
+:root .reminder-fields label{min-width:0;font-size:.75rem;line-height:1.6}
+:root .reminder-fields input{box-sizing:border-box;width:100%;min-width:0;max-width:100%;min-height:44px;line-height:1.5;font-size:.8125rem}
+:root .reminder-panel>.primary,:root .reminder-panel>.soft-button{width:100%;white-space:normal;line-height:1.6;min-height:44px;margin:12px 0 0}
+:root .reminder-panel .reminder-unavailable-hf3{font-size:.71875rem;line-height:1.65;color:var(--scene-muted);margin:10px 0 0}
+/* Pomodoro has the same real hand engine; no hidden fallback dial running offscreen. */
+:root .pomodoro-dial-hf3{display:grid;grid-template-columns:minmax(100px,.95fr) minmax(0,1fr);gap:14px;align-items:center;margin:12px 0}
+:root .pomodoro-dial-hf3>.analog-clock-hf3{width:100%!important;height:auto!important;max-width:160px;justify-self:center}
+:root .pomodoro-dial-hf3>.focus-clock{font-size:clamp(24px,2.1rem,38px);line-height:1.2;font-variant-numeric:tabular-nums;padding:0!important;white-space:nowrap;text-align:center;letter-spacing:0}
+:root .pomodoro-dial-hf3>.focus-clock span{animation:none!important}
+:root .focus-moment>.journal-filters{flex-wrap:wrap}
+:root .focus-moment .focus-actions{display:flex;gap:8px;flex-wrap:wrap}
+:root .focus-moment .focus-actions>button{flex:1 1 110px;min-height:44px;white-space:normal;line-height:1.5}
+:root .focus-moment .focus-length{min-width:0;flex-wrap:wrap;gap:8px;font-size:.8125rem;line-height:1.6}
+:root .focus-moment .focus-length input{min-width:0;max-width:100%;min-height:44px;font-size:.8125rem}
+/* Common timer summaries no longer push dates/actions off the right edge. */
+:root .study-range{display:flex;align-items:center;gap:8px;min-width:0}
+:root .study-range>.round{width:44px;min-width:44px;height:44px;padding:8px}
+:root .study-range>.date-field{flex:1;min-width:0;min-height:44px;font-size:.8125rem}
+:root .study-period{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:space-between;overflow-wrap:anywhere;font-size:.75rem!important;line-height:1.6!important}
+:root .study-period>button{min-height:40px}
+:root .study-categories>div{min-width:0;overflow-wrap:anywhere}
+:root .luke-study-calendar>header{flex-wrap:wrap;gap:10px}
+:root .luke-study-calendar>header>div:first-child{min-width:0;flex:1 1 150px}
+:root .luke-study-calendar>header h2{font-size:1rem;line-height:1.55;overflow-wrap:anywhere}
+:root .luke-study-calendar>header>div:last-child{display:flex;gap:6px}
+:root .luke-study-calendar>header .round{width:44px;min-width:44px;height:44px;padding:8px}
+@media(max-width:360px){
+ :root .study-workspace .study-timer{padding:12px;gap:8px}
+ :root .countdown-display-hf3,:root .pomodoro-dial-hf3{gap:10px;grid-template-columns:minmax(104px,.95fr) minmax(0,1fr)}
+ :root .in-app-countdown210{padding:14px;gap:10px}
+ :root .focus-readout-hf3>.focus-clock{font-size:clamp(24px,1.9rem,34px)}
+}
+@media(max-height:650px){
+ :root .dial-stage-hf3{gap:6px}
+ :root .focus-readout-hf3{gap:3px}
+ :root .focus-status-hf3>span{flex-direction:row;align-items:center;gap:6px;flex-wrap:wrap;justify-content:center}
+ :root .focus-status-hf3 .dial-peanut210{display:none}
+ :root .focus-status-hf3>.focus-keepsake{width:24px;height:24px}
+ :root .focus-status-hf3 .focus-keepsake-pendant,:root .focus-status-hf3 .focus-keepsake img{width:24px;height:24px}
+ :root .study-workspace .study-timer{padding-block:12px;gap:8px}
+ :root .in-app-countdown210{gap:9px}
+ :root .countdown-ruler210{height:78px}
+}
+@media(prefers-contrast:more){:root .clock-label-hf3,:root .clock-signature-hf3{fill:var(--scene-ink);opacity:1}:root .clock-second-hf3 .dial-pointer210{stroke-width:2.2}}
+@media(forced-colors:active){:root .clock-paper-hf3,:root .clock-bezel-hf3{fill:Canvas}:root .clock-minute-hf3 path,:root .clock-hour-hf3 path{fill:CanvasText}:root .clock-second-hf3 .dial-pointer210,:root .analog-face-hf3 .major,:root .analog-face-hf3 .minor{stroke:CanvasText}:root .clock-label-hf3{fill:CanvasText}:root .clock-hub-hf3{fill:CanvasText}}
+
+/* Short windows use a clock/readout row, not tiny stacked content under the footer. */
+:root .dial-stage-hf3[data-compact=true]{display:grid;grid-template-columns:minmax(0,.95fr) minmax(0,1fr);align-items:center;gap:12px}
+:root .dial-stage-hf3[data-compact=true]>.analog-clock-hf3{justify-self:center}
+:root .dial-stage-hf3[data-compact=true] .focus-readout-hf3{gap:7px;align-items:center}
+:root .dial-stage-hf3[data-compact=true] .focus-readout-hf3>.focus-clock{font-size:clamp(19px,1.4rem,24px);line-height:1.25;letter-spacing:0}
+:root .dial-stage-hf3[data-compact=true] .focus-status-hf3{gap:5px;min-height:24px}
+:root .dial-stage-hf3[data-compact=true] .focus-status-hf3 small{font-size:min(.6875rem,13px);line-height:1.6;text-align:center}
+
+:root .study-range>.date-field{padding:9px 10px;gap:6px}
+:root .study-range>.date-field>span{white-space:nowrap;font-size:clamp(12px,.8125rem,16px);line-height:1.5}
+:root .study-range>.date-field>svg{flex:none;width:16px;height:16px}
+:root .focus-moment{display:flex;flex-direction:column;gap:12px}
+:root .focus-moment>h2{display:flex;align-items:center;gap:8px;line-height:1.5;margin:0}
+:root .focus-moment>.journal-filters{margin:0;gap:5px}
+:root .focus-moment>.journal-filters>button{min-height:44px;font-size:.8125rem;line-height:1.5;padding:8px 12px}
+:root .focus-moment>p{margin:0;font-size:.8125rem;line-height:1.7}
+:root .focus-moment>.pomodoro-dial-hf3{margin:0}
+:root .focus-moment>progress{width:100%;height:5px;margin:0}
+:root .focus-moment>.focus-actions{margin:0;gap:8px}
+:root .focus-options-hf3{padding-top:8px;border-top:1px solid var(--scene-border)}
+:root .focus-options-hf3 .expandable210>button{width:100%;min-height:44px;text-align:left;padding:6px 0;font-size:.8125rem}
+:root .focus-options-hf3 .focus-length{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:8px 0}
+:root .focus-options-hf3 .focus-length>input{flex:1;max-width:55%;min-width:70px;padding:9px 10px}
+:root .focus-options-hf3 .pomodoro-settings>small{display:block;font-size:.6875rem;color:var(--scene-muted);line-height:1.6}
+:root .focus-options-hf3 .pomodoro-settings h3{margin:0 0 8px}
+:root .focus-moment .pomodoro-phase{margin:0;padding:8px 12px;gap:5px;min-width:0;overflow-wrap:anywhere}
+:root .focus-moment .pomodoro-phase strong{font-size:.9375rem}
+:root .focus-moment .pomodoro-phase span{font-size:.6875rem;line-height:1.6}
+/* Start/reset are one control row, with equal heights and unbroken labels. */
+:root .focus-moment>.focus-actions{align-items:stretch}
+:root .focus-moment>.focus-actions>button{display:flex;align-items:center;justify-content:center;align-self:stretch;margin:0;padding:10px 12px;min-height:46px;font-size:clamp(13px,.8125rem,18px);line-height:1.5;white-space:nowrap}
+:root .focus-moment>.focus-actions>button>svg{flex:none}
+
+/* The reminder actions share one baseline and height, including inherited primary margins. */
+:root .in-app-countdown210 .countdown-actions210{align-items:stretch}
+:root .in-app-countdown210 .countdown-actions210>button{margin:0;align-self:stretch;height:auto;min-height:46px;line-height:1.5;padding:11px 14px;box-sizing:border-box;font-size:clamp(13px,.8125rem,18px)}

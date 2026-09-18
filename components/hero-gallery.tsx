@@ -1,4 +1,7 @@
 'use client';
+import {motion} from 'motion/react';
+import {Expand} from 'lucide-react';
+import {PhotoDetail} from './photo-detail';
 import { useCallback, useEffect, useLayoutEffect, useState, useRef, type ReactNode } from 'react';
 import { flushSync } from 'react-dom';
 import useEmblaCarousel from 'embla-carousel-react';
@@ -15,6 +18,7 @@ export function HeroGallery({ season, children }: { season: GallerySeason; child
   const [cover, setCover] = useState<{ src: string; position: string } | null>(null);
   const [selected, setSelected] = useState(0);
   const [error, setError] = useState('');
+  const [detail,setDetail]=useState<{src:string;id:string;alt:string}|null>(null);
   const shown = useRef(season), selectedRef = useRef(0), swapping = useRef(false);
   const pendingIndex = useRef<number | null>(null);
   const coverNode = useRef<HTMLImageElement>(null), animation = useRef<Animation | null>(null);
@@ -90,12 +94,12 @@ export function HeroGallery({ season, children }: { season: GallerySeason; child
     if (!alive.current || token !== navigation.current || swapping.current || shown.current !== currentSeason) return;
     setError(''); carousel.scrollTo(index, prefersReducedMotion());
   }
-  return <section ref={viewport} className="hero hero-gallery" data-album-season={displayed} data-photo-index={selected} aria-roledescription="可左右滑动的相册" aria-label="四季相册" tabIndex={0} onKeyDown={event => {
+  return <><section ref={viewport} className="hero hero-gallery" data-album-season={displayed} data-photo-index={selected} aria-roledescription="可左右滑动的相册" aria-label="四季相册" tabIndex={0} onKeyDown={event => {
     if (event.target !== event.currentTarget) return;
     if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') { event.preventDefault(); void go(selectedRef.current + (event.key === 'ArrowLeft' ? -1 : 1)); }
   }}><div className="hero-track">{seasonAlbums[displayed].map((src, i) => {
     const distance = Math.abs(i - selected), near = distance <= 1 || distance === seasonAlbums[displayed].length - 1;
-    return <div className="hero-slide season-photo" key={i}><img src={src} alt={`${{ spring: '春', summer: '夏', autumn: '秋', winter: '冬' }[displayed]}日夏彦 ${i + 1}`} style={{ objectPosition: photoPosition(displayed) }} loading={near ? 'eager' : 'lazy'} decoding="async" draggable={false} /></div>;
+    return <div className="hero-slide season-photo" key={i}><motion.img layoutId={i===selected?`gallery-${displayed}-${i}`:undefined} src={src} alt={`${{ spring: '春', summer: '夏', autumn: '秋', winter: '冬' }[displayed]}日夏彦 ${i + 1}`} style={{ objectPosition: photoPosition(displayed) }} loading={near ? 'eager' : 'lazy'} decoding="async" draggable={false} /></div>;
   })}</div>{cover && <img ref={coverNode} className="hero-season-cover" src={cover.src} alt="" aria-hidden="true" style={{ objectPosition: cover.position }} />}
-    {children}<span className="sr-only" role="status">{error || `第 ${selected + 1} 张，共 ${seasonAlbums[displayed].length} 张；左右滑动切换照片。`}</span></section>;
+    {children}<button type="button" className="round gallery-expand210" aria-label="放大查看相册照片" onClick={()=>setDetail({src:seasonAlbums[displayed][selected],id:`gallery-${displayed}-${selected}`,alt:`四季相册第 ${selected+1} 张`})}><Expand size={17}/></button><span className="sr-only" role="status">{error || `第 ${selected + 1} 张，共 ${seasonAlbums[displayed].length} 张；左右滑动切换照片。`}</span></section><PhotoDetail photo={detail} onClose={()=>setDetail(null)}/></>;
 }
